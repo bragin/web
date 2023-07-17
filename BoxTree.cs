@@ -86,13 +86,13 @@ namespace SkiaSharpOpenGLBenchmark
 
         // Computed styles for elements and their pseudo elements.
         // NULL on non-element boxes.
-        CssSelectResults Styles;
+        public CssSelectResults Styles;
 
         // Style for this box. 0 for INLINE_CONTAINER and
         //  FLOAT_*. Pointer into a box's 'styles' select results,
         //  except for implied boxes, where it is a pointer to an
         //  owned computed style.
-        ComputedStyle Style;
+        public ComputedStyle Style;
 
         // value of id attribute (or name for anchors)
         string Id;
@@ -251,16 +251,16 @@ namespace SkiaSharpOpenGLBenchmark
         //struct browser_window *iframe;
 
         // box_manipulate.c:92 - box_create()
-        public Box(/*css_select_results*/int styles,
-                    /*css_computed_style*/ int style,
+        public Box(CssSelectResults styles,
+                    ComputedStyle style,
                     bool style_owned,
                     /*struct nsurl */int href,
                     string target, string title, string id)
         {
             this.Type = BoxType.BOX_INLINE;
             this.Flags = 0; //box->flags = style_owned ? (box->flags | STYLE_OWNED) : box->flags;
-            //box->styles = styles;
-            //box->style = style;
+            Styles = styles;
+            Style = style;
             this.x = this.y = 0;
             this.width = Int32.MaxValue;
             this.height = 0;
@@ -531,7 +531,8 @@ namespace SkiaSharpOpenGLBenchmark
         }
 
         // content/handlers/css/select.c:253 - nscss_get_style()
-        private CssSelectResults nscssGetStyle(IDomObject node, ref CssMedia media, ref CssUnitCtx unitCtx, CssStylesheet inlineStyle)
+        private CssSelectResults nscssGetStyle(ComputedStyle parentStyle, ComputedStyle rootStyle,
+            IDomObject node, ref CssMedia media, ref CssUnitCtx unitCtx, CssStylesheet inlineStyle)
         {
             // STUB
 
@@ -540,17 +541,71 @@ namespace SkiaSharpOpenGLBenchmark
 
             // If there's a parent style, compose with partial to obtain
             // complete computed style for element
-            // if (ctx->parent_style != NULL)
+            if (parentStyle != null)
+            {
+                Console.WriteLine("UNIMPLEMENTED 546");
+                /* Complete the computed style, by composing with the parent
+                 * element's style */
+                /*
+                error = css_computed_style_compose(ctx->parent_style,
+                        styles->styles[CSS_PSEUDO_ELEMENT_NONE],
+                        unit_len_ctx, &composed);
+                if (error != CSS_OK)
+                {
+                    css_select_results_destroy(styles);
+                    return NULL;
+                }
 
-            Console.WriteLine("UNIMPLEMENTED 523");
+                // Replace select_results style with composed style
+                css_computed_style_destroy(
+                        styles->styles[CSS_PSEUDO_ELEMENT_NONE]);
+                styles->styles[CSS_PSEUDO_ELEMENT_NONE] = composed;*/
+            }
+
+            Console.WriteLine("UNIMPLEMENTED 564");
+            /*
+            for (pseudo_element = CSS_PSEUDO_ELEMENT_NONE + 1;
+                    pseudo_element < CSS_PSEUDO_ELEMENT_COUNT;
+                    pseudo_element++)
+            {
+
+                if (pseudo_element == CSS_PSEUDO_ELEMENT_FIRST_LETTER ||
+                        pseudo_element == CSS_PSEUDO_ELEMENT_FIRST_LINE)
+                    // TODO: Handle first-line and first-letter pseudo
+                    //       element computed style completion
+                    continue;
+
+                if (styles->styles[pseudo_element] == NULL)
+                    // There were no rules concerning this pseudo element
+                    continue;
+
+                // Complete the pseudo element's computed style, by composing
+                // with the base element's style
+                error = css_computed_style_compose(
+                        styles->styles[CSS_PSEUDO_ELEMENT_NONE],
+                        styles->styles[pseudo_element],
+                        unit_len_ctx, &composed);
+                if (error != CSS_OK)
+                {
+                    // TODO: perhaps this shouldn't be quite so
+                    // catastrophic?
+                    css_select_results_destroy(styles);
+                    return NULL;
+                }
+
+                // Replace select_results style with composed style
+                css_computed_style_destroy(styles->styles[pseudo_element]);
+                styles->styles[pseudo_element] = composed;
+            }*/
 
             return styles;
         }
 
         // box_construct.c:245 - box_get_style()
-        private CssSelectResults BoxGetStyle(ComputedStyle parentStyle, int rootStyle, IDomObject node)
+        private CssSelectResults BoxGetStyle(ComputedStyle parentStyle, ComputedStyle rootStyle, IDomObject node)
         {
             CssSelectResults styles;
+            CssStylesheet inlineStyle = null;
             /*
 	        dom_string *s;
 	        dom_exception err;
@@ -591,17 +646,15 @@ namespace SkiaSharpOpenGLBenchmark
                     inline_style);
             */
 
-            // Call it this way for testing
-            styles = nscssGetStyle(node, ref Content.Media, ref Content.UnitLenCtx, null);
+            // Select style for element
+            styles = nscssGetStyle(
+                parentStyle,
+                rootStyle,
+                node,
+                ref Content.Media,
+                ref Content.UnitLenCtx,
+                inlineStyle);
 
-            /*
-            // No longer need inline style
-            if (inline_style != NULL)
-                css_stylesheet_destroy(inline_style);
-
-            return styles;
-
-            */
             return styles;
         }
 
@@ -617,7 +670,7 @@ namespace SkiaSharpOpenGLBenchmark
 	        css_select_results* styles = NULL;
             lwc_string* bgimage_uri;
             dom_exception err;*/
-            int rootStyle = 0;//const css_computed_style* root_style = NULL;
+            ComputedStyle rootStyle = null;
 
             // assert(ctx->n != NULL);
             var props = Box.ExtractProperties(node, this);
@@ -630,10 +683,11 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
 	        if (props.NodeIsRoot == false) {
-		       //root_style = ctx->root_box->style;
+                rootStyle = RootBox.Style;
 	        }
 
-            var styles = BoxGetStyle(props.ParentStyle, rootStyle, node); //styles = box_get_style(ctx->content, props.parent_style, root_style, ctx->n);
+            //styles = box_get_style(ctx->content, props.parent_style, root_style, ctx->n);
+            var styles = BoxGetStyle(props.ParentStyle, rootStyle, node);
             if (styles == null)
                 return false;
 
@@ -663,7 +717,14 @@ namespace SkiaSharpOpenGLBenchmark
             // Extract id attribute, if present
             //var box = new Box(styles, styles->styles[CSS_PSEUDO_ELEMENT_NONE], false,
             //      props.href, props.target, props.title, id, ctx->bctx);
-            var box = new Box(0, 0, false, 0, "", props.Title, node.Id);
+            var box = new Box(
+                styles,
+                styles.Styles[(int)CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE],
+                false,
+                0,
+                "",
+                props.Title,
+                node.Id);
 
             if (node.Id != "")
                 Console.WriteLine("Node id: {0}", node.Id);
@@ -762,7 +823,10 @@ namespace SkiaSharpOpenGLBenchmark
             // Handle the :before pseudo element
             if (((int)box.Flags & (int)BoxFlags.IS_REPLACED) == 0)
             {
-                BoxConstructGenerate(node, box /*,box->styles->styles[CSS_PSEUDO_ELEMENT_BEFORE]*/);
+                BoxConstructGenerate(
+                    node,
+                    box,
+                    box.Styles.Styles[(int)CssPseudoElement.CSS_PSEUDO_ELEMENT_BEFORE]);
             }
 
             /*
@@ -913,7 +977,7 @@ namespace SkiaSharpOpenGLBenchmark
         }
 
         // box_construct.c:308 - box_construct_generate
-        private void BoxConstructGenerate(IDomObject n, Box box)
+        private void BoxConstructGenerate(IDomObject n, Box box, ComputedStyle style)
         {
             Box gen = null;
             //enum css_display_e computed_display;
@@ -922,6 +986,8 @@ namespace SkiaSharpOpenGLBenchmark
             // Nothing to generate if the parent box is not a block
             if (box.Type != BoxType.BOX_BLOCK)
                 return;
+
+            Console.WriteLine("UNIMPLEMENTED 987");
 
             /* To determine if an element has a pseudo element, we select
 	         * for it and test to see if the returned style's content
