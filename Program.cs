@@ -26,6 +26,10 @@ Overview:
     Example of function pointers array: CssParser.ParseFunc
 
     Now working on: class CssProps, implementing initial properties dispatcher for various needed props
+
+Useful links:
+    All possible array init syntices:
+        https://stackoverflow.com/questions/5678216/all-possible-array-initialization-syntaxes
  */
 
 

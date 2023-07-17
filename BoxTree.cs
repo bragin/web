@@ -516,6 +516,12 @@ namespace SkiaSharpOpenGLBenchmark
              * length values are absolute, display and float are correctly
              * computed, and the default border-{top,right,bottom,left}-color
              * is set to the computed value of color. */
+            if (parent == null)
+            {
+                // Only compute absolute values for the base element
+                var style = state.Results.Styles[(int)CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE];
+                style.ComputeAbsoluteValues(null, unitCtx);
+            }
 
 
             // Steal the results from the selection state, so they don't get
