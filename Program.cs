@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 /*
 
@@ -32,20 +32,14 @@ Useful links:
         https://stackoverflow.com/questions/5678216/all-possible-array-initialization-syntaxes
  */
 
-
 namespace SkiaSharpOpenGLBenchmark
 {
-    static class Program
+    class Program
     {
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
-        [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            var c = new HtmlContent();
+            c.LoadDocument();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
