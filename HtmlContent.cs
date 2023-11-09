@@ -62,7 +62,13 @@ namespace SkiaSharpOpenGLBenchmark
              * stylesheet 2 is the adblocking stylesheet,
              * stylesheet 3 is the user stylesheet */
 
+            // LoadStylesheetFromFile("..\\..\\..\\default.css");
+#if _WINDOWS
             LoadStylesheetFromFile("..\\..\\..\\default.css");
+#else
+#warning Compiled NOT in Windows. LoadStylesheetFromFile("default.css") used
+            LoadStylesheetFromFile("default.css");
+#endif
         }
 
         public void LoadStylesheetFromFile(string file)
