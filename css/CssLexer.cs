@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
 
 namespace SkiaSharpOpenGLBenchmark.css
 {
@@ -22,7 +22,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         CSS_TOKEN_SUFFIXMATCH, CSS_TOKEN_SUBSTRINGMATCH, CSS_TOKEN_EOF
     }
 
-    struct CssToken
+    internal struct CssToken
     {
         public CssTokenType Type;
 
@@ -120,8 +120,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         sUCR = 14
     };
 
-
-    class CssLexer
+    internal class CssLexer
     {
         //MemoryStream Stream;
         TextSource Source;
@@ -237,7 +236,8 @@ namespace SkiaSharpOpenGLBenchmark.css
          */
         CssStatus AppendToTokenData(int data, int len)
         {
-	        if (EscapeSeen) {
+            if (EscapeSeen)
+            {
                 /*
                     css_error error =
                         css_error_from_parserutils_error(
@@ -247,11 +247,11 @@ namespace SkiaSharpOpenGLBenchmark.css
                         return error;
                 */
                 Console.WriteLine("AppendToTokenData with EscapeSeen is UNIMPLEMENTED");
-	        }
+            }
 
             Token.DataLen += len;
 
-	        return CssStatus.CSS_OK;
+            return CssStatus.CSS_OK;
         }
 
         // lex.c:354
@@ -271,7 +271,8 @@ namespace SkiaSharpOpenGLBenchmark.css
             if (EscapeSeen)
             {
                 Console.WriteLine("UNIMPLEMENTED EmitToken()");
-            } else
+            }
+            else
             {
                 if (type == CssTokenType.CSS_TOKEN_EOF)
                 {
@@ -695,7 +696,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         {
             // enum { Initial = 0, Bracket = 1 };
 
-	        /* IDENT = ident = [-]? nmstart nmchar*
+            /* IDENT = ident = [-]? nmstart nmchar*
 	         * FUNCTION = ident '(' = [-]? nmstart nmchar* '('
 	         *
 	         * The optional dash and nmstart are already consumed
@@ -798,19 +799,19 @@ namespace SkiaSharpOpenGLBenchmark.css
                     //error = consumeEscape(lexer, false);
                     //if (error != CSS_OK)
                     //{
-                        // Rewind '\\', so we do the right thing next time
-                        //BytesReadForToken--;
+                    // Rewind '\\', so we do the right thing next time
+                    //BytesReadForToken--;
 
-                        /* Convert either EOF or INVALID into OK.
-                         * This will cause the caller to believe that
-                         * all NMChars in the sequence have been
-                         * processed (and thus proceed to the next
-                         * state). Eventually, the '\\' will be output
-                         * as a CHAR. */
-                        //if (error == CSS_EOF || error == CSS_INVALID)
-                          //  return CSS_OK;
+                    /* Convert either EOF or INVALID into OK.
+                     * This will cause the caller to believe that
+                     * all NMChars in the sequence have been
+                     * processed (and thus proceed to the next
+                     * state). Eventually, the '\\' will be output
+                     * as a CHAR. */
+                    //if (error == CSS_EOF || error == CSS_INVALID)
+                    //  return CSS_OK;
 
-                        //return error;
+                    //return error;
                     //}
                 }
             } while (StartNMChar(c));

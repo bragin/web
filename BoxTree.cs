@@ -1,10 +1,10 @@
-﻿using System;
+﻿using HtmlParserSharp;
+using SkiaSharpOpenGLBenchmark.css;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CsQuery;
-using SkiaSharpOpenGLBenchmark.css;
 
 namespace SkiaSharpOpenGLBenchmark
 {
@@ -51,7 +51,7 @@ namespace SkiaSharpOpenGLBenchmark
     }
 
     // Transient properties for construction of current node
-    struct BoxConstructProps
+    internal struct BoxConstructProps
     {
         // Style from which to inherit, or NULL if none
         public ComputedStyle ParentStyle;
@@ -73,7 +73,7 @@ namespace SkiaSharpOpenGLBenchmark
 
 
     // Node in box tree. All dimensions are in pixels
-    class Box
+    internal class Box
     {
         // Type of box
         public BoxType Type;
@@ -391,13 +391,16 @@ namespace SkiaSharpOpenGLBenchmark
         public void AddChild(Box child)
         {
             // parent = this
-	        if (this.Children != null) {	/* has children already */
-		        this.Last.Next = child;
-		        child.Prev = this.Last;
-	        } else {			/* this is the first child */
-		        this.Children = child;
-		        child.Prev = null;
-	        }
+            if (this.Children != null)
+            {   /* has children already */
+                this.Last.Next = child;
+                child.Prev = this.Last;
+            }
+            else
+            {           /* this is the first child */
+                this.Children = child;
+                child.Prev = null;
+            }
 
             this.Last = child;
             child.Parent = this;
@@ -405,7 +408,7 @@ namespace SkiaSharpOpenGLBenchmark
 
     }
 
-    class BoxTree
+    internal class BoxTree
     {
         // Context
         IDomObject ctx_n; // ctx->n. Should not be used really
@@ -675,16 +678,18 @@ namespace SkiaSharpOpenGLBenchmark
             // assert(ctx->n != NULL);
             var props = Box.ExtractProperties(node, this);
 
-	        if (props.ContainingBlock != null) {
-		        // In case the containing block is a pre block, we clear
-		        // the PRE_STRIP flag since it is not used if we follow
-		        // the pre with a tag
-		        props.ContainingBlock.Flags &= ~BoxFlags.PRE_STRIP;
+            if (props.ContainingBlock != null)
+            {
+                // In case the containing block is a pre block, we clear
+                // the PRE_STRIP flag since it is not used if we follow
+                // the pre with a tag
+                props.ContainingBlock.Flags &= ~BoxFlags.PRE_STRIP;
             }
 
-	        if (props.NodeIsRoot == false) {
+            if (props.NodeIsRoot == false)
+            {
                 rootStyle = RootBox.Style;
-	        }
+            }
 
             //styles = box_get_style(ctx->content, props.parent_style, root_style, ctx->n);
             var styles = BoxGetStyle(props.ParentStyle, rootStyle, node);
@@ -730,95 +735,95 @@ namespace SkiaSharpOpenGLBenchmark
                 Console.WriteLine("Node id: {0}", node.Id);
 
             //if (node.Style.Count > 0)
-              //  RootBox = box;
+            //  RootBox = box;
 
             // If this is the root box, add it to the context/
             if (props.NodeIsRoot)
                 RootBox = box;
-/*
-            // Deal with colspan/rowspan
-            err = dom_element_get_attribute(ctx->n, corestring_dom_colspan, &s);
-            if (err != DOM_NO_ERR)
-                return false;
+            /*
+                        // Deal with colspan/rowspan
+                        err = dom_element_get_attribute(ctx->n, corestring_dom_colspan, &s);
+                        if (err != DOM_NO_ERR)
+                            return false;
 
-            if (s != NULL)
-            {
-                const char* val = dom_string_data(s);
+                        if (s != NULL)
+                        {
+                            const char* val = dom_string_data(s);
 
-                if ('0' <= val[0] && val[0] <= '9')
-                    box->columns = strtol(val, NULL, 10);
+                            if ('0' <= val[0] && val[0] <= '9')
+                                box->columns = strtol(val, NULL, 10);
 
-                dom_string_unref(s);
-            }
+                            dom_string_unref(s);
+                        }
 
-            err = dom_element_get_attribute(ctx->n, corestring_dom_rowspan, &s);
-            if (err != DOM_NO_ERR)
-                return false;
+                        err = dom_element_get_attribute(ctx->n, corestring_dom_rowspan, &s);
+                        if (err != DOM_NO_ERR)
+                            return false;
 
-            if (s != NULL)
-            {
-                const char* val = dom_string_data(s);
+                        if (s != NULL)
+                        {
+                            const char* val = dom_string_data(s);
 
-                if ('0' <= val[0] && val[0] <= '9')
-                    box->rows = strtol(val, NULL, 10);
+                            if ('0' <= val[0] && val[0] <= '9')
+                                box->rows = strtol(val, NULL, 10);
 
-                dom_string_unref(s);
-            }
+                            dom_string_unref(s);
+                        }
 
-            css_display = ns_computed_display_static(box->style);
+                        css_display = ns_computed_display_static(box->style);
 
-            // Set box type from computed display
-            if ((css_computed_position(box->style) == CSS_POSITION_ABSOLUTE ||
-                 css_computed_position(box->style) == CSS_POSITION_FIXED) &&
-                    (css_display == CSS_DISPLAY_INLINE ||
-                     css_display == CSS_DISPLAY_INLINE_BLOCK ||
-                     css_display == CSS_DISPLAY_INLINE_TABLE ||
-                     css_display == CSS_DISPLAY_INLINE_FLEX))
-            {
-                // Special case for absolute positioning: make absolute inlines
-	            // into inline block so that the boxes are constructed in an
-	            // inline container as if they were not absolutely positioned.
-	            // Layout expects and handles this.
-                box->type = box_map[CSS_DISPLAY_INLINE_BLOCK];
-            }
-            else if (props.node_is_root)
-            {
-                // Special case for root element: force it to BLOCK, or the
-	            // rest of the layout will break.
-                box->type = BOX_BLOCK;
-            }
-            else
-            {
-                // Normal mapping
-                box->type = box_map[ns_computed_display(box->style,
-                        props.node_is_root)];
-
-                if (props.containing_block->type == BOX_FLEX ||
-                    props.containing_block->type == BOX_INLINE_FLEX)
-                {
-                    // Blockification
-                    switch (box->type)
-                    {
-                        case BOX_INLINE_FLEX:
-                            box->type = BOX_FLEX;
-                            break;
-                        case BOX_INLINE_BLOCK:
+                        // Set box type from computed display
+                        if ((css_computed_position(box->style) == CSS_POSITION_ABSOLUTE ||
+                             css_computed_position(box->style) == CSS_POSITION_FIXED) &&
+                                (css_display == CSS_DISPLAY_INLINE ||
+                                 css_display == CSS_DISPLAY_INLINE_BLOCK ||
+                                 css_display == CSS_DISPLAY_INLINE_TABLE ||
+                                 css_display == CSS_DISPLAY_INLINE_FLEX))
+                        {
+                            // Special case for absolute positioning: make absolute inlines
+                            // into inline block so that the boxes are constructed in an
+                            // inline container as if they were not absolutely positioned.
+                            // Layout expects and handles this.
+                            box->type = box_map[CSS_DISPLAY_INLINE_BLOCK];
+                        }
+                        else if (props.node_is_root)
+                        {
+                            // Special case for root element: force it to BLOCK, or the
+                            // rest of the layout will break.
                             box->type = BOX_BLOCK;
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
+                        }
+                        else
+                        {
+                            // Normal mapping
+                            box->type = box_map[ns_computed_display(box->style,
+                                    props.node_is_root)];
 
-            if (convert_special_elements(ctx->n,
-                             ctx->content,
-                             box,
-                             convert_children) == false)
-            {
-                return false;
-            }
-            */
+                            if (props.containing_block->type == BOX_FLEX ||
+                                props.containing_block->type == BOX_INLINE_FLEX)
+                            {
+                                // Blockification
+                                switch (box->type)
+                                {
+                                    case BOX_INLINE_FLEX:
+                                        box->type = BOX_FLEX;
+                                        break;
+                                    case BOX_INLINE_BLOCK:
+                                        box->type = BOX_BLOCK;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                        }
+
+                        if (convert_special_elements(ctx->n,
+                                         ctx->content,
+                                         box,
+                                         convert_children) == false)
+                        {
+                            return false;
+                        }
+                        */
 
             // Handle the :before pseudo element
             if (((int)box.Flags & (int)BoxFlags.IS_REPLACED) == 0)
@@ -927,7 +932,7 @@ namespace SkiaSharpOpenGLBenchmark
                     box.Type == BoxType.BOX_INLINE_BLOCK)
             {
                 // Inline container must exist, as we'll have
-	            // created it above if it didn't
+                // created it above if it didn't
                 //assert(props.inline_container != NULL);
 
                 props.InlineContainer.AddChild(box);
@@ -967,12 +972,12 @@ namespace SkiaSharpOpenGLBenchmark
                 else*/
                 {
                     // Non-floated block-level box: add to containing block
-	                // if there is one. If we're the root box, then there
-	                // won't be.
+                    // if there is one. If we're the root box, then there
+                    // won't be.
                     if (props.ContainingBlock != null)
                         props.ContainingBlock.AddChild(box);
                 }
-	        }
+            }
             return true;
         }
 
@@ -1027,7 +1032,7 @@ namespace SkiaSharpOpenGLBenchmark
 
             var props = Box.ExtractProperties(n, this);
 
-	        if (box.Type == BoxType.BOX_INLINE || box.Type == BoxType.BOX_BR)
+            if (box.Type == BoxType.BOX_INLINE || box.Type == BoxType.BOX_BR)
             {
                 /*
 		        // Insert INLINE_END into containing block
@@ -1414,7 +1419,7 @@ namespace SkiaSharpOpenGLBenchmark
                         parent = n.ParentNode;
 
                         next = parent.NextSibling;
-                        
+
                         if (BoxForNode(parent) != null)
                         {
                             ConstructElementAfter(parent);
@@ -1507,11 +1512,11 @@ namespace SkiaSharpOpenGLBenchmark
                     assert(ctx->n == NULL);
                     free(ctx);*/
                     return;
-		        }
-	    } while (++num_processed < max_processed_before_yield) ;
+                }
+            } while (++num_processed < max_processed_before_yield);
 
-        // More work to do: schedule a continuation
-        //guit->misc->schedule(0, (void*)convert_xml_to_box, ctx);
+            // More work to do: schedule a continuation
+            //guit->misc->schedule(0, (void*)convert_xml_to_box, ctx);
         }
     }
 }

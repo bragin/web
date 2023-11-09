@@ -396,8 +396,9 @@ namespace SkiaSharpOpenGLBenchmark
             i = new ComputedStyleI();
         }
 
-        delegate byte GetForAbsLen(ComputedStyle style, out Fixed len1, out CssUnit unit1, out Fixed len2, out CssUnit unit2);
-        delegate void SetForAbsLen(ComputedStyle style, byte type, Fixed len1, CssUnit unit1, Fixed len2, CssUnit unit2);
+        private delegate byte GetForAbsLen(ComputedStyle style, out Fixed len1, out CssUnit unit1, out Fixed len2, out CssUnit unit2);
+
+        private delegate void SetForAbsLen(ComputedStyle style, byte type, Fixed len1, CssUnit unit1, Fixed len2, CssUnit unit2);
 
         public void SetFontSize(CssFontSizeEnum type, Fixed length, CssUnit unit)
         {
@@ -535,113 +536,113 @@ namespace SkiaSharpOpenGLBenchmark
 
             // Fix up background-position
             ComputeAbsoluteLengthPair(ex_size.Length, "background_position");
-/*
-            // Fix up background-color
-            compute_absolute_color(style,
-                    get_background_color,
-                    set_background_color);
+            /*
+                        // Fix up background-color
+                        compute_absolute_color(style,
+                                get_background_color,
+                                set_background_color);
 
-            // Fix up border-{top,right,bottom,left}-color
-            compute_border_colors(style);
+                        // Fix up border-{top,right,bottom,left}-color
+                        compute_border_colors(style);
 
-            // Fix up border-{top,right,bottom,left}-width
-            compute_absolute_border_width(style, &ex_size.data.length);
+                        // Fix up border-{top,right,bottom,left}-width
+                        compute_absolute_border_width(style, &ex_size.data.length);
 
-            // Fix up sides
-            compute_absolute_sides(style, &ex_size.data.length);
+                        // Fix up sides
+                        compute_absolute_sides(style, &ex_size.data.length);
 
-            // Fix up height
-            compute_absolute_length(style, &ex_size.data.length,
-                    get_height, set_height);
+                        // Fix up height
+                        compute_absolute_length(style, &ex_size.data.length,
+                                get_height, set_height);
 
-            // Fix up line-height (must be before vertical-align)
-            compute_absolute_line_height(style, &ex_size.data.length);
+                        // Fix up line-height (must be before vertical-align)
+                        compute_absolute_line_height(style, &ex_size.data.length);
 
-            // Fix up margins
-            compute_absolute_margins(style, &ex_size.data.length);
+                        // Fix up margins
+                        compute_absolute_margins(style, &ex_size.data.length);
 
-            // Fix up max-height
-            compute_absolute_length(style, &ex_size.data.length,
-                    get_max_height, set_max_height);
+                        // Fix up max-height
+                        compute_absolute_length(style, &ex_size.data.length,
+                                get_max_height, set_max_height);
 
-            // Fix up max-width
-            compute_absolute_length(style, &ex_size.data.length,
-                    get_max_width, set_max_width);
+                        // Fix up max-width
+                        compute_absolute_length(style, &ex_size.data.length,
+                                get_max_width, set_max_width);
 
-            // Fix up min-height
-            compute_absolute_length(style, &ex_size.data.length,
-                    get_min_height, set_min_height);
+                        // Fix up min-height
+                        compute_absolute_length(style, &ex_size.data.length,
+                                get_min_height, set_min_height);
 
-            // Fix up min-width
-            compute_absolute_length(style, &ex_size.data.length,
-                    get_min_width, set_min_width);
+                        // Fix up min-width
+                        compute_absolute_length(style, &ex_size.data.length,
+                                get_min_width, set_min_width);
 
-            // Fix up padding
-            compute_absolute_padding(style, &ex_size.data.length);
+                        // Fix up padding
+                        compute_absolute_padding(style, &ex_size.data.length);
 
-            // Fix up text-indent
-            compute_absolute_length(style, &ex_size.data.length,
-                    get_text_indent, set_text_indent);
+                        // Fix up text-indent
+                        compute_absolute_length(style, &ex_size.data.length,
+                                get_text_indent, set_text_indent);
 
-            // Fix up vertical-align
-            compute_absolute_vertical_align(style, &ex_size.data.length);
+                        // Fix up vertical-align
+                        compute_absolute_vertical_align(style, &ex_size.data.length);
 
-            // Fix up width
-            compute_absolute_length(style, &ex_size.data.length,
-                    get_width, set_width);
+                        // Fix up width
+                        compute_absolute_length(style, &ex_size.data.length,
+                                get_width, set_width);
 
-            // Fix up flex-basis
-            compute_absolute_length(style, &ex_size.data.length,
-                    get_flex_basis, set_flex_basis);
-*/
+                        // Fix up flex-basis
+                        compute_absolute_length(style, &ex_size.data.length,
+                                get_flex_basis, set_flex_basis);
+            */
             // Fix up border-spacing
             ComputeAbsoluteLengthPair(ex_size.Length, "border_spacing");
-/*
-            // Fix up clip
-            compute_absolute_clip(style, &ex_size.data.length);
+            /*
+                        // Fix up clip
+                        compute_absolute_clip(style, &ex_size.data.length);
 
-            // Fix up letter-spacing
-            compute_absolute_length(style,
-                    &ex_size.data.length,
-                    get_letter_spacing,
-                    set_letter_spacing);
+                        // Fix up letter-spacing
+                        compute_absolute_length(style,
+                                &ex_size.data.length,
+                                get_letter_spacing,
+                                set_letter_spacing);
 
-            // Fix up outline-color
-            compute_absolute_color(style,
-                    get_outline_color,
-                    set_outline_color);
+                        // Fix up outline-color
+                        compute_absolute_color(style,
+                                get_outline_color,
+                                set_outline_color);
 
-            // Fix up outline-width
-            compute_absolute_border_side_width(style,
-                    &ex_size.data.length,
-                    get_outline_width,
-                set_outline_width);
+                        // Fix up outline-width
+                        compute_absolute_border_side_width(style,
+                                &ex_size.data.length,
+                                get_outline_width,
+                            set_outline_width);
 
-            // Fix up word-spacing
-            compute_absolute_length(style,
-                    &ex_size.data.length,
-                    get_word_spacing,
-                    set_word_spacing);
+                        // Fix up word-spacing
+                        compute_absolute_length(style,
+                                &ex_size.data.length,
+                                get_word_spacing,
+                                set_word_spacing);
 
-            // Fix up column-rule-width
-            compute_absolute_border_side_width(style,
-                    &ex_size.data.length,
-                    get_column_rule_width,
-                    set_column_rule_width);
+                        // Fix up column-rule-width
+                        compute_absolute_border_side_width(style,
+                                &ex_size.data.length,
+                                get_column_rule_width,
+                                set_column_rule_width);
 
-            // Fix up column-width
-            compute_absolute_length(style,
-                    &ex_size.data.length,
-                    get_column_width,
-                    set_column_width);
+                        // Fix up column-width
+                        compute_absolute_length(style,
+                                &ex_size.data.length,
+                                get_column_width,
+                                set_column_width);
 
-            // Fix up column-gap
-            compute_absolute_length(style,
-                    &ex_size.data.length,
-                    get_column_gap,
-                    set_column_gap);
-*/
-        Console.WriteLine("ComputeAbsoluteValues: UNIMPLEMENTED majority of properties fixups");
+                        // Fix up column-gap
+                        compute_absolute_length(style,
+                                &ex_size.data.length,
+                                get_column_gap,
+                                set_column_gap);
+            */
+            Console.WriteLine("ComputeAbsoluteValues: UNIMPLEMENTED majority of properties fixups");
         }
 
         //FIXME: Maybe should be in Unit
@@ -675,71 +676,71 @@ namespace SkiaSharpOpenGLBenchmark
                 case CssFontSizeEnum.CSS_FONT_SIZE_X_LARGE:  // Fall-through.
                     goto case CssFontSizeEnum.CSS_FONT_SIZE_XX_LARGE;
                 case CssFontSizeEnum.CSS_FONT_SIZE_XX_LARGE:
-                {
-                    Fixed[] factors = {
+                    {
+                        Fixed[] factors = {
                             new Fixed(0.5625),
                             new Fixed(0.6250),
-			                new Fixed(0.8125),
-			                new Fixed(1.0000),
-			                new Fixed(1.1250),
-			                new Fixed(1.5000),
-			                new Fixed(2.0000)
-                		};
-                    Debug.Assert((byte)CssFontSizeEnum.CSS_FONT_SIZE_INHERIT == 0);
-                    Debug.Assert((byte)CssFontSizeEnum.CSS_FONT_SIZE_XX_SMALL == 1);
+                            new Fixed(0.8125),
+                            new Fixed(1.0000),
+                            new Fixed(1.1250),
+                            new Fixed(1.5000),
+                            new Fixed(2.0000)
+                        };
+                        Debug.Assert((byte)CssFontSizeEnum.CSS_FONT_SIZE_INHERIT == 0);
+                        Debug.Assert((byte)CssFontSizeEnum.CSS_FONT_SIZE_XX_SMALL == 1);
 
-                    size.Length.Value = factors[size.Status - 1] * fontSizeDefault;
-                    size.Length.Unit = CssUnit.CSS_UNIT_PX;
-                    size.Status = (byte)CssFontSizeEnum.CSS_FONT_SIZE_DIMENSION;
-                    break;
-                }
-
-	            case CssFontSizeEnum.CSS_FONT_SIZE_LARGER:
-                        size.Length.Value = refLen.Value * new Fixed(1.2);
-                        size.Length.Unit = refLen.Unit;
+                        size.Length.Value = factors[size.Status - 1] * fontSizeDefault;
+                        size.Length.Unit = CssUnit.CSS_UNIT_PX;
                         size.Status = (byte)CssFontSizeEnum.CSS_FONT_SIZE_DIMENSION;
                         break;
+                    }
 
-	            case CssFontSizeEnum.CSS_FONT_SIZE_SMALLER:
+                case CssFontSizeEnum.CSS_FONT_SIZE_LARGER:
+                    size.Length.Value = refLen.Value * new Fixed(1.2);
+                    size.Length.Unit = refLen.Unit;
+                    size.Status = (byte)CssFontSizeEnum.CSS_FONT_SIZE_DIMENSION;
+                    break;
+
+                case CssFontSizeEnum.CSS_FONT_SIZE_SMALLER:
                     size.Length.Value = refLen.Value / new Fixed(1.2);
                     size.Length.Unit = refLen.Unit;
                     size.Status = (byte)CssFontSizeEnum.CSS_FONT_SIZE_DIMENSION;
                     break;
 
-	            case CssFontSizeEnum.CSS_FONT_SIZE_DIMENSION:
-                        // Convert any relative units to absolute.
-                        switch (size.Length.Unit)
-                        {
-                            case CssUnit.CSS_UNIT_PCT:
-                                size.Length.Value = (size.Length.Value * refLen.Value) / new Fixed(100);
-                                size.Length.Unit = refLen.Unit;
-                                break;
+                case CssFontSizeEnum.CSS_FONT_SIZE_DIMENSION:
+                    // Convert any relative units to absolute.
+                    switch (size.Length.Unit)
+                    {
+                        case CssUnit.CSS_UNIT_PCT:
+                            size.Length.Value = (size.Length.Value * refLen.Value) / new Fixed(100);
+                            size.Length.Unit = refLen.Unit;
+                            break;
 
-                            case CssUnit.CSS_UNIT_EM: // Fall-through
-                                goto case CssUnit.CSS_UNIT_CH;
-                            case CssUnit.CSS_UNIT_EX: // Fall-through
-                                goto case CssUnit.CSS_UNIT_CH;
-                            case CssUnit.CSS_UNIT_CH:
-                                // Parent relative units.
-                                size.Length.Value = size.Length.Value * refLen.Value;
+                        case CssUnit.CSS_UNIT_EM: // Fall-through
+                            goto case CssUnit.CSS_UNIT_CH;
+                        case CssUnit.CSS_UNIT_EX: // Fall-through
+                            goto case CssUnit.CSS_UNIT_CH;
+                        case CssUnit.CSS_UNIT_CH:
+                            // Parent relative units.
+                            size.Length.Value = size.Length.Value * refLen.Value;
 
-                                switch (size.Length.Unit)
-                                {
-                                    case CssUnit.CSS_UNIT_EX:
-                                        size.Length.Value = size.Length.Value * new Fixed(0.6);
-                                        break;
+                            switch (size.Length.Unit)
+                            {
+                                case CssUnit.CSS_UNIT_EX:
+                                    size.Length.Value = size.Length.Value * new Fixed(0.6);
+                                    break;
 
-                                    case CssUnit.CSS_UNIT_CH:
-                                        size.Length.Value = size.Length.Value * new Fixed(0.4);
-                                        break;
+                                case CssUnit.CSS_UNIT_CH:
+                                    size.Length.Value = size.Length.Value * new Fixed(0.4);
+                                    break;
 
-                                    default:
-                                        break;
-                                }
-                                size.Length.Unit = refLen.Unit;
-                                break;
+                                default:
+                                    break;
+                            }
+                            size.Length.Unit = refLen.Unit;
+                            break;
 
-                            case CssUnit.CSS_UNIT_REM:
+                        case CssUnit.CSS_UNIT_REM:
                             {
                                 // Root element relative units.
                                 //refLen = CssUnitgGetFontSize(rootStyle, fontSizeDefault); // unit.c:374
@@ -752,9 +753,9 @@ namespace SkiaSharpOpenGLBenchmark
                                 size.Length.Value = size.Length.Value * refLen.Value;
                                 break;
                             }
-                            default:
-                                break;
-                        }
+                        default:
+                            break;
+                    }
                     //goto default;
                     break;
 

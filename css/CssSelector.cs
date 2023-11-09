@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SkiaSharpOpenGLBenchmark.css
 {
-    public enum CssSelectorSpecificity: int
+    public enum CssSelectorSpecificity : int
     {
         CSS_SPECIFICITY_A = 0x01000000,
         CSS_SPECIFICITY_B = 0x00010000,
@@ -45,14 +45,14 @@ namespace SkiaSharpOpenGLBenchmark.css
         CSS_SELECTOR_DETAIL_VALUE_NTH
     }
 
-    struct CssSelectorDetailValue
+    internal struct CssSelectorDetailValue
     {
         public string Str;
         public int a;
         public int b;      // Data for x = an + b
     }
 
-    struct CssSelectorDetail
+    internal struct CssSelectorDetail
     {
         public CssQname Qname;
 
@@ -87,7 +87,8 @@ namespace SkiaSharpOpenGLBenchmark.css
             if (inlineStyle)
             {
                 Specificity = CssSelectorSpecificity.CSS_SPECIFICITY_A;
-            } else
+            }
+            else
             {
                 // Initial specificity -- 1 for an element, 0 for universal
                 if (qname.Name.Length != 1 || qname.Name[0] != '*')

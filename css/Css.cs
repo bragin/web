@@ -77,10 +77,10 @@ namespace SkiaSharpOpenGLBenchmark.css
 
     public enum CssLanguageLevel : int
     {
-        CSS_LEVEL_1  = 0,
-        CSS_LEVEL_2  = 1,
+        CSS_LEVEL_1 = 0,
+        CSS_LEVEL_2 = 1,
         CSS_LEVEL_21 = 2,
-        CSS_LEVEL_3  = 3,
+        CSS_LEVEL_3 = 3,
         CSS_LEVEL_DEFAULT = CSS_LEVEL_21
     }
     public enum CssOrigin : int
@@ -425,7 +425,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         // language.c:1531
         void ParseSelectorSpecifics(List<CssToken> tokens, ref int index, CssSelector parent)
         {
-	        // specifics -> specific*
+            // specifics -> specific*
             while (true)
             {
                 if (index >= tokens.Count)
@@ -688,7 +688,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             result = 0;
 
             int i;
-            for (i=0;i<CssStrings.Colors.Length;i++)
+            for (i = 0; i < CssStrings.Colors.Length; i++)
             {
                 if (data.Equals(CssStrings.Colors[i], StringComparison.OrdinalIgnoreCase))
                     break;
@@ -704,7 +704,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             Console.WriteLine("UNIMPLEMENTED 711");
             // We don't know this colour name; ask the client
             //if (c->sheet->color != NULL)
-              //  return c->sheet->color(c->sheet->color_pw, data, result);
+            //  return c->sheet->color(c->sheet->color_pw, data, result);
 
             // Invalid color name
             return CssStatus.CSS_INVALID;
@@ -718,16 +718,16 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             ConsumeWhitespace(tokens, ref index);
 
-                /* IDENT(<colour name>) |
-                 * HASH(rgb | rrggbb) |
-                 * FUNCTION(rgb) [ [ NUMBER | PERCENTAGE ] ',' ] {3} ')'
-                 * FUNCTION(rgba) [ [ NUMBER | PERCENTAGE ] ',' ] {4} ')'
-                 * FUNCTION(hsl) ANGLE ',' PERCENTAGE ',' PERCENTAGE  ')'
-                 * FUNCTION(hsla) ANGLE ',' PERCENTAGE ',' PERCENTAGE ',' NUMBER ')'
-                 *
-                 * For quirks, NUMBER | DIMENSION | IDENT, too
-                 * I.E. "123456" -> NUMBER, "1234f0" -> DIMENSION, "f00000" -> IDENT
-                 */
+            /* IDENT(<colour name>) |
+             * HASH(rgb | rrggbb) |
+             * FUNCTION(rgb) [ [ NUMBER | PERCENTAGE ] ',' ] {3} ')'
+             * FUNCTION(rgba) [ [ NUMBER | PERCENTAGE ] ',' ] {4} ')'
+             * FUNCTION(hsl) ANGLE ',' PERCENTAGE ',' PERCENTAGE  ')'
+             * FUNCTION(hsla) ANGLE ',' PERCENTAGE ',' PERCENTAGE ',' NUMBER ')'
+             *
+             * For quirks, NUMBER | DIMENSION | IDENT, too
+             * I.E. "123456" -> NUMBER, "1234f0" -> DIMENSION, "f00000" -> IDENT
+             */
             if (index >= tokens.Count)
             {
                 Console.WriteLine("Invalid CSS 677");
@@ -1087,7 +1087,8 @@ namespace SkiaSharpOpenGLBenchmark.css
                         (byte)OpCodeFlag.FLAG_INHERIT,
                         0)
                 );
-            } else
+            }
+            else
             {
                 ushort value = 0;
                 uint color = 0;
@@ -1129,7 +1130,8 @@ namespace SkiaSharpOpenGLBenchmark.css
                     if (token.iData.Equals(CssStrings.Important, StringComparison.OrdinalIgnoreCase))
                     {
                         flags |= OpCodeFlag.FLAG_IMPORTANT;
-                    } else
+                    }
+                    else
                     {
                         Console.WriteLine("CSS Invalid 731");
                         index = origIndex;
@@ -1200,7 +1202,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static void ConsumeWhitespace(List<CssToken> tokens, ref int index)
         {
-	        /*while ((token = parserutils_vector_peek(vector, * ctx)) != NULL &&
+            /*while ((token = parserutils_vector_peek(vector, * ctx)) != NULL &&
 			        token->type == CSS_TOKEN_S)
 		        parserutils_vector_iterate(vector, ctx);*/
 

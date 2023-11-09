@@ -1,4 +1,7 @@
-﻿using OpenTK.Graphics.ES20;
+﻿using AngleSharp;
+using AngleSharp.Dom;
+using AngleSharp.Io;
+using OpenTK.Graphics.ES20;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -10,9 +13,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using AngleSharp;
-using AngleSharp.Dom;
-using AngleSharp.Io;
 
 namespace SkiaSharpOpenGLBenchmark
 {

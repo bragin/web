@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CsQuery;
 
 namespace SkiaSharpOpenGLBenchmark.css
 {
@@ -22,7 +21,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         CssMedia Media;             // Currently active media spec
         CssUnitCtx UnitCtx;         // Unit conversion context
 
-        public CssSelectResults    Results; // Result set to populate
+        public CssSelectResults Results; // Result set to populate
 
         public CssPseudoElement CurrentPseudo;  // Current pseudo element
         public ComputedStyle Computed;     // Computed style to populate

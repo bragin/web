@@ -66,7 +66,7 @@ namespace SkiaSharpOpenGLBenchmark.css
     // Media orientations
     public enum CssMediaOrientation
     {
-        CSS_MEDIA_ORIENTATION_PORTRAIT  = 0,
+        CSS_MEDIA_ORIENTATION_PORTRAIT = 0,
         CSS_MEDIA_ORIENTATION_LANDSCAPE = 1
     }
 
@@ -116,7 +116,8 @@ namespace SkiaSharpOpenGLBenchmark.css
      * If a NULL pointer is given, LibCSS will use a fixed scaling of
      * the "em" unit.
      */
-    public struct CssUnitCtx {
+    public struct CssUnitCtx
+    {
         // Viewport width in CSS pixels. Used if unit is vh, vw, vi, vb, vmin, or vmax.
         public Fixed ViewportWidth;
         // Viewport height in CSS pixels. Used if unit is vh, vw, vi, vb, vmin, or vmax.

@@ -14,7 +14,7 @@ namespace SkiaSharpOpenGLBenchmark
 
         public static string ToHex(this char character)
         {
-            return ((int) character).ToString("x");
+            return ((int)character).ToString("x");
         }
 
         public static bool IsInRange(this char c, int lower, int upper)

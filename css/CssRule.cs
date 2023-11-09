@@ -96,13 +96,15 @@ namespace SkiaSharpOpenGLBenchmark.css
             if (Style != null)
             {
                 Style.MergeStyle(style);
-            } else {
-		        // No current style, so use this one
-		        Style = style;
+            }
+            else
+            {
+                // No current style, so use this one
+                Style = style;
 
-		        // Add to the sheet's size
-		        //sheet->size += (style->used* sizeof(css_code_t));
-	        }
+                // Add to the sheet's size
+                //sheet->size += (style->used* sizeof(css_code_t));
+            }
         }
     }
 }

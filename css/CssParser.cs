@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
 
 namespace SkiaSharpOpenGLBenchmark.css
 {
     public enum CssStatus : int
     {
-        CSS_OK       = 0,
-        CSS_INVALID  = 3,
+        CSS_OK = 0,
+        CSS_INVALID = 3,
         CSS_NEEDDATA = 5,
-        CSS_EOF      = 7
+        CSS_EOF = 7
     }
 
     // Parser event types
@@ -79,9 +79,9 @@ namespace SkiaSharpOpenGLBenchmark.css
         }
     }
 
-    delegate CssStatus Parser();
+    internal delegate CssStatus Parser();
 
-    class CssParser
+    internal class CssParser
     {
         CssLexer Lex;
         Stack<ParserState> States;
@@ -124,7 +124,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                         return error;
                     state.Substate = 1;
                     goto case 1;
-                    // Fall through
+                // Fall through
                 case 1:
                     ParserState to = new ParserState(ParserStateValue.sStylesheet, 0);
                     ParserState subsequent = new ParserState(ParserStateValue.sStart, 2);
@@ -163,47 +163,49 @@ namespace SkiaSharpOpenGLBenchmark.css
         // parse.c:773
         public CssStatus ParseStylesheet()
         {
-	        //enum { Initial = 0, WS = 1 };
-	        //parser_state *state = parserutils_stack_get_current(parser->states);
+            //enum { Initial = 0, WS = 1 };
+            //parser_state *state = parserutils_stack_get_current(parser->states);
             var state = States.Peek();
             CssToken token;
             CssStatus status;
 
-	        /* stylesheet -> CDO ws stylesheet
+            /* stylesheet -> CDO ws stylesheet
 	         *            -> CDC ws stylesheet
 	         *            -> statement ws stylesheet
 	         *            ->
 	         */
 
-	        while (true)
+            while (true)
             {
-		        switch (state.Substate) {
-		            case 0: // Initial
-			            token = GetToken(out status);
+                switch (state.Substate)
+                {
+                    case 0: // Initial
+                        token = GetToken(out status);
 
-			            switch (token.Type) {
-			                case CssTokenType.CSS_TOKEN_EOF:
-				                PushBack(token);
+                        switch (token.Type)
+                        {
+                            case CssTokenType.CSS_TOKEN_EOF:
+                                PushBack(token);
 
                                 //discard_tokens(parser);
                                 Console.WriteLine("parser:159 - DiscardTokens missing");
 
-				                Done();
+                                Done();
                                 return CssStatus.CSS_OK;
                             case CssTokenType.CSS_TOKEN_CDO:
-			                case CssTokenType.CSS_TOKEN_CDC:
-				                break;
-			                default:
-			                {
-				                ParserState to = new ParserState(ParserStateValue.sStatement, 0);
-				                ParserState subsequent = new ParserState(ParserStateValue.sStylesheet, 1);
+                            case CssTokenType.CSS_TOKEN_CDC:
+                                break;
+                            default:
+                                {
+                                    ParserState to = new ParserState(ParserStateValue.sStatement, 0);
+                                    ParserState subsequent = new ParserState(ParserStateValue.sStylesheet, 1);
 
-				                PushBack(token);
+                                    PushBack(token);
 
-				                Transition(to, subsequent);
-                                return CssStatus.CSS_OK;
-			                }
-			            }
+                                    Transition(to, subsequent);
+                                    return CssStatus.CSS_OK;
+                                }
+                        }
 
                         state = States.Pop();
                         state.Substate = 1; // WS
@@ -211,10 +213,10 @@ namespace SkiaSharpOpenGLBenchmark.css
 
                         /* Fall through */
                         goto case 1;
-	    	        case 1: // WS
-		    	        var error = EatWS();
-			            if (error != CssStatus.CSS_OK)
-				            return error;
+                    case 1: // WS
+                        var error = EatWS();
+                        if (error != CssStatus.CSS_OK)
+                            return error;
 
                         state = States.Pop();
                         state.Substate = 0; // Initial
@@ -224,7 +226,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     default:
                         return CssStatus.CSS_OK;
                 }
-	        }
+            }
 
             return CssStatus.CSS_OK;
         }
@@ -242,12 +244,12 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             var token = GetToken(out status);
 
-    	    if (token.Type == CssTokenType.CSS_TOKEN_ATKEYWORD)
-	    	    to.State = ParserStateValue.sAtRule;
+            if (token.Type == CssTokenType.CSS_TOKEN_ATKEYWORD)
+                to.State = ParserStateValue.sAtRule;
 
-    	    PushBack(token);
+            PushBack(token);
 
-	        TransitionNoRet(to);
+            TransitionNoRet(to);
 
             return CssStatus.CSS_OK;
         }
@@ -260,20 +262,21 @@ namespace SkiaSharpOpenGLBenchmark.css
             CssStatus status;
             ParserState to = new ParserState(ParserStateValue.sRulesetEnd, 0);
 
-	        /* ruleset -> selector '{' ws ruleset-end
+            /* ruleset -> selector '{' ws ruleset-end
 	         *         -> '{' ws ruleset-end
 	         */
 
-	        switch (state.Substate) {
+            switch (state.Substate)
+            {
                 case 0: /*Initial*/
-		            // discard_tokens(parser);
+                    // discard_tokens(parser);
 
-		            var token  = GetToken(out status);
+                    var token = GetToken(out status);
 
-		            /* The grammar's ambiguous here -- selectors may start with a
+                    /* The grammar's ambiguous here -- selectors may start with a
 		             * brace. We're going to assume that that won't happen,
 		             * however. */
-		            if (token.Type == CssTokenType.CSS_TOKEN_CHAR /*&&
+                    if (token.Type == CssTokenType.CSS_TOKEN_CHAR /*&&
 				            lwc_string_length(token->idata) == 1 &&
 				            lwc_string_data(token->idata)[0] == '{'*/)
                     {
@@ -303,32 +306,33 @@ namespace SkiaSharpOpenGLBenchmark.css
                         }
 
                         goto ws;
-		            }
+                    }
                     else
                     {
                         to = new ParserState(ParserStateValue.sSelector, 0);
                         ParserState subsequent = new ParserState(ParserStateValue.sRuleset, 1);
 
-			            PushBack(token);
+                        PushBack(token);
 
-			            Transition(to, subsequent);
+                        Transition(to, subsequent);
                         return CssStatus.CSS_OK;
                     }
-		            //break;
+                //break;
 
                 case 1: // Brace
-		            if (ParseError == true) {
+                    if (ParseError == true)
+                    {
                         to = new ParserState(ParserStateValue.sMalformedSelector, 0);
 
-			            TransitionNoRet(to);
+                        TransitionNoRet(to);
                         return CssStatus.CSS_OK;
-		            }
+                    }
 
-		            token = GetToken(out status);
+                    token = GetToken(out status);
 
-		            if (token.Type != CssTokenType.CSS_TOKEN_CHAR ||
-				            token.iData.Length != 1 ||
-				            token.iData[0] != '{')
+                    if (token.Type != CssTokenType.CSS_TOKEN_CHAR ||
+                            token.iData.Length != 1 ||
+                            token.iData[0] != '{')
                     {
                         Console.WriteLine("UNIMPLEMENTED 291");
 
@@ -336,15 +340,15 @@ namespace SkiaSharpOpenGLBenchmark.css
                         // also have seen EOF, which is a parse error.
                         PushBack(token);
 
-			            ParseError = true;
-			            Done();
+                        ParseError = true;
+                        Done();
                         return CssStatus.CSS_OK;
                     }
 
-		            /* We don't want to emit the brace, so push it back */
-		            PushBack(token);
+                    /* We don't want to emit the brace, so push it back */
+                    PushBack(token);
 
-		            Console.WriteLine("Begin ruleset");
+                    Console.WriteLine("Begin ruleset");
                     //parserutils_vector_dump(parser->tokens, __func__, tprinter);
                     /*
 		            if (parser->parseError == false && parser->event != NULL) {
@@ -371,11 +375,11 @@ namespace SkiaSharpOpenGLBenchmark.css
                 /* Fall through */
                 case 2:
                     ws:
-		            EatWS();
-		            break;
-	            }
+                    EatWS();
+                    break;
+            }
 
-	        TransitionNoRet(to);
+            TransitionNoRet(to);
             return CssStatus.CSS_OK;
         }
 
@@ -485,10 +489,10 @@ namespace SkiaSharpOpenGLBenchmark.css
         {
             Console.WriteLine("ParseAtRuleEnd() UNIMPLEMENTED");
             //if (Event != null)
-                //Event(CssParserEvent.CSS_PARSER_START_ATRULE);
+            //Event(CssParserEvent.CSS_PARSER_START_ATRULE);
 
             //if (Event != null)
-                //Event(CssParserEvent.CSS_PARSER_END_ATRULE);
+            //Event(CssParserEvent.CSS_PARSER_END_ATRULE);
 
             return CssStatus.CSS_OK;
         }
@@ -499,10 +503,10 @@ namespace SkiaSharpOpenGLBenchmark.css
             Console.WriteLine("ParseBlock() UNIMPLEMENTED");
 
             //if (Event != null)
-                //Event(CssParserEvent.CSS_PARSER_START_BLOCK);
+            //Event(CssParserEvent.CSS_PARSER_START_BLOCK);
 
             //if (Event != null)
-                //Event(CssParserEvent.CSS_PARSER_END_BLOCK);
+            //Event(CssParserEvent.CSS_PARSER_END_BLOCK);
 
 
             return CssStatus.CSS_OK;
@@ -525,20 +529,20 @@ namespace SkiaSharpOpenGLBenchmark.css
             switch (state.Substate)
             {
                 case 0: //Initial:
-	            {
-                    ParserState to = new ParserState(ParserStateValue.sAny1, 0);
-                    ParserState subsequent = new ParserState(ParserStateValue.sSelector, 1);
+                    {
+                        ParserState to = new ParserState(ParserStateValue.sAny1, 0);
+                        ParserState subsequent = new ParserState(ParserStateValue.sSelector, 1);
 
-                    DiscardTokens();
+                        DiscardTokens();
 
-		            Transition(to, subsequent);
-                    return CssStatus.CSS_OK;
-                }
+                        Transition(to, subsequent);
+                        return CssStatus.CSS_OK;
+                    }
                 case 1://AfterAny1:
-		            break;
+                    break;
                 default:
                     break;
-	        }
+            }
 
             Done();
             return CssStatus.CSS_OK;
@@ -1163,7 +1167,8 @@ namespace SkiaSharpOpenGLBenchmark.css
                     {
                         //parserutils_stack_push(parser->open_items, &")"[0]);
                         state.Substate = 1; // WS
-                    } else if (token.Type == CssTokenType.CSS_TOKEN_CHAR /*&&
+                    }
+                    else if (token.Type == CssTokenType.CSS_TOKEN_CHAR /*&&
                                 lwc_string_length(token->idata) == 1 &&
                                 (lwc_string_data(token->idata)[0] == '(' ||
                                 lwc_string_data(token->idata)[0] == '[')*/)
@@ -1184,7 +1189,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
                 case 1: // WS
                 case 3: // WS2
-            ws2:
+                    ws2:
                     to = new ParserState(ParserStateValue.sAny0, 0);
                     subsequent = new ParserState(ParserStateValue.sAny, 2);
 
@@ -1336,9 +1341,9 @@ namespace SkiaSharpOpenGLBenchmark.css
             // Use pushback, if it exists
             if (Pushback.HasValue)
             {
-		        token = Pushback.Value;
-		        Pushback = null;
-	        }
+                token = Pushback.Value;
+                Pushback = null;
+            }
             else
             {
                 // Otherwise, ask the lexer
@@ -1349,9 +1354,9 @@ namespace SkiaSharpOpenGLBenchmark.css
                     return new CssToken(1);
                 }
 
-		        // If the last token read was whitespace, keep reading
-		        // tokens until we encounter one that isn't whitespace
-		        while (LastWasWs && token.Type == CssTokenType.CSS_TOKEN_S)
+                // If the last token read was whitespace, keep reading
+                // tokens until we encounter one that isn't whitespace
+                while (LastWasWs && token.Type == CssTokenType.CSS_TOKEN_S)
                 {
                     error = Lex.GetToken(out token);
 
@@ -1388,7 +1393,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     token.iData = "";
                 }
 
-	        }
+            }
 
             // Append token to vector
             Tokens.Add(token);

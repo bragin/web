@@ -35,7 +35,7 @@ namespace SkiaSharpOpenGLBenchmark
         public static readonly Fixed F_300 = new Fixed(0x0004b000, true);    /* 300 */
         public static readonly Fixed F_400 = new Fixed(0x00064000, true);    /* 400 */
 
-        public Fixed(int a, bool fromRaw=false)
+        public Fixed(int a, bool fromRaw = false)
         {
             if (fromRaw)
                 RawValue = a;
@@ -86,7 +86,7 @@ namespace SkiaSharpOpenGLBenchmark
             int iPart = RawValue >> CSS_RADIX_POINT;
             long fPart = RawValue & ((1 << CSS_RADIX_POINT) - 1);
 
-            fPart =   (fPart * 1000000000) / ((long)1 << CSS_RADIX_POINT);
+            fPart = (fPart * 1000000000) / ((long)1 << CSS_RADIX_POINT);
 
             return $"{iPart}.{fPart}";
         }

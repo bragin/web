@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using CsQuery;
-//using ExCSS;
+﻿using HtmlParserSharp;
 using SkiaSharpOpenGLBenchmark.css;
 
 namespace SkiaSharpOpenGLBenchmark
 {
-    class HtmlStylesheet
+    internal class HtmlStylesheet
     {
         CssStylesheet Sheet;
         bool Modified;
@@ -25,9 +18,9 @@ namespace SkiaSharpOpenGLBenchmark
     }
 
     // private.h:93
-    class HtmlContent
+    internal class HtmlContent
     {
-        CQ Dom;
+        //CQ Dom;
 
         bool IsReflowing;
         bool IsReformat;
@@ -69,7 +62,7 @@ namespace SkiaSharpOpenGLBenchmark
              * stylesheet 2 is the adblocking stylesheet,
              * stylesheet 3 is the user stylesheet */
 
-            LoadStylesheetFromFile("..\\..\\default.css");
+            LoadStylesheetFromFile("..\\..\\..\\default.css");
         }
 
         public void LoadStylesheetFromFile(string file)
@@ -95,11 +88,13 @@ namespace SkiaSharpOpenGLBenchmark
         public void LoadDocument()
         {
             //Dom = CQ.CreateFromUrl("http://nginx.org/");
-            Dom = CQ.CreateDocument("<a name=\"coolname\" class=\"mylink fancy\">link</a>");
+            //Dom = CQ.CreateDocument("<a name=\"coolname\" class=\"mylink fancy\">link</a>");
+            var parser = new SimpleHtmlParser();
+            var doc = parser.ParseString("<a name=\"coolname\" class=\"mylink fancy\">link</a>");
 
-            var n = Dom["body"];
-            var cstyle = n.Css("color");
-            var sheets = Dom["style"];
+            //var n = Dom["body"];
+            //var cstyle = n.Css("color");
+            //var sheets = Dom["style"];
 
             // My CSS stuff
             var css = new CssStylesheet("", "http://nginx.org", "Useragent", false);
@@ -109,36 +104,7 @@ namespace SkiaSharpOpenGLBenchmark
 
             var media = new CssMedia();
             var unitctx = new CssUnitCtx();
-            var sc = new CssSelectState(Dom["html"][0].ChildNodes[1].ChildNodes[0], null, ref media, ref unitctx);
-
-
-            // ExCSS stuff
-            /*
-            var parser = new StylesheetParser();
-            var stylesheet = parser.Parse(sheets[0].InnerHTML);
-            var rule = stylesheet.StyleRules.First() as StyleRule;
-            var selector = rule.SelectorText; // Yields .someClass
-            var color = rule.Style.Color; // rgb(255, 0, 0)
-            var image = rule.Style.BackgroundImage; // url('/images/logo.png')
-            */
-            /*
-            var imageUrl = stylesheet.RuleSets
-                        .SelectMany(r => r.Declarations)
-                        .FirstOrDefault(d => d.Name.Equals("background-image", StringComparison.InvariantCultureIgnoreCase))
-                        .Term
-                        .ToString(); // Finds the url('/images/logo.png') image url
-            */
-
-            // AngleSharp version
-            /*
-            var config = Configuration.Default
-                .WithDefaultLoader();
-            //.WithJs()
-            //.WithConsoleLogger(context => new StandardConsoleLogger());
-
-            var bc = BrowsingContext.New(config);
-            var doc = bc.OpenAsync("http://nginx.org").Result;
-            var body = doc.GetElementsByTagName("body");*/
+            //var sc = new CssSelectState(Dom["html"][0].ChildNodes[1].ChildNodes[0], null, ref media, ref unitctx);
 
             // FIXME: Testin
             GetDimensions();
@@ -164,8 +130,7 @@ namespace SkiaSharpOpenGLBenchmark
             CreateSelectionContext();
 
             Layout = new BoxTree(this);
-            //Layout.DomToBox(dom["body"][0]);
-            Layout.DomToBox(Dom["html"][0]); // Root is set there in the end as ctx->content->layout
+            //Layout.DomToBox(Dom["html"][0]); // Root is set there in the end as ctx->content->layout
 
             // Get window's dimensions
             int width = 1000;

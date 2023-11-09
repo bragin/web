@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace SkiaSharpOpenGLBenchmark.css
 {
-
     public enum CssBackgroundAttachment : uint
     {
         CSS_BACKGROUND_ATTACHMENT_INHERIT = 0x0,
@@ -29,7 +28,7 @@ namespace SkiaSharpOpenGLBenchmark.css
     };
 
     // properties.h:491
-    public enum CssFontFamilyEnum: byte
+    public enum CssFontFamilyEnum : byte
     {
         CSS_FONT_FAMILY_INHERIT = 0x0,
         /* Named fonts exist if pointer is non-NULL */
@@ -182,7 +181,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         }
         // select.c:1814
         public void SetInitial(CssSelectState state, int i,
-                               CssPseudoElement pseudo, CsQuery.IDomContainer parent)
+                               CssPseudoElement pseudo, IDomContainer parent)
         {
             if (!Dispatch[i].Inherited ||
                 (pseudo == CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE && parent == null))
