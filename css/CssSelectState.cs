@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace SkiaSharpOpenGLBenchmark.css
 {
@@ -17,7 +18,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
     public class CssSelectState
     {
-        IDomObject Node;            // Node we're selecting for
+        XmlNode Node;            // Node we're selecting for
         CssMedia Media;             // Currently active media spec
         CssUnitCtx UnitCtx;         // Unit conversion context
 
@@ -36,7 +37,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         public CssQname Element;           // Element we're selecting for
         string Id;                  // Node id, if any
-        string[] Classes;           // Node classes, if any
+        XmlAttribute Classes;           // Node classes, if any
                                     //uint nClasses;              // Number of classes
 
         //reject_item reject_cache[128];  // Reject cache (filled from end)
@@ -47,12 +48,12 @@ namespace SkiaSharpOpenGLBenchmark.css
         public PropState[][] Props; //prop_state props[CSS_N_PROPERTIES][CSS_PSEUDO_ELEMENT_COUNT];
 
         // select.c:1065
-        public CssSelectState(IDomObject node, IDomObject parent, ref CssMedia media, ref CssUnitCtx unitCtx)
+        public CssSelectState(XmlNode node, XmlNode parent, ref CssMedia media, ref CssUnitCtx unitCtx)
         {
             Node = node;
             Media = media;
             UnitCtx = unitCtx;
-            Id = node.Id;
+            Id = node.Attributes["id"] != null ? node.Attributes["id"].Value : null;
 
             // Allocate the result set
             Results = new CssSelectResults();
@@ -62,7 +63,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             Element.Namespace = null;
 
             // Get node's classes, if any
-            Classes = node.Classes.ToArray();
+            Classes = node.Attributes["class"];
 
             // TODO: Node pseudo classes
 

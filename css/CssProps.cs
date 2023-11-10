@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace SkiaSharpOpenGLBenchmark.css
 {
@@ -181,7 +182,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         }
         // select.c:1814
         public void SetInitial(CssSelectState state, int i,
-                               CssPseudoElement pseudo, IDomContainer parent)
+                               CssPseudoElement pseudo, XmlNode parent)
         {
             if (!Dispatch[i].Inherited ||
                 (pseudo == CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE && parent == null))
