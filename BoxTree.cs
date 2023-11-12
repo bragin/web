@@ -941,7 +941,7 @@ namespace SkiaSharpOpenGLBenchmark
                 // created it above if it didn't
                 //assert(props.inline_container != NULL);
 
-                
+                props.InlineContainer.AddChild(box);
             }
             else
             {
