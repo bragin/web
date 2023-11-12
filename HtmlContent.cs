@@ -1,5 +1,7 @@
 ﻿using HtmlParserSharp;
 using SkiaSharpOpenGLBenchmark.css;
+using System.Text;
+using System.Xml;
 
 namespace SkiaSharpOpenGLBenchmark
 {
@@ -7,7 +9,7 @@ namespace SkiaSharpOpenGLBenchmark
     {
         CssStylesheet Sheet;
         bool Modified;
-        IDomObject Node;
+        XmlNode Node;
 
         public HtmlStylesheet()
         {
@@ -90,17 +92,45 @@ namespace SkiaSharpOpenGLBenchmark
             // Add sheets to it
         }
 
+        public static string FormatXMLString(string sUnformattedXML)
+        {
+            XmlDocument xd = new XmlDocument();
+            xd.LoadXml(sUnformattedXML);
+            StringBuilder sb = new StringBuilder();
+            StringWriter sw = new StringWriter(sb);
+            XmlTextWriter xtw = null;
+            try
+            {
+                xtw = new XmlTextWriter(sw);
+                xtw.Formatting = Formatting.Indented;
+                xd.WriteTo(xtw);
+            }
+            finally
+            {
+                if (xtw != null)
+                    xtw.Close();
+            }
+            return sb.ToString();
+        }
+
         // html.c:341, kind of
         public void LoadDocument()
         {
             //Dom = CQ.CreateFromUrl("http://nginx.org/");
             //Dom = CQ.CreateDocument("<a name=\"coolname\" class=\"mylink fancy\">link</a>");
             var parser = new SimpleHtmlParser();
-            var doc = parser.ParseString("<a name=\"coolname\" class=\"mylink fancy\">link</a>");
+            var doc = parser.ParseString("<a name=\"coolname\" class=\"mylink fancy\" id=\"idtest\">link</a>");
+
+            StringWriter stringWriter = new StringWriter();
+            XmlTextWriter xmlTextWriter = new XmlTextWriter(stringWriter);
+            doc.WriteTo(xmlTextWriter);
+            Console.WriteLine(stringWriter.ToString());
+
+            Console.WriteLine(doc.DocumentElement.OuterXml);
 
             //var n = Dom["body"];
             //var cstyle = n.Css("color");
-            //var sheets = Dom["style"];
+            //var sheets = doc.GetElementsByTagName("style");
 
             // My CSS stuff
             var css = new CssStylesheet("", "http://nginx.org", "Useragent", false);
@@ -110,7 +140,9 @@ namespace SkiaSharpOpenGLBenchmark
 
             var media = new CssMedia();
             var unitctx = new CssUnitCtx();
-            //var sc = new CssSelectState(Dom["html"][0].ChildNodes[1].ChildNodes[0], null, ref media, ref unitctx);
+            var body = doc.GetElementsByTagName("body")[0].ChildNodes[0];
+            Console.WriteLine(body.OuterXml);
+            var sc = new CssSelectState(body, null, ref media, ref unitctx);
 
             // FIXME: Testin
             GetDimensions();
@@ -136,7 +168,8 @@ namespace SkiaSharpOpenGLBenchmark
             CreateSelectionContext();
 
             Layout = new BoxTree(this);
-            //Layout.DomToBox(Dom["html"][0]); // Root is set there in the end as ctx->content->layout
+            var html = doc.GetElementsByTagName("html")[0];
+            Layout.DomToBox(html); // Root is set there in the end as ctx->content->layout
 
             // Get window's dimensions
             int width = 1000;

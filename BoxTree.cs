@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace SkiaSharpOpenGLBenchmark
 {
@@ -82,7 +83,7 @@ namespace SkiaSharpOpenGLBenchmark
         public BoxFlags Flags;
 
         // DOM node that generated this box or NULL
-        IDomObject Node;
+        XmlNode Node;
 
         // Computed styles for elements and their pseudo elements.
         // NULL on non-element boxes.
@@ -308,7 +309,7 @@ namespace SkiaSharpOpenGLBenchmark
         }
 
         // box_construct.c:153 - box_extract_properties()
-        static public BoxConstructProps ExtractProperties(IDomObject node, BoxTree bt)
+        static public BoxConstructProps ExtractProperties(XmlNode node, BoxTree bt)
         {
             BoxConstructProps props = new BoxConstructProps();
             props.NodeIsRoot = BoxTree.BoxIsRoot(node);
@@ -316,8 +317,8 @@ namespace SkiaSharpOpenGLBenchmark
             // Extract properties from containing DOM node
             if (props.NodeIsRoot == false)
             {
-                IDomObject current_node = node;
-                IDomObject parent_node = null;
+                XmlNode current_node = node;
+                XmlNode parent_node = null;
                 Box parent_box;
 
                 // Find ancestor node containing parent box
@@ -382,7 +383,7 @@ namespace SkiaSharpOpenGLBenchmark
             return props;
         }
 
-        public void AttachToNode(IDomObject n)
+        public void AttachToNode(XmlNode n)
         {
             Node = n;
         }
@@ -411,10 +412,10 @@ namespace SkiaSharpOpenGLBenchmark
     internal class BoxTree
     {
         // Context
-        IDomObject ctx_n; // ctx->n. Should not be used really
+        XmlNode ctx_n; // ctx->n. Should not be used really
         Box RootBox; // ctx->root_box
 
-        Dictionary<IDomObject, Box> NodeBoxLookup; // Used to find box for a given node
+        Dictionary<XmlNode, Box> NodeBoxLookup; // Used to find box for a given node
 
         Box Layout; // html->content->layout (root of the whatever), probably needs to be moved
 
@@ -424,12 +425,12 @@ namespace SkiaSharpOpenGLBenchmark
 
         public BoxTree(HtmlContent content)
         {
-            NodeBoxLookup = new Dictionary<IDomObject, Box>();
+            NodeBoxLookup = new Dictionary<XmlNode, Box>();
             Content = content;
             Properties = new CssProps();
         }
 
-        public Box BoxForNode(IDomObject node)
+        public Box BoxForNode(XmlNode node)
         {
             if (node == null) return null;
 
@@ -439,13 +440,13 @@ namespace SkiaSharpOpenGLBenchmark
                 return NodeBoxLookup[node];
         }
 
-        void AttachNodeToBox(IDomObject n, Box b)
+        void AttachNodeToBox(XmlNode n, Box b)
         {
             NodeBoxLookup.Add(n, b);
         }
 
         // libcss/src/select/select.c:1189 - css_select_style()
-        public CssSelectResults CssSelectStyle(IDomObject node, ref CssUnitCtx unitCtx,
+        public CssSelectResults CssSelectStyle(XmlNode node, ref CssUnitCtx unitCtx,
                                                ref CssMedia media, CssStylesheet inlineStyle)
         {
             // STUB
@@ -535,7 +536,7 @@ namespace SkiaSharpOpenGLBenchmark
 
         // content/handlers/css/select.c:253 - nscss_get_style()
         private CssSelectResults nscssGetStyle(ComputedStyle parentStyle, ComputedStyle rootStyle,
-            IDomObject node, ref CssMedia media, ref CssUnitCtx unitCtx, CssStylesheet inlineStyle)
+            XmlNode node, ref CssMedia media, ref CssUnitCtx unitCtx, CssStylesheet inlineStyle)
         {
             // STUB
 
@@ -605,7 +606,7 @@ namespace SkiaSharpOpenGLBenchmark
         }
 
         // box_construct.c:245 - box_get_style()
-        private CssSelectResults BoxGetStyle(ComputedStyle parentStyle, ComputedStyle rootStyle, IDomObject node)
+        private CssSelectResults BoxGetStyle(ComputedStyle parentStyle, ComputedStyle rootStyle, XmlNode node)
         {
             CssSelectResults styles;
             CssStylesheet inlineStyle = null;
@@ -662,7 +663,7 @@ namespace SkiaSharpOpenGLBenchmark
         }
 
         // box_construct.c:468 - box_construct_element()
-        private bool BoxConstructElement(IDomObject node, ref bool ConvertChildren)
+        private bool BoxConstructElement(XmlNode node, ref bool ConvertChildren)
         {
             // Construct the box tree for an XML element
             /*dom_string* title0, *s;
@@ -729,10 +730,10 @@ namespace SkiaSharpOpenGLBenchmark
                 0,
                 "",
                 props.Title,
-                node.Id);
+                node.Attributes["id"] != null ? node.Attributes["id"].Value : null);
 
-            if (node.Id != "")
-                Console.WriteLine("Node id: {0}", node.Id);
+            if (node.Attributes["id"] != null)
+                Console.WriteLine("Node id: {0}", node.Attributes["id"].Value);
 
             //if (node.Style.Count > 0)
             //  RootBox = box;
@@ -982,7 +983,7 @@ namespace SkiaSharpOpenGLBenchmark
         }
 
         // box_construct.c:308 - box_construct_generate
-        private void BoxConstructGenerate(IDomObject n, Box box, ComputedStyle style)
+        private void BoxConstructGenerate(XmlNode n, Box box, ComputedStyle style)
         {
             Box gen = null;
             //enum css_display_e computed_display;
@@ -1026,7 +1027,7 @@ namespace SkiaSharpOpenGLBenchmark
         }
 
         // box_construct.c:732 - box_construct_element_after()
-        private void ConstructElementAfter(IDomObject n)
+        private void ConstructElementAfter(XmlNode n)
         {
             var box = BoxForNode(n);
 
@@ -1090,7 +1091,7 @@ namespace SkiaSharpOpenGLBenchmark
         }
 
         // box_construct.c:952 - box_construct_text()
-        private bool BoxConstructText(IDomObject n)
+        private bool BoxConstructText(XmlNode n)
         {
             /*
             struct box_construct_props props;
@@ -1346,22 +1347,23 @@ namespace SkiaSharpOpenGLBenchmark
             return true;
         }
 
-        public static bool BoxIsRoot(IDomObject n)
+        public static bool BoxIsRoot(XmlNode n)
         {
             var p = n.ParentNode;
 
             if (p == null)
                 return true;
 
-            if (p.NodeType == NodeType.DOCUMENT_NODE)
+            if (p.NodeType == XmlNodeType.Document)
                 return true;
 
             return false;
         }
 
-        private IDomObject NextNode(IDomObject n, bool ConvertChildren)
+        // box_construct.c:804
+        private XmlNode NextNode(XmlNode n, bool ConvertChildren)
         {
-            IDomObject next = null;
+            XmlNode next = null;
             bool HasChildren = false;
 
             if (n.ChildNodes != null && n.ChildNodes.Count > 0)
@@ -1369,7 +1371,7 @@ namespace SkiaSharpOpenGLBenchmark
 
             if (ConvertChildren && HasChildren)
             {
-                next = n[0];
+                next = n.ChildNodes[0];
             }
             else
             {
@@ -1391,8 +1393,8 @@ namespace SkiaSharpOpenGLBenchmark
 
                     while (BoxIsRoot(n) == false)
                     {
-                        IDomObject parent = null;
-                        IDomObject parent_next = null;
+                        XmlNode parent = null;
+                        XmlNode parent_next = null;
 
                         parent = n.ParentNode;
 
@@ -1414,7 +1416,7 @@ namespace SkiaSharpOpenGLBenchmark
 
                     if (BoxIsRoot(n) == false)
                     {
-                        IDomObject parent = null;
+                        XmlNode parent = null;
 
                         parent = n.ParentNode;
 
@@ -1433,7 +1435,7 @@ namespace SkiaSharpOpenGLBenchmark
         }
 
         // box_construct.c:1298
-        public void DomToBox(IDomObject n)
+        public void DomToBox(XmlNode n)
         {
             // https://github.com/netsurf-browser/netsurf/blob/8615964c3fd381ef6d9a20487b9120135182dfd1/content/handlers/html/box_construct.c
 
@@ -1442,7 +1444,7 @@ namespace SkiaSharpOpenGLBenchmark
             RootBox = null;
 
             // convert_xml_to_box()
-            IDomObject next;
+            XmlNode next;
             bool convert_children;
             int num_processed = 0;
             int max_processed_before_yield = 1000;
@@ -1466,10 +1468,10 @@ namespace SkiaSharpOpenGLBenchmark
                 next = NextNode(ctx_n, convert_children);
                 while (next != null)
                 {
-                    if (next.NodeType == NodeType.ELEMENT_NODE)
+                    if (next.NodeType == XmlNodeType.Element)
                         break;
 
-                    if (next.NodeType == NodeType.TEXT_NODE)
+                    if (next.NodeType == XmlNodeType.Text)
                     {
                         ctx_n = next;
 
