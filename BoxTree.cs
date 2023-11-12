@@ -1,11 +1,15 @@
-﻿using HtmlParserSharp;
+﻿using DebugTools;
+using HtmlParserSharp;
 using SkiaSharpOpenGLBenchmark.css;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+
+using DebugTools;
 
 namespace SkiaSharpOpenGLBenchmark
 {
@@ -567,6 +571,7 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
             Console.WriteLine("UNIMPLEMENTED 564");
+            Log.Unimplemented("content/handlers/css/select.c:253 - nscss_get_style()");
             /*
             for (pseudo_element = CSS_PSEUDO_ELEMENT_NONE + 1;
                     pseudo_element < CSS_PSEUDO_ELEMENT_COUNT;
@@ -936,7 +941,7 @@ namespace SkiaSharpOpenGLBenchmark
                 // created it above if it didn't
                 //assert(props.inline_container != NULL);
 
-                props.InlineContainer.AddChild(box);
+                
             }
             else
             {
