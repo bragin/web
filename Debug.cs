@@ -10,7 +10,7 @@ namespace DebugTools {
             [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "",
             [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = 0)
         {
-            System.Diagnostics.Trace.WriteLine($"{sourceFilePath}: {sourceLineNumber}: {memberName}: Unimplemented {message}");
+            System.Diagnostics.Trace.WriteLine($"{sourceFilePath}:{sourceLineNumber} {memberName}(): UNIMPLEMENTED {message}");
             // See https://learn.microsoft.com/en-us/dotnet/api/system.runtime.compilerservices.callermembernameattribute?view=net-6.0
             // System.Diagnostics.Trace.WriteLine("member name: " + memberName);
             // System.Diagnostics.Trace.WriteLine("source file path: " + sourceFilePath);
