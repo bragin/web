@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace DebugTools {
     public static class Log {
         public static void Unimplemented(
-            string message,
+            string message = "",
             [System.Runtime.CompilerServices.CallerMemberName] string memberName = "",
             [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "",
             [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = 0)
