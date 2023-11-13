@@ -780,7 +780,8 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
                 case "border_spacing":
                     //type = GetBackgroundPosition(out length1, out unit1, out length2, out unit2);
-                    Console.WriteLine("UNIMPLEMENTED 783");
+                    // Console.WriteLine("UNIMPLEMENTED 783");
+                    Log.Unimplemented("computed.c:1747 // 783");
                     type = 0xff;
                     break;
                 default:
@@ -812,7 +813,8 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
                 case "border_spacing":
                     //SetBorderSpacing(type, length1, unit1, length2, unit2);
-                    Console.WriteLine("UNIMPLEMENTED 783");
+                    // Console.WriteLine("UNIMPLEMENTED 783");
+                    Log.Unimplemented("computed.c:1747  // 783");
                     break;
                 default:
                     throw new Exception("Unsupported type");

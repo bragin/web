@@ -475,8 +475,8 @@ namespace SkiaSharpOpenGLBenchmark
             // Apply any hints
             if (nhints > 0)
             {
-                Console.WriteLine("Applying hints is UNIMEPLEMENTED");
-                Log.WriteLine("Unimplemented");
+                // Console.WriteLine("Applying hints is UNIMEPLEMENTED");
+                Log.Unimplemented("Applying hints");
             }
 
             /* Iterate through the top-level stylesheets, selecting styles
