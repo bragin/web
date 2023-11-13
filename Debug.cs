@@ -2,7 +2,8 @@ using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace DebugTools {
+namespace SkiaSharpOpenGLBenchmark
+{
     public static class Log {
         public static void Unimplemented(
             string message = "",
