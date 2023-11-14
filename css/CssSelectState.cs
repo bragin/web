@@ -82,7 +82,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             var s = sheet;
             var rule = s.RuleList.First;
 
-            Console.WriteLine("UNIMPLEMENTED 187");
+            Log.Unimplemented();
 
             do
             {
@@ -95,7 +95,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
                 if (rule != null && rule.Value.Type == CssRuleType.CSS_RULE_IMPORT)
                 {
-                    Console.WriteLine("UNIMPLEMENTED 245");
+                    Log.Unimplemented();
                 }
                 else
                 {

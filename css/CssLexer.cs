@@ -246,7 +246,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     if (error != CSS_OK)
                         return error;
                 */
-                Console.WriteLine("AppendToTokenData with EscapeSeen is UNIMPLEMENTED");
+                Log.Unimplemented("lex.c:262 // AppendToTokenData with EscapeSeen");
             }
 
             Token.DataLen += len;
@@ -270,7 +270,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             if (EscapeSeen)
             {
-                Console.WriteLine("UNIMPLEMENTED EmitToken()");
+                Log.Unimplemented("lex.c:354 // EmitToken()");
             }
             else
             {
@@ -298,7 +298,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     t.DataLen -= 1;
 
                     // Strip the trailing quote, iff it exists (may have hit EOF)
-                    Console.WriteLine("UNIMPLEMENTED 267");
+                    Log.Unimplemented("lex.c:354 // 267");
                     /*
                     if (t->data.len > 0 && (t->data.data[t->data.len - 1] == '"' ||
                             t->data.data[t->data.len - 1] == '\''))
@@ -324,7 +324,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     break;
                 case CssTokenType.CSS_TOKEN_URI:
                     // Strip the "url(" from the start
-                    Console.WriteLine("UNIMPLEMENTED 293");
+                    Log.Unimplemented("lex.c:354 // 293");
                     /*
                     t.DataIndex += SLEN("url(");
                     t.DataLen -= SLEN("url(");
@@ -362,13 +362,13 @@ namespace SkiaSharpOpenGLBenchmark.css
                     break;
                 case CssTokenType.CSS_TOKEN_UNICODE_RANGE:
                     // Remove "U+" from the start
-                    Console.WriteLine("UNIMPLEMENTED 331");
+                    Log.Unimplemented("lex.c:354 // 331");
                     /*
                     t.DataIndex += SLEN("U+");
                     t.DataLen -= SLEN("U+");*/
                     break;
                 case CssTokenType.CSS_TOKEN_COMMENT:
-                    Console.WriteLine("UNIMPLEMENTED 337");
+                    Log.Unimplemented("lex.c:354 // 337");
                     // Strip the leading '/' and '*'
                     //t.DataIndex += SLEN("/*");
                     //t.DataLen -= SLEN("/*");
@@ -633,32 +633,32 @@ namespace SkiaSharpOpenGLBenchmark.css
         // lex.c:481
         CssStatus AtKeyword(out CssToken token)
         {
-            Console.WriteLine("lexer:586 UNIMPLEMENTED AtKeyword");
+            Log.Unimplemented("lex.c:481 // lexer:586 AtKeyword");
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         CssStatus String(out CssToken token)
         {
-            Console.WriteLine("lexer:591 UNIMPLEMENTED String");
+            Log.Unimplemented("lexer:591 // String");
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         // lex.c:1321
         CssStatus URIOrUnicodeRangeOrIdentOrFunction(out CssToken token)
         {
-            Console.WriteLine("lexer: 597 UNIMPLEMENTED URI...");
+            Log.Unimplemented("lex.c:1321 // lexer: 597 URI...");
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         CssStatus Hash(out CssToken token)
         {
-            Console.WriteLine("lexer:602 UNIMPLEMENTED Hash");
+            Log.Unimplemented("lexer:602 // Hash");
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         CssStatus NumberOrPercentageOrDimension(out CssToken token)
         {
-            Console.WriteLine("lexer:607 UNIMPLEMENTED NumberOf...");
+            Log.Unimplemented("lexer:607 // NumberOf...");
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
@@ -675,19 +675,19 @@ namespace SkiaSharpOpenGLBenchmark.css
         }
         CssStatus Comment(out CssToken token)
         {
-            Console.WriteLine("lexer:617 UNIMPLEMENTED Comment");
+            Log.Unimplemented("lexer:617 Comment");
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         CssStatus Match(out CssToken token)
         {
-            Console.WriteLine("lexer:622 UNIMPLEMENTED Match");
+            Log.Unimplemented("lexer:622 Match");
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         CssStatus URI(out CssToken token)
         {
-            Console.WriteLine("lexer:627 UNIMPLEMENTED URI");
+            Log.Unimplemented("lexer:627 URI");
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
@@ -745,26 +745,26 @@ namespace SkiaSharpOpenGLBenchmark.css
         }
         CssStatus EscapedIdentOrFunction(out CssToken token)
         {
-            Console.WriteLine("lexer:680 UNIMPLEMENTED Escaped..");
+            Log.Unimplemented("lexer:680 Escaped..");
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         CssStatus UnicodeRange(out CssToken token)
         {
-            Console.WriteLine("lexer:685 UNIMPLEMENTED UnicodeRange");
+            Log.Unimplemented("lexer:685 UnicodeRange");
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
 
         CssStatus CDO(out CssToken token)
         {
-            Console.WriteLine("lexer:691 UNIMPLEMENTED CDO");
+            Log.Unimplemented("lexer:691 CDO");
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         CssStatus CDCOrIdentOrFunctionOrNPD(out CssToken token)
         {
-            Console.WriteLine("lexer:696 UNIMPLEMENTED CDCOrIdent...");
+            Log.Unimplemented("lexer:696 CDCOrIdent...");
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
@@ -795,7 +795,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                 {
                     BytesReadForToken++;
 
-                    Console.WriteLine("lexer:731 UNIMPLEMENTED");
+                    Log.Unimplemented("lex.c:1814 // lexer:731");
                     //error = consumeEscape(lexer, false);
                     //if (error != CSS_OK)
                     //{

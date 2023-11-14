@@ -280,8 +280,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 				            lwc_string_length(token->idata) == 1 &&
 				            lwc_string_data(token->idata)[0] == '{'*/)
                     {
-                        Console.WriteLine("UNIMPLEMENTED 240");
-                        Console.WriteLine("Begin ruleset");
+                        Log.Unimplemented("parse.c:855 // 240");
 
                         /*
 			            if (parser->event != NULL) {
@@ -334,7 +333,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                             token.iData.Length != 1 ||
                             token.iData[0] != '{')
                     {
-                        Console.WriteLine("UNIMPLEMENTED 291");
+                        Log.Unimplemented();
 
                         // FOLLOW(selector) contains only '{', but we may
                         // also have seen EOF, which is a parse error.
@@ -480,14 +479,14 @@ namespace SkiaSharpOpenGLBenchmark.css
         // parse.c:1055
         public CssStatus ParseAtRule()
         {
-            Console.WriteLine("ParseAtRule() UNIMPLEMENTED");
+            Log.Unimplemented("ParseAtRule()");
             return CssStatus.CSS_OK;
         }
 
         // parse.c:1126
         public CssStatus ParseAtRuleEnd()
         {
-            Console.WriteLine("ParseAtRuleEnd() UNIMPLEMENTED");
+            Log.Unimplemented("ParseAtRuleEnd()");
             //if (Event != null)
             //Event(CssParserEvent.CSS_PARSER_START_ATRULE);
 
@@ -500,7 +499,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         // parse.c:1207
         public CssStatus ParseBlock()
         {
-            Console.WriteLine("ParseBlock() UNIMPLEMENTED");
+            Log.Unimplemented("ParseBlock()");
 
             //if (Event != null)
             //Event(CssParserEvent.CSS_PARSER_START_BLOCK);
@@ -515,7 +514,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         // parse.c:1298
         public CssStatus ParseBlockContent()
         {
-            Console.WriteLine("ParseBlockContent() UNIMPLEMENTED");
+            Log.Unimplemented("ParseBlockContent()");
             return CssStatus.CSS_OK;
         }
 
@@ -1173,7 +1172,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                                 (lwc_string_data(token->idata)[0] == '(' ||
                                 lwc_string_data(token->idata)[0] == '[')*/)
                     {
-                        Console.WriteLine("ParseAny() idata UNIMPLEMENTED");
+                        Log.Unimplemented("ParseAny() idata");
                         /*parserutils_stack_push(parser->open_items,
                                 &(lwc_string_data(
                                 token->idata)[0] == '(' ? ")" : "]")[0]);*/
@@ -1221,7 +1220,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                             ((uint8_t*)parserutils_stack_get_current(
                                     parser->open_items))[0]*/)
                     {
-                        Console.WriteLine("ParseAny() idata UNIMPLEMENTED 2");
+                        Log.Unimplemented("ParseAny() idata 2");
                         //parserutils_stack_pop(parser->open_items, NULL);
                         state.Substate = 3; //WS2;
                         goto ws2;
@@ -1237,43 +1236,43 @@ namespace SkiaSharpOpenGLBenchmark.css
         // parse.c:2107
         public CssStatus ParseMalformedDecl()
         {
-            Console.WriteLine("ParseMalformedDecl() UNIMPLEMENTED");
+            Log.Unimplemented("ParseMalformedDecl()");
             return CssStatus.CSS_OK;
         }
         // parse.c:2207
         public CssStatus ParseMalformedSelector()
         {
-            Console.WriteLine("ParseMalformedSelector() UNIMPLEMENTED");
+            Log.Unimplemented("ParseMalformedSelector()");
             return CssStatus.CSS_OK;
         }
         // parse.c:2302
         public CssStatus ParseMalformedAtRule()
         {
-            Console.WriteLine("ParseMalformedAtRule() UNIMPLEMENTED");
+            Log.Unimplemented("ParseMalformedAtRule()");
             return CssStatus.CSS_OK;
         }
         // parse.c:2410
         public CssStatus ParseInlineStyle()
         {
-            Console.WriteLine("ParseInlineStyle() UNIMPLEMENTED");
+            Log.Unimplemented("ParseInlineStyle()");
             return CssStatus.CSS_OK;
         }
         // parse.c:2469
         public CssStatus ParseISBody0()
         {
-            Console.WriteLine("ParseISBody0() UNIMPLEMENTED");
+            Log.Unimplemented("ParseISBody0()");
             return CssStatus.CSS_OK;
         }
         // parse.c:2515
         public CssStatus ParseISBody()
         {
-            Console.WriteLine("ParseISBody() UNIMPLEMENTED");
+            Log.Unimplemented("ParseISBody()");
             return CssStatus.CSS_OK;
         }
         // parse.c:2596
         public CssStatus ParseMediaQuery()
         {
-            Console.WriteLine("ParseMediaQuery() UNIMPLEMENTED");
+            Log.Unimplemented("ParseMediaQuery()");
             return CssStatus.CSS_OK;
         }
 
