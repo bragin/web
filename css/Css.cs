@@ -397,7 +397,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                 css_rule_font_face* ff_rule = (css_rule_font_face*)rule;
                 error = css__parse_font_descriptor(c, ident, vector, &ctx, ff_rule);
                 */
-                Log.Unimplemented(", font face rule 436");
+                Log.Unimplemented("font face rule 436");
             }
             else
             {
@@ -409,7 +409,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         // language.c:1461
         void ParseSpecific(List<CssToken> tokens, ref int index, bool inNot, CssSelector parent)
         {
-            Log.Unimplemented("language.c:1461 // 365");
+            Log.Unimplemented();
         }
 
         // language.c:1516
@@ -417,7 +417,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         {
             ParseSpecific(tokens, ref index, false, parent);
 
-            Log.Unimplemented("language.c:1516 // 373");
+            Log.Unimplemented();
 
             //css__stylesheet_selector_append_specific(c->sheet, parent, &specific);
         }
@@ -545,7 +545,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     css__stylesheet_selector_destroy(c->sheet, selector);
                     return error;
                 }*/
-                Log.Unimplemented("language.c:1614 // 357");
+                Log.Unimplemented();
             }
 
             ParseSelectorSpecifics(tokens, ref index, selector);
@@ -643,7 +643,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     css__stylesheet_selector_destroy(c->sheet, selector);
                     return error;
                 }*/
-                Log.Unimplemented("language.c:1721 // 496");
+                Log.Unimplemented();
                 selector = other;
             }
 
@@ -700,7 +700,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                 return CssStatus.CSS_OK;
             }
 
-            Log.Unimplemented("utils.c:682 // 711");
+            Log.Unimplemented();
             // We don't know this colour name; ask the client
             //if (c->sheet->color != NULL)
             //  return c->sheet->color(c->sheet->color_pw, data, result);
@@ -766,7 +766,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                 var error = ParseProperty_NamedColour(token.iData, ref result);
                 if (error != CssStatus.CSS_OK && QuirksAllowed)
                 {
-                    Log.Unimplemented("parse/properties/utils.c:368 // 757");
+                    Log.Unimplemented();
                     /*
                     error = css__parse_hash_colour(token->idata, result);
                     if (error == CSS_OK)
@@ -782,7 +782,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
             else if (token.Type == CssTokenType.CSS_TOKEN_HASH)
             {
-                Log.Unimplemented("parse/properties/utils.c:368 // 733");
+                Log.Unimplemented();
                 /*
                 error = css__parse_hash_colour(token->idata, result);
                 if (error != CSS_OK)
@@ -798,7 +798,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     c->sheet->quirks_used = true;
                 else
                     goto invalid;*/
-                Log.Unimplemented("parse/properties/utils.c:368 // 749");
+                Log.Unimplemented();
             }
             else if (QuirksAllowed &&
                   token.Type == CssTokenType.CSS_TOKEN_DIMENSION)
@@ -809,11 +809,11 @@ namespace SkiaSharpOpenGLBenchmark.css
                     c->sheet->quirks_used = true;
                 else
                     goto invalid;*/
-                Log.Unimplemented("parse/properties/utils.c:368 // 760");
+                Log.Unimplemented();
             }
             else if (token.Type == CssTokenType.CSS_TOKEN_FUNCTION)
             {
-                Log.Unimplemented("parse/properties/utils.c:368 // 764");
+                Log.Unimplemented();
                 /*
                 uint8_t r = 0, g = 0, b = 0, a = 0xff;
                 int colour_channels = 0;
@@ -1192,7 +1192,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             if (flags != 0)
             {
                 //css__make_style_important(style);
-                Log.Unimplemented("language.c:1845 // 792");
+                Log.Unimplemented();
             }
 
             // Append style to rule
