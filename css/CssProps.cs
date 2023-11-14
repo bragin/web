@@ -28,6 +28,30 @@ namespace SkiaSharpOpenGLBenchmark.css
         CSS_COLOR_COLOR = 0x1
     };
 
+    // properties.h:424
+    public enum CssDisplay : byte
+    {
+        CSS_DISPLAY_INHERIT = 0x00,
+        CSS_DISPLAY_INLINE = 0x01,
+        CSS_DISPLAY_BLOCK = 0x02,
+        CSS_DISPLAY_LIST_ITEM = 0x03,
+        CSS_DISPLAY_RUN_IN = 0x04,
+        CSS_DISPLAY_INLINE_BLOCK = 0x05,
+        CSS_DISPLAY_TABLE = 0x06,
+        CSS_DISPLAY_INLINE_TABLE = 0x07,
+        CSS_DISPLAY_TABLE_ROW_GROUP = 0x08,
+        CSS_DISPLAY_TABLE_HEADER_GROUP = 0x09,
+        CSS_DISPLAY_TABLE_FOOTER_GROUP = 0x0a,
+        CSS_DISPLAY_TABLE_ROW = 0x0b,
+        CSS_DISPLAY_TABLE_COLUMN_GROUP = 0x0c,
+        CSS_DISPLAY_TABLE_COLUMN = 0x0d,
+        CSS_DISPLAY_TABLE_CELL = 0x0e,
+        CSS_DISPLAY_TABLE_CAPTION = 0x0f,
+        CSS_DISPLAY_NONE = 0x10,
+        CSS_DISPLAY_FLEX = 0x11,
+        CSS_DISPLAY_INLINE_FLEX = 0x12
+    };
+
     // properties.h:484
     public enum CssFloat : byte
     {
@@ -64,6 +88,15 @@ namespace SkiaSharpOpenGLBenchmark.css
         CSS_FONT_SIZE_DIMENSION = 0xa
     };
 
+    // properties.h:759
+    public enum CssPosition : byte
+    {
+        CSS_POSITION_INHERIT = 0x0,
+        CSS_POSITION_STATIC = 0x1,
+        CSS_POSITION_RELATIVE = 0x2,
+        CSS_POSITION_ABSOLUTE = 0x3,
+        CSS_POSITION_FIXED = 0x4
+    };
 
     public delegate CssStatus PropDispCascade();
     public delegate CssStatus PropDispSetFromHint(CssHint hint, ComputedStyle style);

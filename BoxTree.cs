@@ -309,6 +309,55 @@ namespace SkiaSharpOpenGLBenchmark
             //box->node = NULL;
         }
 
+        /**
+         * mapping from CSS display to box type this table must be in sync
+         * with libcss' css_display enum
+         */
+        // box_construct.c:93
+        static public BoxType BoxMap(CssDisplay disp)
+        {
+            switch (disp)
+            {
+                case CssDisplay.CSS_DISPLAY_INHERIT:
+                    return BoxType.BOX_BLOCK;
+                case CssDisplay.CSS_DISPLAY_INLINE:
+                    return BoxType.BOX_INLINE;
+                case CssDisplay.CSS_DISPLAY_BLOCK:
+                    return BoxType.BOX_BLOCK;
+                case CssDisplay.CSS_DISPLAY_LIST_ITEM:
+                    return BoxType.BOX_BLOCK;
+                case CssDisplay.CSS_DISPLAY_RUN_IN:
+                    return BoxType.BOX_INLINE;
+                case CssDisplay.CSS_DISPLAY_INLINE_BLOCK:
+                    return BoxType.BOX_INLINE_BLOCK;
+                case CssDisplay.CSS_DISPLAY_TABLE:
+                    return BoxType.BOX_TABLE;
+                case CssDisplay.CSS_DISPLAY_INLINE_TABLE:
+                    return BoxType.BOX_TABLE;
+                case CssDisplay.CSS_DISPLAY_TABLE_ROW_GROUP:
+                    return BoxType.BOX_TABLE_ROW_GROUP;
+                case CssDisplay.CSS_DISPLAY_TABLE_HEADER_GROUP:
+                    return BoxType.BOX_TABLE_ROW_GROUP;
+                case CssDisplay.CSS_DISPLAY_TABLE_FOOTER_GROUP:
+                    return BoxType.BOX_TABLE_ROW_GROUP;
+                case CssDisplay.CSS_DISPLAY_TABLE_ROW:
+                    return BoxType.BOX_TABLE_ROW;
+                case CssDisplay.CSS_DISPLAY_TABLE_COLUMN_GROUP:
+                    return BoxType.BOX_NONE;
+                case CssDisplay.CSS_DISPLAY_TABLE_COLUMN:
+                    return BoxType.BOX_NONE;
+                case CssDisplay.CSS_DISPLAY_TABLE_CELL:
+                    return BoxType.BOX_TABLE_CELL;
+                case CssDisplay.CSS_DISPLAY_TABLE_CAPTION:
+                    return BoxType.BOX_INLINE;
+                case CssDisplay.CSS_DISPLAY_NONE:
+                    return BoxType.BOX_NONE;
+                default:
+                    Debug.Assert(false); // must never happen
+                    return BoxType.BOX_BLOCK;
+            }
+        }
+
         // box_construct.c:153 - box_extract_properties()
         static public BoxConstructProps ExtractProperties(XmlNode node, BoxTree bt)
         {
@@ -664,6 +713,45 @@ namespace SkiaSharpOpenGLBenchmark
             return styles;
         }
 
+        /**
+         * Temporary helper wrappers for for libcss computed style getter, while
+         * we don't support flexbox related property values.
+         */
+
+        // utils.h:34
+        static CssDisplay ns_computed_display(ComputedStyle style, bool root)
+        {
+            var value = style.ComputedDisplay(root);
+
+            if (value == CssDisplay.CSS_DISPLAY_FLEX)
+            {
+                return CssDisplay.CSS_DISPLAY_BLOCK;
+
+            }
+            else if (value == CssDisplay.CSS_DISPLAY_INLINE_FLEX)
+            {
+                return CssDisplay.CSS_DISPLAY_INLINE_BLOCK;
+            }
+
+            return value;
+        }
+
+        // utils.h:50
+        static CssDisplay ns_computed_display_static(ComputedStyle style)
+        {
+            var value = style.ComputedDisplayStatic();
+
+	        if (value == CssDisplay.CSS_DISPLAY_FLEX) {
+		        return CssDisplay.CSS_DISPLAY_BLOCK;
+
+	        } else if (value == CssDisplay.CSS_DISPLAY_INLINE_FLEX) {
+		        return CssDisplay.CSS_DISPLAY_INLINE_BLOCK;
+	        }
+
+            return value;
+        }
+
+
         // box_construct.c:468 - box_construct_element()
         private bool BoxConstructElement(XmlNode node, ref bool ConvertChildren)
         {
@@ -769,61 +857,63 @@ namespace SkiaSharpOpenGLBenchmark
 
                             dom_string_unref(s);
                         }
+            */
 
-                        css_display = ns_computed_display_static(box->style);
+            var cssDisplay = ns_computed_display_static(box.Style);
 
-                        // Set box type from computed display
-                        if ((css_computed_position(box->style) == CSS_POSITION_ABSOLUTE ||
-                             css_computed_position(box->style) == CSS_POSITION_FIXED) &&
-                                (css_display == CSS_DISPLAY_INLINE ||
-                                 css_display == CSS_DISPLAY_INLINE_BLOCK ||
-                                 css_display == CSS_DISPLAY_INLINE_TABLE ||
-                                 css_display == CSS_DISPLAY_INLINE_FLEX))
-                        {
-                            // Special case for absolute positioning: make absolute inlines
-                            // into inline block so that the boxes are constructed in an
-                            // inline container as if they were not absolutely positioned.
-                            // Layout expects and handles this.
-                            box->type = box_map[CSS_DISPLAY_INLINE_BLOCK];
-                        }
-                        else if (props.node_is_root)
-                        {
-                            // Special case for root element: force it to BLOCK, or the
-                            // rest of the layout will break.
-                            box->type = BOX_BLOCK;
-                        }
-                        else
-                        {
-                            // Normal mapping
-                            box->type = box_map[ns_computed_display(box->style,
-                                    props.node_is_root)];
+            // Set box type from computed display
+            if ((box.Style.ComputedPosition() == CssPosition.CSS_POSITION_ABSOLUTE ||
+                 box.Style.ComputedPosition() == CssPosition.CSS_POSITION_FIXED) &&
+                    (cssDisplay == CssDisplay.CSS_DISPLAY_INLINE ||
+                     cssDisplay == CssDisplay.CSS_DISPLAY_INLINE_BLOCK ||
+                     cssDisplay == CssDisplay.CSS_DISPLAY_INLINE_TABLE ||
+                     cssDisplay == CssDisplay.CSS_DISPLAY_INLINE_FLEX))
+            {
+                // Special case for absolute positioning: make absolute inlines
+                // into inline block so that the boxes are constructed in an
+                // inline container as if they were not absolutely positioned.
+                // Layout expects and handles this.
+                box.Type = Box.BoxMap(CssDisplay.CSS_DISPLAY_INLINE_BLOCK);
+            }
+            else if (props.NodeIsRoot)
+            {
+                // Special case for root element: force it to BLOCK, or the
+                // rest of the layout will break.
+                box.Type = BoxType.BOX_BLOCK;
+            }
+            else
+            {
+                // Normal mapping
+                box.Type = Box.BoxMap(ns_computed_display(box.Style, props.NodeIsRoot));
 
-                            if (props.containing_block->type == BOX_FLEX ||
-                                props.containing_block->type == BOX_INLINE_FLEX)
-                            {
-                                // Blockification
-                                switch (box->type)
-                                {
-                                    case BOX_INLINE_FLEX:
-                                        box->type = BOX_FLEX;
-                                        break;
-                                    case BOX_INLINE_BLOCK:
-                                        box->type = BOX_BLOCK;
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
-                        }
+                if (props.ContainingBlock.Type == BoxType.BOX_FLEX ||
+                    props.ContainingBlock.Type == BoxType.BOX_INLINE_FLEX)
+                {
+                    // Blockification
+                    switch (box.Type)
+                    {
+                        case BoxType.BOX_INLINE_FLEX:
+                            box.Type = BoxType.BOX_FLEX;
+                            break;
+                        case BoxType.BOX_INLINE_BLOCK:
+                            box.Type = BoxType.BOX_BLOCK;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
 
-                        if (convert_special_elements(ctx->n,
-                                         ctx->content,
-                                         box,
-                                         convert_children) == false)
-                        {
-                            return false;
-                        }
-                        */
+
+            /*
+                                    if (convert_special_elements(ctx->n,
+                                                     ctx->content,
+                                                     box,
+                                                     convert_children) == false)
+                                    {
+                                        return false;
+                                    }
+                                    */
 
             // Handle the :before pseudo element
             if (((int)box.Flags & (int)BoxFlags.IS_REPLACED) == 0)
