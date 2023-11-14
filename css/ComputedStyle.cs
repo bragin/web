@@ -764,6 +764,29 @@ namespace SkiaSharpOpenGLBenchmark
             }
         }
 
+
+        #region Property Accessors
+
+        public CssFloat ComputedFloat()
+        {
+            /*
+	        uint8_t position = css_computed_position(style);
+	        uint8_t value = get_float(style);
+
+	        // Fix up as per $9.7:2
+            if (position == CSS_POSITION_ABSOLUTE ||
+                    position == CSS_POSITION_FIXED)
+                return CSS_FLOAT_NONE;
+
+            return value;
+            */
+            Log.Unimplemented();
+
+            return CssFloat.CSS_FLOAT_NONE;
+        }
+
+        #endregion
+
         // computed.c:1747
         void ComputeAbsoluteLengthPair(CssHintLength ex_size, string propsName)
         {

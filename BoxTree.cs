@@ -737,9 +737,6 @@ namespace SkiaSharpOpenGLBenchmark
             if (node.Attributes["id"] != null)
                 Console.WriteLine("Node id: {0}", node.Attributes["id"].Value);
 
-            //if (node.Style.Count > 0)
-            //  RootBox = box;
-
             // If this is the root box, add it to the context/
             if (props.NodeIsRoot)
                 RootBox = box;
@@ -870,32 +867,25 @@ namespace SkiaSharpOpenGLBenchmark
             // Attach box to DOM node/
             box.AttachToNode(node);
 
-            /*
-                    if (props.inline_container == NULL &&
-                            (box->type == BOX_INLINE ||
-                             box->type == BOX_BR ||
-                             box->type == BOX_INLINE_BLOCK ||
-                             box->type == BOX_INLINE_FLEX ||
-                             (box__style_is_float(box) &&
-                              !box__containing_block_is_flex(&props))) &&
-                            props.node_is_root == false)
-                    {
-                        // Found an inline child of a block without a current container
-                        // (i.e. this box is the first child of its parent, or was
-                        // preceded by block-level siblings)
-                        assert(props.containing_block != NULL &&
-                                "Box must have containing block.");
+            if (props.InlineContainer == null &&
+                (box.Type == BoxType.BOX_INLINE ||
+                    box.Type == BoxType.BOX_BR ||
+                    box.Type == BoxType.BOX_INLINE_BLOCK ||
+                    box.Type == BoxType.BOX_INLINE_FLEX ||
+                    box.Style.ComputedFloat() == CssFloat.CSS_FLOAT_LEFT ||
+                    box.Style.ComputedFloat() == CssFloat.CSS_FLOAT_RIGHT) &&
+                props.NodeIsRoot == false)
+            {
+                // Found an inline child of a block without a current container
+                // (i.e. this box is the first child of its parent, or was
+                // preceded by block-level siblings)
+                Debug.Assert(props.ContainingBlock != null); // "Box must have containing block."
 
-                        props.inline_container = box_create(NULL, NULL, false, NULL,
-                                NULL, NULL, NULL, ctx->bctx);
-                        if (props.inline_container == NULL)
-                            return false;
+                props.InlineContainer = new Box(null, null, false, 0, "", "", null);
+                props.InlineContainer.Type = BoxType.BOX_INLINE_CONTAINER;
 
-                        props.inline_container->type = BOX_INLINE_CONTAINER;
-
-                        props.ContainingBlock.AddChild(props.InlineContainer);
-                    }
-            */
+                props.ContainingBlock.AddChild(props.InlineContainer);
+            }
 
             // Kick off fetch for any background image
             /*
@@ -930,13 +920,14 @@ namespace SkiaSharpOpenGLBenchmark
             if (ConvertChildren)
                 box.Flags |= BoxFlags.CONVERT_CHILDREN;
 
-            if (box.Type == BoxType.BOX_INLINE || box.Type == BoxType.BOX_BR ||
-                    box.Type == BoxType.BOX_INLINE_FLEX ||
-                    box.Type == BoxType.BOX_INLINE_BLOCK)
+            if (box.Type == BoxType.BOX_INLINE ||
+                box.Type == BoxType.BOX_BR ||
+                box.Type == BoxType.BOX_INLINE_FLEX ||
+                box.Type == BoxType.BOX_INLINE_BLOCK)
             {
                 // Inline container must exist, as we'll have
                 // created it above if it didn't
-                //assert(props.inline_container != NULL);
+                Debug.Assert(props.InlineContainer != null);
 
                 props.InlineContainer.AddChild(box);
             }

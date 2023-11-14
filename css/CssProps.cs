@@ -28,6 +28,15 @@ namespace SkiaSharpOpenGLBenchmark.css
         CSS_COLOR_COLOR = 0x1
     };
 
+    // properties.h:484
+    public enum CssFloat : byte
+    {
+        CSS_FLOAT_INHERIT = 0x0,
+        CSS_FLOAT_LEFT = 0x1,
+        CSS_FLOAT_RIGHT = 0x2,
+        CSS_FLOAT_NONE = 0x3
+    }
+
     // properties.h:491
     public enum CssFontFamilyEnum : byte
     {
