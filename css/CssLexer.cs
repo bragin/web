@@ -246,7 +246,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     if (error != CSS_OK)
                         return error;
                 */
-                Log.Unimplemented("lex.c:262 // AppendToTokenData with EscapeSeen");
+                Log.Unimplemented("EscapeSeen");
             }
 
             Token.DataLen += len;
@@ -270,7 +270,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             if (EscapeSeen)
             {
-                Log.Unimplemented("lex.c:354 // EmitToken()");
+                Log.Unimplemented("EscapeSeen");
             }
             else
             {
@@ -298,7 +298,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     t.DataLen -= 1;
 
                     // Strip the trailing quote, iff it exists (may have hit EOF)
-                    Log.Unimplemented("lex.c:354 // 267");
+                    Log.Unimplemented();
                     /*
                     if (t->data.len > 0 && (t->data.data[t->data.len - 1] == '"' ||
                             t->data.data[t->data.len - 1] == '\''))
@@ -324,7 +324,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     break;
                 case CssTokenType.CSS_TOKEN_URI:
                     // Strip the "url(" from the start
-                    Log.Unimplemented("lex.c:354 // 293");
+                    Log.Unimplemented();
                     /*
                     t.DataIndex += SLEN("url(");
                     t.DataLen -= SLEN("url(");
@@ -362,13 +362,13 @@ namespace SkiaSharpOpenGLBenchmark.css
                     break;
                 case CssTokenType.CSS_TOKEN_UNICODE_RANGE:
                     // Remove "U+" from the start
-                    Log.Unimplemented("lex.c:354 // 331");
+                    Log.Unimplemented();
                     /*
                     t.DataIndex += SLEN("U+");
                     t.DataLen -= SLEN("U+");*/
                     break;
                 case CssTokenType.CSS_TOKEN_COMMENT:
-                    Log.Unimplemented("lex.c:354 // 337");
+                    Log.Unimplemented();
                     // Strip the leading '/' and '*'
                     //t.DataIndex += SLEN("/*");
                     //t.DataLen -= SLEN("/*");
@@ -633,32 +633,32 @@ namespace SkiaSharpOpenGLBenchmark.css
         // lex.c:481
         CssStatus AtKeyword(out CssToken token)
         {
-            Log.Unimplemented("lex.c:481 // lexer:586 AtKeyword");
+            Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         CssStatus String(out CssToken token)
         {
-            Log.Unimplemented("lexer:591 // String");
+            Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         // lex.c:1321
         CssStatus URIOrUnicodeRangeOrIdentOrFunction(out CssToken token)
         {
-            Log.Unimplemented("lex.c:1321 // lexer: 597 URI...");
+            Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         CssStatus Hash(out CssToken token)
         {
-            Log.Unimplemented("lexer:602 // Hash");
+            Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         CssStatus NumberOrPercentageOrDimension(out CssToken token)
         {
-            Log.Unimplemented("lexer:607 // NumberOf...");
+            Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
@@ -675,19 +675,19 @@ namespace SkiaSharpOpenGLBenchmark.css
         }
         CssStatus Comment(out CssToken token)
         {
-            Log.Unimplemented("lexer:617 Comment");
+            Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         CssStatus Match(out CssToken token)
         {
-            Log.Unimplemented("lexer:622 Match");
+            Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         CssStatus URI(out CssToken token)
         {
-            Log.Unimplemented("lexer:627 URI");
+            Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
@@ -745,26 +745,26 @@ namespace SkiaSharpOpenGLBenchmark.css
         }
         CssStatus EscapedIdentOrFunction(out CssToken token)
         {
-            Log.Unimplemented("lexer:680 Escaped..");
+            Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         CssStatus UnicodeRange(out CssToken token)
         {
-            Log.Unimplemented("lexer:685 UnicodeRange");
+            Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
 
         CssStatus CDO(out CssToken token)
         {
-            Log.Unimplemented("lexer:691 CDO");
+            Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
         CssStatus CDCOrIdentOrFunctionOrNPD(out CssToken token)
         {
-            Log.Unimplemented("lexer:696 CDCOrIdent...");
+            Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
@@ -795,7 +795,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                 {
                     BytesReadForToken++;
 
-                    Log.Unimplemented("lex.c:1814 // lexer:731");
+                    Log.Unimplemented();
                     //error = consumeEscape(lexer, false);
                     //if (error != CSS_OK)
                     //{

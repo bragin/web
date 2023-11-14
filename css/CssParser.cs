@@ -280,7 +280,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 				            lwc_string_length(token->idata) == 1 &&
 				            lwc_string_data(token->idata)[0] == '{'*/)
                     {
-                        Log.Unimplemented("parse.c:855 // 240");
+                        Log.Unimplemented();
 
                         /*
 			            if (parser->event != NULL) {
@@ -479,14 +479,14 @@ namespace SkiaSharpOpenGLBenchmark.css
         // parse.c:1055
         public CssStatus ParseAtRule()
         {
-            Log.Unimplemented("ParseAtRule()");
+            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
 
         // parse.c:1126
         public CssStatus ParseAtRuleEnd()
         {
-            Log.Unimplemented("ParseAtRuleEnd()");
+            Log.Unimplemented();
             //if (Event != null)
             //Event(CssParserEvent.CSS_PARSER_START_ATRULE);
 
@@ -499,7 +499,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         // parse.c:1207
         public CssStatus ParseBlock()
         {
-            Log.Unimplemented("ParseBlock()");
+            Log.Unimplemented();
 
             //if (Event != null)
             //Event(CssParserEvent.CSS_PARSER_START_BLOCK);
@@ -514,7 +514,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         // parse.c:1298
         public CssStatus ParseBlockContent()
         {
-            Log.Unimplemented("ParseBlockContent()");
+            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
 
@@ -1172,7 +1172,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                                 (lwc_string_data(token->idata)[0] == '(' ||
                                 lwc_string_data(token->idata)[0] == '[')*/)
                     {
-                        Log.Unimplemented("ParseAny() idata");
+                        Log.Unimplemented("idata");
                         /*parserutils_stack_push(parser->open_items,
                                 &(lwc_string_data(
                                 token->idata)[0] == '(' ? ")" : "]")[0]);*/
@@ -1220,7 +1220,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                             ((uint8_t*)parserutils_stack_get_current(
                                     parser->open_items))[0]*/)
                     {
-                        Log.Unimplemented("ParseAny() idata 2");
+                        Log.Unimplemented("idata 2");
                         //parserutils_stack_pop(parser->open_items, NULL);
                         state.Substate = 3; //WS2;
                         goto ws2;
@@ -1236,43 +1236,43 @@ namespace SkiaSharpOpenGLBenchmark.css
         // parse.c:2107
         public CssStatus ParseMalformedDecl()
         {
-            Log.Unimplemented("ParseMalformedDecl()");
+            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         // parse.c:2207
         public CssStatus ParseMalformedSelector()
         {
-            Log.Unimplemented("ParseMalformedSelector()");
+            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         // parse.c:2302
         public CssStatus ParseMalformedAtRule()
         {
-            Log.Unimplemented("ParseMalformedAtRule()");
+            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         // parse.c:2410
         public CssStatus ParseInlineStyle()
         {
-            Log.Unimplemented("ParseInlineStyle()");
+            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         // parse.c:2469
         public CssStatus ParseISBody0()
         {
-            Log.Unimplemented("ParseISBody0()");
+            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         // parse.c:2515
         public CssStatus ParseISBody()
         {
-            Log.Unimplemented("ParseISBody()");
+            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         // parse.c:2596
         public CssStatus ParseMediaQuery()
         {
-            Log.Unimplemented("ParseMediaQuery()");
+            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
 

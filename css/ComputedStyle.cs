@@ -642,7 +642,7 @@ namespace SkiaSharpOpenGLBenchmark
                                 get_column_gap,
                                 set_column_gap);
             */
-            Log.Unimplemented("computed.c:1094, ComputeAbsoluteValues: majority of properties fixups");
+            Log.Unimplemented("majority of properties fixups");
         }
 
         //FIXME: Maybe should be in Unit
@@ -780,7 +780,7 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
                 case "border_spacing":
                     //type = GetBackgroundPosition(out length1, out unit1, out length2, out unit2);
-                    Log.Unimplemented();
+                    Log.Unimplemented("border_spacing");
                     type = 0xff;
                     break;
                 default:
@@ -812,7 +812,7 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
                 case "border_spacing":
                     //SetBorderSpacing(type, length1, unit1, length2, unit2);
-                    Log.Unimplemented();
+                    Log.Unimplemented("border_spacing");
                     break;
                 default:
                     throw new Exception("Unsupported type");

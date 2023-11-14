@@ -182,7 +182,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             if (parent != null)
             {
-                Log.Unimplemented("libcss/src/stylesheet.c:1414: parent rule handling 203");
+                Log.Unimplemented("parent rule handling");
                 /*
                 css_rule_media* media = (css_rule_media*)parent;
 
@@ -261,7 +261,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     HandleDeclaration();
                     break;
                 default:
-                    Log.Unimplemented($"libcss/src/parse/language.c:200, event handle type {type.ToString()} requested!");
+                    Log.Unimplemented($"event handle type {type.ToString()} requested!");
                     break;
             }
         }
@@ -397,7 +397,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                 css_rule_font_face* ff_rule = (css_rule_font_face*)rule;
                 error = css__parse_font_descriptor(c, ident, vector, &ctx, ff_rule);
                 */
-                Log.Unimplemented("font face rule 436");
+                Log.Unimplemented("rule.Type == CSS_RULE_FONT_FACE");
             }
             else
             {

@@ -493,7 +493,7 @@ namespace SkiaSharpOpenGLBenchmark
             // Consider any inline style for the node
             if (inlineStyle != null)
             {
-                Log.Unimplemented("libcss/src/select/select.c:1189 - css_select_style()");
+                Log.Unimplemented("inlineStyle != null");
             }
 
             // Fix up any remaining unset properties
@@ -548,7 +548,7 @@ namespace SkiaSharpOpenGLBenchmark
             // complete computed style for element
             if (parentStyle != null)
             {
-                Log.Unimplemented("content/handlers/css/select.c:253 - nscss_get_style()");
+                Log.Unimplemented("parentStyle != null");
 
                 /* Complete the computed style, by composing with the parent
                  * element's style */
@@ -567,7 +567,7 @@ namespace SkiaSharpOpenGLBenchmark
                         styles->styles[CSS_PSEUDO_ELEMENT_NONE]);
                 styles->styles[CSS_PSEUDO_ELEMENT_NONE] = composed;*/
             }
-            Log.Unimplemented("content/handlers/css/select.c:253 - nscss_get_style()");
+            Log.Unimplemented();
             
             /*
             for (pseudo_element = CSS_PSEUDO_ELEMENT_NONE + 1;
@@ -995,7 +995,7 @@ namespace SkiaSharpOpenGLBenchmark
             if (box.Type != BoxType.BOX_BLOCK)
                 return;
 
-            Log.Unimplemented("box_construct.c:308 - box_construct_generate");
+            Log.Unimplemented("box.Type == BoxType.BOX_BLOCK");
 
             /* To determine if an element has a pseudo element, we select
 	         * for it and test to see if the returned style's content

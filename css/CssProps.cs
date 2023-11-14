@@ -263,12 +263,12 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         CssStatus PropDispCascade_background_attachment()
         {
-            Log.Unimplemented("background_attachment");
+            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         CssStatus PropDispSetFromHint_background_attachment(CssHint hint, ComputedStyle style)
         {
-            Log.Unimplemented("background_attachment");
+            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         CssStatus PropDispInitial_background_attachment(CssSelectState state)
@@ -279,7 +279,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         }
         CssStatus PropDispCompose_background_attachment()
         {
-            Log.Unimplemented("background_attachment");
+            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         #endregion
@@ -288,12 +288,12 @@ namespace SkiaSharpOpenGLBenchmark.css
         #region color
         CssStatus PropDispCascade_color()
         {
-            Log.Unimplemented("color");
+            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         CssStatus PropDispSetFromHint_color(CssHint hint, ComputedStyle style)
         {
-            Log.Unimplemented("color");
+            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         CssStatus PropDispInitial_color(CssSelectState state)
@@ -305,7 +305,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         }
         CssStatus PropDispCompose_color()
         {
-            Log.Unimplemented("color");
+            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         #endregion
