@@ -474,7 +474,6 @@ namespace SkiaSharpOpenGLBenchmark
             // Apply any hints
             if (nhints > 0)
             {
-                // Console.WriteLine("Applying hints is UNIMEPLEMENTED");
                 Log.Unimplemented("Applying hints");
             }
 
@@ -494,7 +493,6 @@ namespace SkiaSharpOpenGLBenchmark
             // Consider any inline style for the node
             if (inlineStyle != null)
             {
-                // Console.WriteLine("UNIMPLEMENTED: inlineStyle 490");
                 Log.Unimplemented("libcss/src/select/select.c:1189 - css_select_style() // inlineStyle 490");
             }
 
@@ -550,7 +548,6 @@ namespace SkiaSharpOpenGLBenchmark
             // complete computed style for element
             if (parentStyle != null)
             {
-                // Console.WriteLine("UNIMPLEMENTED 546");
                 Log.Unimplemented("content/handlers/css/select.c:253 - nscss_get_style() // 546");
 
                 /* Complete the computed style, by composing with the parent
