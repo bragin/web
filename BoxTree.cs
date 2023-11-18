@@ -1118,6 +1118,7 @@ namespace SkiaSharpOpenGLBenchmark
 
             if (box.Type == BoxType.BOX_INLINE || box.Type == BoxType.BOX_BR)
             {
+                Log.Unimplemented();
                 /*
 		        // Insert INLINE_END into containing block
 		        struct box *inline_end;
@@ -1170,6 +1171,7 @@ namespace SkiaSharpOpenGLBenchmark
             {
                 // Handle the :after pseudo element
                 //box_construct_generate(n, content, box, box->styles->styles[CSS_PSEUDO_ELEMENT_AFTER]);
+                Log.Unimplemented();
             }
         }
 
@@ -1186,7 +1188,9 @@ namespace SkiaSharpOpenGLBenchmark
 
             var props = Box.ExtractProperties(n, this);
 
-            //assert(props.containing_block != NULL);
+            Log.Unimplemented();
+
+            Debug.Assert(props.ContainingBlock != null);
             /*
                 err = dom_characterdata_get_data(ctx->n, &content);
 	        if (err != DOM_NO_ERR || content == NULL)
@@ -1517,16 +1521,11 @@ namespace SkiaSharpOpenGLBenchmark
             return next;
         }
 
-        // box_construct.c:1298
-        public void DomToBox(XmlNode n)
+        // box_construct.c:1193 - convert_xml_to_box()
+        // Convert an ELEMENT node to a box tree fragment,
+        // then schedule conversion of the next ELEMENT node
+        void ConvertXmlToBox()
         {
-            // https://github.com/netsurf-browser/netsurf/blob/8615964c3fd381ef6d9a20487b9120135182dfd1/content/handlers/html/box_construct.c
-
-            // Once
-            ctx_n = n;
-            RootBox = null;
-
-            // convert_xml_to_box()
             XmlNode next;
             bool convert_children;
             int num_processed = 0;
@@ -1540,6 +1539,7 @@ namespace SkiaSharpOpenGLBenchmark
             {
                 convert_children = true;
 
+                Debug.Assert(ctx_n != null);
                 if (BoxConstructElement(ctx_n, ref convert_children) == false)
                 {
                     // ctx->cb(ctx->content, false);
@@ -1558,7 +1558,7 @@ namespace SkiaSharpOpenGLBenchmark
                     {
                         ctx_n = next;
 
-                        Console.WriteLine("{0}", next.ToString());
+                        Console.WriteLine("{0}", next.Value);
                         if (BoxConstructText(ctx_n) == false)
                         {
                             //ctx->cb(ctx->content, false);
@@ -1602,6 +1602,20 @@ namespace SkiaSharpOpenGLBenchmark
 
             // More work to do: schedule a continuation
             //guit->misc->schedule(0, (void*)convert_xml_to_box, ctx);
+            Console.WriteLine("Recursively calling ConvertXmlToBox()!!!");
+            ConvertXmlToBox();
+        }
+
+        // box_construct.c:1298 - dom_to_box()
+        public void DomToBox(XmlNode n)
+        {
+            // https://github.com/netsurf-browser/netsurf/blob/8615964c3fd381ef6d9a20487b9120135182dfd1/content/handlers/html/box_construct.c
+
+            // Once
+            ctx_n = n;
+            RootBox = null;
+
+            ConvertXmlToBox();
         }
     }
 }

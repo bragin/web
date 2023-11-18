@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Net;
 
 namespace SkiaSharpOpenGLBenchmark
 {
@@ -39,6 +40,22 @@ namespace SkiaSharpOpenGLBenchmark
             Reset();
             Tokenize(reader);
             return treeBuilder.Document;
+        }
+
+        public XmlDocument ParseUrl(string url)
+        {
+            HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(url);
+            myRequest.Method = "GET";
+            WebResponse myResponse = myRequest.GetResponse();
+            StreamReader sr = new StreamReader(myResponse.GetResponseStream(), System.Text.Encoding.UTF8);
+
+            var doc = Parse(sr);
+            //string result = sr.ReadToEnd();
+
+            sr.Close();
+            myResponse.Close();
+
+            return doc;
         }
 
         public XmlDocumentFragment ParseFragment(TextReader reader, string fragmentContext)
