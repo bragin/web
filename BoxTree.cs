@@ -1070,7 +1070,7 @@ namespace SkiaSharpOpenGLBenchmark
         {
             Box gen = null;
             //enum css_display_e computed_display;
-            //const css_computed_content_item* c_item;
+            CssComputedContentItem c_item = new CssComputedContentItem();
 
             // Nothing to generate if the parent box is not a block
             if (box.Type != BoxType.BOX_BLOCK)
@@ -1081,6 +1081,13 @@ namespace SkiaSharpOpenGLBenchmark
             /* To determine if an element has a pseudo element, we select
 	         * for it and test to see if the returned style's content
 	         * property is set to normal. */
+            if (style == null ||
+                style.ComputedContent(ref c_item) == CssContent.CSS_CONTENT_NORMAL)
+            {
+                // No pseudo element
+                return;
+            }
+
             /*
             if (style == NULL ||
 			        css_computed_content(style, &c_item) ==

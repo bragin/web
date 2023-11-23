@@ -28,6 +28,15 @@ namespace SkiaSharpOpenGLBenchmark.css
         CSS_COLOR_COLOR = 0x1
     };
 
+    // properties.h:375
+    public enum CssContent : byte
+    {
+        CSS_CONTENT_INHERIT = 0x0,
+        CSS_CONTENT_NONE = 0x1,
+        CSS_CONTENT_NORMAL = 0x2,
+        CSS_CONTENT_SET = 0x3
+    };
+
     // properties.h:424
     public enum CssDisplay : byte
     {
