@@ -7,11 +7,20 @@ using System.Xml;
 
 namespace SkiaSharpOpenGLBenchmark.css
 {
+    // properties.h:175
     public enum CssBackgroundAttachment : uint
     {
         CSS_BACKGROUND_ATTACHMENT_INHERIT = 0x0,
         CSS_BACKGROUND_ATTACHMENT_FIXED = 0x1,
         CSS_BACKGROUND_ATTACHMENT_SCROLL = 0x2
+    }
+
+    // properties.h:181
+    public enum CssBackgroundColorEnum : uint
+    {
+        CSS_BACKGROUND_COLOR_INHERIT = 0x0,
+        CSS_BACKGROUND_COLOR_COLOR = 0x1,
+        CSS_BACKGROUND_COLOR_CURRENT_COLOR = 0x2
     }
 
     // properties.h:194
@@ -106,6 +115,15 @@ namespace SkiaSharpOpenGLBenchmark.css
         CSS_POSITION_ABSOLUTE = 0x3,
         CSS_POSITION_FIXED = 0x4
     };
+
+    // properties.h:868
+    public enum CssWidth : byte
+    {
+        CSS_WIDTH_INHERIT = 0x0,
+        CSS_WIDTH_SET = 0x1,
+        CSS_WIDTH_AUTO = 0x2
+    };
+
 
     public delegate CssStatus PropDispCascade();
     public delegate CssStatus PropDispSetFromHint(CssHint hint, ComputedStyle style);
@@ -402,7 +420,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         }
         CssStatus PropDispInitial_Default(CssSelectState state)
         {
-            Log.Unimplemented();
+            //Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         CssStatus PropDispCompose_Default()

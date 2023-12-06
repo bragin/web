@@ -106,7 +106,7 @@ namespace SkiaSharpOpenGLBenchmark
         Box Prev;
 
         // First child box, or NULL.
-        Box Children;
+        public Box Children;
 
         // Last child box, or NULL.
         public Box Last;
@@ -457,6 +457,181 @@ namespace SkiaSharpOpenGLBenchmark
             child.Parent = this;
         }
 
+        // box_inspect.c:648
+        // Print a box tree to a string
+        public void Dump(StreamWriter sw, int depth, bool style)
+        {
+            string res = "";
+            int i;
+            //struct box *c, *prev;
+
+            for (i = 0; i != depth; i++)
+            {
+                sw.Write("  ");
+            }
+
+            sw.Write($"{"ptrtobox"} ");
+
+            sw.Write($"x{x} y{y} w{width} h{height} ");
+
+            /*if (box->max_width != UNKNOWN_MAX_WIDTH) {
+                sw.Write("min%i max%i ", box->min_width, box->max_width);
+            }*/
+
+            sw.Write($"({descendant_x0} {descendant_y0} {descendant_x1} {descendant_y1}) ");
+
+            sw.Write($"m({margin[0]} {margin[3]} {margin[2]} {margin[1]}) "); // top left bottom right
+
+            switch (Type)
+            {
+                case BoxType.BOX_BLOCK:
+                    sw.Write("BLOCK ");
+                    break;
+
+                case BoxType.BOX_INLINE_CONTAINER:
+                    sw.Write("INLINE_CONTAINER ");
+                    break;
+
+                case BoxType.BOX_INLINE:
+                    sw.Write("INLINE ");
+                    break;
+
+                case BoxType.BOX_INLINE_END:
+                    sw.Write("INLINE_END ");
+                    break;
+
+                case BoxType.BOX_INLINE_BLOCK:
+                    sw.Write("INLINE_BLOCK ");
+                    break;
+                /*
+                            case BoxType.BOX_TABLE:
+                                fprintf(stream, "TABLE [columns %i] ", box->columns);
+                                break;
+
+                            case BoxType.BOX_TABLE_ROW:
+                                sw.Write("TABLE_ROW ");
+                                break;
+
+                            case BoxType.BOX_TABLE_CELL:
+                                fprintf(stream, "TABLE_CELL [columns %i, start %i, rows %i] ",
+                                    box->columns,
+                                    box->start_column,
+                                    box->rows);
+                                break;
+                */
+                case BoxType.BOX_TABLE_ROW_GROUP:
+                    sw.Write("TABLE_ROW_GROUP ");
+                    break;
+
+                case BoxType.BOX_FLOAT_LEFT:
+                    sw.Write("FLOAT_LEFT ");
+                    break;
+
+                case BoxType.BOX_FLOAT_RIGHT:
+                    sw.Write("FLOAT_RIGHT ");
+                    break;
+
+                case BoxType.BOX_BR:
+                    sw.Write("BR ");
+                    break;
+
+                case BoxType.BOX_TEXT:
+                    sw.Write("TEXT ");
+                    break;
+
+                default:
+                    sw.Write("Unknown box type ");
+                    break;
+            }
+
+            if (Text != null)
+                sw.Write($"{0} '{Text}'");
+
+            /*
+            if (box->space)
+                sw.Write("space ");
+            if (box->object) {
+                fprintf(stream, "(object '%s') ",
+                    nsurl_access(hlcache_handle_get_url(box->object)));
+            }
+            if (box->iframe) {
+                sw.Write("(iframe) ");
+            }
+            if (box->gadget)
+                sw.Write("(gadget) ");*/
+            if (style && Style != null)
+                Style.Dump(sw);
+            /*if (href)
+                fprintf(stream, " -> '%s'", nsurl_access(box->href));*/
+            if (Target != null)
+                sw.Write($" |{Target}|");
+            if (Title != null)
+                sw.Write($" [{Title}]");
+            if (Id != null)
+                sw.Write($" ID:{Id}");
+            /*
+            if (box->type == BOX_INLINE || box->type == BOX_INLINE_END)
+                fprintf(stream, " inline_end %p", box->inline_end);
+            if (box->float_children)
+                fprintf(stream, " float_children %p", box->float_children);
+            if (box->next_float)
+                fprintf(stream, " next_float %p", box->next_float);
+            if (box->float_container)
+                fprintf(stream, " float_container %p", box->float_container);
+            if (box->col) {
+                sw.Write(" (columns");
+                for (i = 0; i != box->columns; i++) {
+                    fprintf(stream, " (%s %s %i %i %i)",
+                        ((const char *[]) {
+                            "UNKNOWN",
+                            "FIXED",
+                            "AUTO",
+                            "PERCENT",
+                            "RELATIVE"
+                                })
+                        [box->col[i].type],
+                        ((const char *[]) {
+                            "normal",
+                            "positioned"})
+                        [box->col[i].positioned],
+                        box->col[i].width,
+                        box->col[i].min, box->col[i].max);
+                }
+                sw.Write(")");
+            }
+            */
+            if (Node != null) {
+                sw.Write($" <{Node.Name}>");
+            }
+            sw.WriteLine();
+
+            /*
+            if (box->list_marker) {
+                for (i = 0; i != depth; i++)
+                    fprintf(stream, "  ");
+                fprintf(stream, "list_marker:\n");
+                box_dump(stream, box->list_marker, depth + 1, style);
+            }
+            */
+
+            Box c;
+            for (c = Children; (c != null) && (c.Next != null); c = c.Next)
+                ;
+
+            if (Last != c)
+                sw.WriteLine($"warning: box->last {"ptr"} (should be {"ptr"}) (box ${"ptr"})"); // box->last, c, box
+
+            Box prev;
+            for (prev = null, c = Children; c != null; prev = c, c = c.Next)
+            {
+                if (c.Parent != this)
+                    sw.WriteLine("warning: box->parent %p (should be %p) (box on next line)"); // c->parent, box
+                if (c.Prev != prev)
+                    sw.WriteLine("warning: box->prev %p (should be %p) (box on next line)"); //c->prev, prev);
+
+                c.Dump(sw, depth + 1, style); // style
+            }
+        }
     }
 
     internal class BoxTree
@@ -719,7 +894,7 @@ namespace SkiaSharpOpenGLBenchmark
          */
 
         // utils.h:34
-        static CssDisplay ns_computed_display(ComputedStyle style, bool root)
+        public static CssDisplay ns_computed_display(ComputedStyle style, bool root)
         {
             var value = style.ComputedDisplay(root);
 
@@ -737,7 +912,7 @@ namespace SkiaSharpOpenGLBenchmark
         }
 
         // utils.h:50
-        static CssDisplay ns_computed_display_static(ComputedStyle style)
+        public static CssDisplay ns_computed_display_static(ComputedStyle style)
         {
             var value = style.ComputedDisplayStatic();
 
@@ -1076,8 +1251,6 @@ namespace SkiaSharpOpenGLBenchmark
             if (box.Type != BoxType.BOX_BLOCK)
                 return;
 
-            Log.Unimplemented("box.Type == BoxType.BOX_BLOCK");
-
             /* To determine if an element has a pseudo element, we select
 	         * for it and test to see if the returned style's content
 	         * property is set to normal. */
@@ -1088,14 +1261,9 @@ namespace SkiaSharpOpenGLBenchmark
                 return;
             }
 
-            /*
-            if (style == NULL ||
-			        css_computed_content(style, &c_item) ==
-			        CSS_CONTENT_NORMAL) {
-		        // No pseudo element
-		        return;
-	        }
+            Log.Unimplemented("box.Type == BoxType.BOX_BLOCK");
 
+            /*
 	        // create box for this element
 	        computed_display = ns_computed_display(style, box_is_root(n));
 	        if (computed_display == CSS_DISPLAY_BLOCK ||
@@ -1581,15 +1749,21 @@ namespace SkiaSharpOpenGLBenchmark
                 if (next == null)
                 {
                     // Conversion complete
+                    Box root = new Box(null, null, false, 0, "", "", "");
+                    root.Type = BoxType.BOX_BLOCK;
+                    root.Children = RootBox;
+                    root.Last = RootBox;
+
+                    using (MemoryStream stream = new MemoryStream())
+                    {
+                        using (StreamWriter sw = new StreamWriter(stream))
+                        {
+                            root.Dump(sw, 0, true);
+                        }
+                        Console.WriteLine(Encoding.UTF8.GetString(stream.ToArray()));
+                    }
+
                     /*
-                    struct box root;
-
-			        memset(&root, 0, sizeof(root));
-
-                    root.type = BOX_BLOCK;
-    		        root.children = root.last = ctx->root_box;
-			        root.children->parent = &root;
-
 			        // \todo Remove box_normalise_block
 			        if (box_normalise_block(&root, ctx->root_box,
 					        ctx->content) == false) {
@@ -1603,6 +1777,8 @@ namespace SkiaSharpOpenGLBenchmark
 
                     assert(ctx->n == NULL);
                     free(ctx);*/
+
+
                     return;
                 }
             } while (++num_processed < max_processed_before_yield);

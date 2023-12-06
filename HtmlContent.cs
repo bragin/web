@@ -107,20 +107,20 @@ namespace SkiaSharpOpenGLBenchmark
             return sb.ToString();
         }
 
-        // html.c:341, kind of
+        // html.c:341 - html_finish_conversion(), kind of
         public void LoadDocument()
         {
-            //Dom = CQ.CreateFromUrl("http://nginx.org/");
-            //Dom = CQ.CreateDocument("<a name=\"coolname\" class=\"mylink fancy\">link</a>");
             var parser = new SimpleHtmlParser();
             var doc = parser.ParseString("<a name=\"coolname\" class=\"mylink fancy\" id=\"idtest\">link</a>");
+            // style=\"width: auto\"
+            //var doc = parser.ParseUrl("http://nginx.org/");
 
-            StringWriter stringWriter = new StringWriter();
-            XmlTextWriter xmlTextWriter = new XmlTextWriter(stringWriter);
-            doc.WriteTo(xmlTextWriter);
-            Console.WriteLine(stringWriter.ToString());
+            //StringWriter stringWriter = new StringWriter();
+            //XmlTextWriter xmlTextWriter = new XmlTextWriter(stringWriter);
+            //doc.WriteTo(xmlTextWriter);
+            //Console.WriteLine(stringWriter.ToString());
 
-            Console.WriteLine(doc.DocumentElement.OuterXml);
+            //Console.WriteLine(doc.DocumentElement.OuterXml);
 
             //var n = Dom["body"];
             //var cstyle = n.Css("color");
