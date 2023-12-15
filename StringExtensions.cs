@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using static System.Net.WebRequestMethods;
+using System.Runtime.Intrinsics.X86;
+using System.Security.Cryptography;
 
 // THis file comes from ExCSS almost unmodified
 
@@ -34,7 +37,11 @@ namespace SkiaSharpOpenGLBenchmark
             return element.Is(item1) || element.Is(item2);
         }
 
+        // Hash a string, returning a 32bit value.  The hash algorithm used is
+        // Fowler Noll Vo -a very fast and simple hash, ideal for short strings.
+        // See http://en.wikipedia.org/wiki/Fowler_Noll_Vo_hash for more details.
         // libwapcaplet.c:217
+
         public static uint HashCaseless(this string str)
         {
             // It looks like only ASCII chars are supported, but it should be good enough
