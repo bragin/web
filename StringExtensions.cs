@@ -34,6 +34,23 @@ namespace SkiaSharpOpenGLBenchmark
             return element.Is(item1) || element.Is(item2);
         }
 
+        // libwapcaplet.c:217
+        public static uint HashCaseless(this string str)
+        {
+            // It looks like only ASCII chars are supported, but it should be good enough
+            uint z = 0x811c9dc5;
+            var len = str.Length;
+
+            for (int  i = 0; i < len; i++)
+            {
+                z *= 0x01000193;
+                z ^= (byte)Char.ToLower(str[i]);
+            }
+
+            return z;
+        }
+
+
         /*
         public static string StylesheetString(this string value)
         {
