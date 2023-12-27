@@ -45,14 +45,14 @@ namespace SkiaSharpOpenGLBenchmark.css
         CSS_SELECTOR_DETAIL_VALUE_NTH
     }
 
-    internal struct CssSelectorDetailValue
+    public struct CssSelectorDetailValue
     {
         public string Str;
         public int a;
         public int b;      // Data for x = an + b
     }
 
-    internal struct CssSelectorDetail
+    public struct CssSelectorDetail
     {
         public CssQname Qname;
 
@@ -60,17 +60,17 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         public CssSelectorType Type;      // Type of selector
         public CssCombinator Comb;      // Type of combinator
-        public byte Next;      // Another selector detail follows
+        //public bool Next;      // Another selector detail follows
         public CssSelectorDetailValueType ValueType; // Type of value field
         public bool Negate;    // Detail match is inverted
     }
 
     public class CssSelector
     {
-        CssSelector Combinator;                 // Combining selector
+        public CssSelector Combinator;                 // Combining selector
         public CssRule Rule;                           // Owning rule
-        CssSelectorSpecificity Specificity;     // Specificity of selector, enum CssSelectorSpecificity
-        CssSelectorDetail Data;		            // Selector data
+        public CssSelectorSpecificity Specificity;     // Specificity of selector, enum CssSelectorSpecificity
+        public List<CssSelectorDetail> Data;		            // Selector data
 
         // stylesheet.c:788
         public CssSelector(ref CssQname qname, bool inlineStyle)
@@ -78,11 +78,17 @@ namespace SkiaSharpOpenGLBenchmark.css
             if (qname.Name == null)
                 throw new ArgumentException("Parameter cannot be null", nameof(qname.Name));
 
-            Data.Type = CssSelectorType.CSS_SELECTOR_ELEMENT;
-            Data.Qname.Namespace = qname.Namespace;
-            Data.Qname.Name = qname.Name;
-            Data.Value.Str = null;
-            Data.ValueType = CssSelectorDetailValueType.CSS_SELECTOR_DETAIL_VALUE_STRING;
+            Data = new List<CssSelectorDetail>();
+            var detail = new CssSelectorDetail();
+
+            detail.Type = CssSelectorType.CSS_SELECTOR_ELEMENT;
+            detail.Qname.Namespace = qname.Namespace;
+            detail.Qname.Name = qname.Name;
+            detail.Value.Str = null;
+            detail.ValueType = CssSelectorDetailValueType.CSS_SELECTOR_DETAIL_VALUE_STRING;
+            detail.Comb = CssCombinator.CSS_COMBINATOR_NONE;
+
+            Data.Insert(0, detail);
 
             if (inlineStyle)
             {
@@ -101,7 +107,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                 }
             }
 
-            Data.Comb = CssCombinator.CSS_COMBINATOR_NONE;
+            Combinator = null;
         }
     }
 
