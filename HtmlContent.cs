@@ -5,22 +5,24 @@ using System.Xml;
 
 namespace SkiaSharpOpenGLBenchmark
 {
-    internal class HtmlStylesheet
+    public struct HtmlStylesheet
     {
-        CssStylesheet Sheet;
+        public CssStylesheet Sheet;
         bool Modified;
         XmlNode Node;
+        public bool Unused;
 
         public HtmlStylesheet()
         {
             Sheet = null;
             Modified = false;
             Node = null;
+            Unused = false;
         }
     }
 
     // private.h:93
-    internal class HtmlContent
+    public class HtmlContent
     {
         //CQ Dom;
 
@@ -34,7 +36,7 @@ namespace SkiaSharpOpenGLBenchmark
         int Width;
         int Height;
 
-        public LinkedList<CssStylesheet> Stylesheets; // Stylesheets. Each may be NULL.
+        public LinkedList<HtmlStylesheet> Stylesheets; // Stylesheets. Each may be NULL.
         public CssSelectionContext SelectionCtx; // Style selection context
         public CssMedia Media; // Style selection media specification
         public CssUnitCtx UnitLenCtx; // CSS length conversion context for document.
@@ -57,7 +59,7 @@ namespace SkiaSharpOpenGLBenchmark
             Universal = CssStrings.Universal;
 
             // Init stylesheets
-            Stylesheets = new LinkedList<CssStylesheet>();
+            Stylesheets = new LinkedList<HtmlStylesheet>();
 
             /* stylesheet 0 is the base style sheet,
              * stylesheet 1 is the quirks mode style sheet,
@@ -78,12 +80,50 @@ namespace SkiaSharpOpenGLBenchmark
             //Stylesheets.AddLast(stylesheet);
         }
 
-        // css.c:648 STUB
+        // css.c:648
         void CreateSelectionContext()
         {
             SelectionCtx = new CssSelectionContext();
 
+            // check that the base stylesheet loaded; layout fails without it
+            if (Stylesheets.Count == 0)
+            //if (Stylesheets.First.Value.Sheet == null)
+            {
+                Log.Unimplemented("Base stylesheet is missing");
+            }
+
             // Add sheets to it
+            int i = 0;
+            foreach (var hsheet in Stylesheets)
+            {
+                CssOrigin origin = CssOrigin.CSS_ORIGIN_AUTHOR;
+
+                /* Filter out stylesheets for non-screen media. */
+                /* TODO: We should probably pass the sheet in anyway, and let
+                 *       libcss handle the filtering.
+                 */
+                if (hsheet.Unused)
+                {
+                    i++;
+                    continue;
+                }
+
+                if (i < (int)CssStylesheetEnum.USER)
+                    origin = CssOrigin.CSS_ORIGIN_UA;
+                else if (i < (int)CssStylesheetEnum.START)
+                    origin = CssOrigin.CSS_ORIGIN_USER;
+
+                var sheet = hsheet.Sheet;
+                // FIXME: sheet = nscss_get_stylesheet(hsheet->sheet);
+
+                if (sheet != null)
+                {
+                    // TODO: Pass the sheet's full media query, instead of "screen".
+                    SelectionCtx.AppendSheet(sheet, origin, "screen");
+                }
+
+                i++;
+            }
         }
 
         public static string FormatXMLString(string sUnformattedXML)
@@ -130,6 +170,10 @@ namespace SkiaSharpOpenGLBenchmark
             var css = new CssStylesheet("", "http://nginx.org", "Useragent", false);
             //css.AppendData("a { color: red !important; }");
             css.AppendData("a { color: red; }");
+
+            var hsheet = new HtmlStylesheet();
+            hsheet.Sheet = css;
+            Stylesheets.AddLast(hsheet);
             //css.Select(SelectionCtx, CssOrigin.CSS_ORIGIN_UA);
 
             var media = new CssMedia();
