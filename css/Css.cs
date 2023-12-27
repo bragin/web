@@ -1,11 +1,23 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SkiaSharpOpenGLBenchmark.css
 {
+    public enum CssStylesheetEnum : byte
+    {
+        BASE = 0,       // base style sheet
+        QUIRKS = 1,     // quirks mode stylesheet
+        ADBLOCK = 2,    // adblocking stylesheet
+        USER = 3,       // user stylesheet
+        START = 4       // start of document stylesheets
+    }
+
     // propstrings.c:30
     public static class CssStrings
     {
@@ -118,11 +130,11 @@ namespace SkiaSharpOpenGLBenchmark.css
     // stylesheet.h:170, struct css_stylesheet
     public class CssStylesheet
     {
-        bool InlineStyle;
-        CssParser Parser;
-        CssLanguageLevel Level;
+        public CssSelectorHash Selectors; // Hashtable of selectors
         uint RuleCount;          // Number of rules in sheet
         public LinkedList<CssRule> RuleList; // List of rules in sheet
+
+        bool Disabled; // Whether this sheet is disabled
 
         string Title;
         string Url;
@@ -132,7 +144,11 @@ namespace SkiaSharpOpenGLBenchmark.css
         CssLanguageState LanguageState; // State flag, for at-rule handling
         string DefaultNamespace; // Default namespace URI
 
-        bool QuirksAllowed;
+        CssParser Parser; // Core parser for sheet
+        CssLanguageLevel Level; // Language level of sheet
+
+        bool QuirksAllowed; // Quirks permitted 
+        public bool InlineStyle; // Quirks actually used
 
         // libcss/src/stylesheet.c:125
         public CssStylesheet(string charset, string url, string title, bool inlineStyle, CssLanguageLevel level = CssLanguageLevel.CSS_LEVEL_DEFAULT)
@@ -158,12 +174,47 @@ namespace SkiaSharpOpenGLBenchmark.css
             RuleList = new LinkedList<CssRule>();
 
             QuirksAllowed = false;
+            Disabled = false;
+
+            Selectors = new CssSelectorHash();
         }
 
         // stylesheet.c:311
         public void AppendData(string data)
         {
             Parser.ParseChunk(data);
+        }
+
+        // libcss/src/stylesheet.c:1534
+        void AddSelectors(CssRule rule)
+        {
+            // Rule must not be in sheet
+            Debug.Assert(rule.ParentSheet == null);
+
+            switch (rule.Type)
+            {
+                case CssRuleType.CSS_RULE_SELECTOR:
+                    {
+                        foreach (var sel in rule.Selectors)
+                        {
+                            Selectors.Insert(sel);
+                        }
+                    }
+                    break;
+                case CssRuleType.CSS_RULE_MEDIA:
+                    {
+                        Log.Unimplemented();
+                        /*
+                        css_rule_media* m = (css_rule_media*)rule;
+                        css_rule* r;
+
+                        for (r = m->first_child; r != NULL; r = r->next)
+                        {
+                            AddSelectors(r); // error = _add_selectors(sheet, r);
+                        }*/
+                    }
+                    break;
+            }
         }
 
         // libcss/src/stylesheet.c:1414
@@ -175,7 +226,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             rule.Index = RuleCount;
 
             // Add any selectors to the hash
-            //error = _add_selectors(sheet, rule);
+            AddSelectors(rule);
 
             // Add to the sheet's size
             //sheet->size += _rule_size(rule);
@@ -1173,6 +1224,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             // TODO: Get handler
 
             // FIXME: Testing. Call the handler
+            Log.Unimplemented();
             ParseProperty_Color(tokens, ref index, style);
 
             // Determine if this declaration is important or not
@@ -1228,14 +1280,47 @@ namespace SkiaSharpOpenGLBenchmark.css
         //CssMqQuery Media;
     }
 
+    // select.c:48
+    // CSS selection context
     public class CssSelectionContext
     {
         public List<CssSelectSheet> Sheets = new List<CssSelectSheet>();
         // Maybe something else, but for now empty
 
+        // select.c:255
         public CssSelectionContext()
         {
 
+        }
+
+        // select.c:315
+        public void AppendSheet(CssStylesheet sheet, CssOrigin origin, string media)
+        {
+            InsertSheet(sheet, -1, origin, media);
+        }
+
+        // select.c:336
+        public void InsertSheet(CssStylesheet sheet, int index, CssOrigin origin, string media)
+        {
+            if (index != -1)
+            {
+                Log.Unimplemented("Inserting sheets at arbitrary position is not supported yet");
+                return;
+            }
+
+            if (sheet.InlineStyle)
+            {
+                Console.WriteLine("Trying to insert inline style into selection context");
+                return;
+            }
+
+            var item = new CssSelectSheet();
+            item.Sheet = sheet;
+            item.Origin = origin;
+
+            Log.Unimplemented("Ignoring media query");
+
+            Sheets.Add(item);
         }
     }
 }
