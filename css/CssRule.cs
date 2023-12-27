@@ -30,14 +30,13 @@ namespace SkiaSharpOpenGLBenchmark.css
         //public CssRule Parent; // containing rule or owning stylesheet (defined by ParentType)
         public CssStylesheet ParentSheet;
         public uint Index; // index in sheet
-        uint Items; // number of items (selectors) in rule
+        public uint Items; // number of items (selectors) in rule
         public CssRuleType Type;
         public CssRuleParentType ParentType;
 
         // Selector
-        //CssSelector[] Selectors;
         CssStyle Style;
-        List<CssSelector> Selectors;
+        public List<CssSelector> Selectors; //CssSelector[] Selectors;
 
         // Media
         //css_mq_query* media;
@@ -63,6 +62,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             Items = 0;
             Type = type;
             ParentType = CssRuleParentType.CSS_RULE_PARENT_RULE;
+            ParentSheet = null;
             Url = "";
             Encoding = "";
             Selectors = new List<CssSelector>();
@@ -105,6 +105,18 @@ namespace SkiaSharpOpenGLBenchmark.css
                 // Add to the sheet's size
                 //sheet->size += (style->used* sizeof(css_code_t));
             }
+        }
+
+        // hash.c:82
+        public bool HasBytecode()
+        {
+            // No bytecode if rule body is empty or wholly invalid --
+            // Only interested in rules with bytecode
+
+            if (Style != null)
+                return true;
+            else
+                return false;
         }
     }
 }
