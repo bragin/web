@@ -21,6 +21,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         public static int CSS_STYLE_DEFAULT_SIZE = 16;
 
 
+        // stylesheet.c:631
         public CssStyle(CssStylesheet sheet)
         {
             Sheet = sheet;
@@ -32,6 +33,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             Used = 0;
         }
 
+        // stylesheet.c:723
         public void AppendStyle(OpCode opcode)
         {
             if (Allocated == Used)
