@@ -35,7 +35,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         public CssRuleParentType ParentType;
 
         // Selector
-        CssStyle Style;
+        public CssStyle Style;
         public List<CssSelector> Selectors; //CssSelector[] Selectors;
 
         // Media

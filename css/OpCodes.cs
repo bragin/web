@@ -158,6 +158,11 @@
             OPV = raw;
         }
 
+        public uint GetOPV()
+        {
+            return OPV;
+        }
+
         public CssPropertiesEnum GetOpcode()
         {
             return (CssPropertiesEnum)(OPV & 0x3ff);
@@ -168,7 +173,7 @@
             return (byte)((OPV >> 10) & 0xff);
         }
 
-        public ushort getValue()
+        public ushort GetValue()
         {
             return (ushort)(OPV >> 18);
         }

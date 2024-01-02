@@ -646,13 +646,10 @@ namespace SkiaSharpOpenGLBenchmark
 
         HtmlContent Content; // FIXME: This is incorrect and needs to be removed
 
-        CssProps Properties; // Not sure it's the right place either
-
         public BoxTree(HtmlContent content)
         {
             NodeBoxLookup = new Dictionary<XmlNode, Box>();
             Content = content;
-            Properties = new CssProps();
         }
 
         public Box BoxForNode(XmlNode node)
@@ -735,7 +732,7 @@ namespace SkiaSharpOpenGLBenchmark
                  * value. */
                 if (!prop.Set || (parent == null && prop.Inherit))
                 {
-                    Properties.SetInitial(state, i, CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE, parent);
+                    state.Properties.SetInitial(state, i, CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE, parent);
                 }
             }
 

@@ -9,8 +9,8 @@ namespace SkiaSharpOpenGLBenchmark.css
     // stylesheet.h:29
     public class CssStyle
     {
-        OpCode[] Bytecode; // Pointer to bytecode
-        int Used; // number of code entries used
+        public OpCode[] Bytecode; // Pointer to bytecode
+        public int Used; // number of code entries used
         int Allocated; // number of allocated code entries
         CssStylesheet Sheet; // Reference to containing sheet
 

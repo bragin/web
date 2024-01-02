@@ -109,6 +109,76 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             Combinator = null;
         }
+
+        // select.c:2960
+        public void DumpChain(StreamWriter sw)
+        {
+            var comb = Data[0].Comb;
+            if (comb != CssCombinator.CSS_COMBINATOR_NONE)
+                Combinator.DumpChain(sw);
+
+            if (comb == CssCombinator.CSS_COMBINATOR_ANCESTOR)
+                sw.Write(" ");
+            else if (comb == CssCombinator.CSS_COMBINATOR_SIBLING)
+                sw.Write(" + ");
+            else if (comb == CssCombinator.CSS_COMBINATOR_PARENT)
+                sw.Write(" > ");
+
+            int i = 0;
+            foreach (var detail in Data)
+            {
+                switch (detail.Type)
+                {
+                    case CssSelectorType.CSS_SELECTOR_ELEMENT:
+                        if (detail.Qname.Name.Length == 1 &&
+                            detail.Qname.Name[0] == '*' &&
+                            /*detail->next == 1*/ i < (Data.Count - 1))
+                        {
+                            break;
+                        }
+                        sw.Write(detail.Qname.Name);
+                        break;
+                    case CssSelectorType.CSS_SELECTOR_CLASS:
+                        sw.Write($".{detail.Qname.Name}");
+                        break;
+                    case CssSelectorType.CSS_SELECTOR_ID:
+                        sw.Write($"#{detail.Qname.Name}");
+                        break;
+                    case CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS:
+                        goto case CssSelectorType.CSS_SELECTOR_PSEUDO_ELEMENT;
+                    case CssSelectorType.CSS_SELECTOR_PSEUDO_ELEMENT:
+                        sw.Write($":{detail.Qname.Name}");
+
+                        if (detail.Value.Str != null)
+                        {
+                            sw.Write($"({detail.Value.Str})");
+                        }
+                        break;
+                    case CssSelectorType.CSS_SELECTOR_ATTRIBUTE:
+                        sw.Write($"[{detail.Qname.Name}]");
+                        break;
+                    case CssSelectorType.CSS_SELECTOR_ATTRIBUTE_EQUAL:
+                        sw.Write($"[{detail.Qname.Name}=\"{detail.Value.Str}\"]");
+                        break;
+                    case CssSelectorType.CSS_SELECTOR_ATTRIBUTE_DASHMATCH:
+                        sw.Write($"[{detail.Qname.Name}=\"{detail.Value.Str}\"]");
+                        break;
+                    case CssSelectorType.CSS_SELECTOR_ATTRIBUTE_INCLUDES:
+                        sw.Write($"[{detail.Qname.Name}~=\"{detail.Value.Str}\"]");
+                        break;
+                    case CssSelectorType.CSS_SELECTOR_ATTRIBUTE_PREFIX:
+                        sw.Write($"[{detail.Qname.Name}^=\"{detail.Value.Str}\"]");
+                        break;
+                    case CssSelectorType.CSS_SELECTOR_ATTRIBUTE_SUFFIX:
+                        sw.Write($"[{detail.Qname.Name}=\"{detail.Value.Str}\"]");
+                        break;
+                    case CssSelectorType.CSS_SELECTOR_ATTRIBUTE_SUBSTRING:
+                        sw.Write($"[{detail.Qname.Name}*=\"{detail.Value.Str}\"]");
+                        break;
+                }
+                i++;
+            }
+        }
     }
 
     public struct CssQname
