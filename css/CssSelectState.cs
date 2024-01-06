@@ -337,7 +337,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                 src.Source = CssSelectRuleEnum.CSS_SELECT_RULE_SRC_UNIVERSAL;
             }
 
-            if (classes.Length > 0)
+            if (classes != null && classes.Length > 0)
             {
                 for (int i = 0; i < classes.Length; i++)
                 {
