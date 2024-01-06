@@ -23,35 +23,43 @@ namespace SkiaSharpOpenGLBenchmark.css
     {
         public const string Universal = "*";
         public static readonly string[] Props =  {
-            "ALIGN_CONTENT", "ALIGN_ITEMS", "ALIGN_SELF", "AZIMUTH",
-            "BACKGROUND", "BACKGROUND_ATTACHMENT", "BACKGROUND_COLOR", "BACKGROUND_IMAGE",
-            "BACKGROUND_POSITION", "BACKGROUND_REPEAT", "BORDER", "BORDER_BOTTOM",
-            "BORDER_BOTTOM_COLOR", "BORDER_BOTTOM_STYLE", "BORDER_BOTTOM_WIDTH",
-            "BORDER_COLLAPSE", "BORDER_COLOR", "BORDER_LEFT", "BORDER_LEFT_COLOR",
-            "BORDER_LEFT_STYLE", "BORDER_LEFT_WIDTH", "BORDER_RIGHT", "BORDER_RIGHT_COLOR",
-            "BORDER_RIGHT_STYLE", "BORDER_RIGHT_WIDTH", "BORDER_SPACING",
-            "BORDER_STYLE", "BORDER_TOP", "BORDER_TOP_COLOR", "BORDER_TOP_STYLE",
-            "BORDER_TOP_WIDTH", "BORDER_WIDTH", "BOTTOM", "BOX_SIZING", "BREAK_AFTER",
-            "BREAK_BEFORE", "BREAK_INSIDE", "CAPTION_SIDE", "CLEAR", "CLIP", "COLOR", "COLUMNS",
-            "COLUMN_COUNT", "COLUMN_FILL", "COLUMN_GAP", "COLUMN_RULE", "COLUMN_RULE_COLOR",
-            "COLUMN_RULE_STYLE", "COLUMN_RULE_WIDTH", "COLUMN_SPAN", "COLUMN_WIDTH",
-            "CONTENT", "COUNTER_INCREMENT", "COUNTER_RESET", "CUE", "CUE_AFTER", "CUE_BEFORE",
-            "CURSOR", "DIRECTION", "DISPLAY", "ELEVATION", "EMPTY_CELLS", "FLEX", "FLEX_BASIS",
-            "FLEX_DIRECTION", "FLEX_FLOW", "FLEX_GROW", "FLEX_SHRINK", "FLEX_WRAP",
-            "LIBCSS_FLOAT", "FONT", "FONT_FAMILY", "FONT_SIZE", "FONT_STYLE", "FONT_VARIANT",
-            "FONT_WEIGHT", "HEIGHT", "JUSTIFY_CONTENT", "LEFT", "LETTER_SPACING", "LINE_HEIGHT",
-            "LIST_STYLE", "LIST_STYLE_IMAGE", "LIST_STYLE_POSITION", "LIST_STYLE_TYPE",
-            "MARGIN", "MARGIN_BOTTOM", "MARGIN_LEFT", "MARGIN_RIGHT", "MARGIN_TOP",
-            "MAX_HEIGHT", "MAX_WIDTH", "MIN_HEIGHT", "MIN_WIDTH", "OPACITY", "ORDER", "ORPHANS",
-            "OUTLINE", "OUTLINE_COLOR", "OUTLINE_STYLE", "OUTLINE_WIDTH", "OVERFLOW",
-            "OVERFLOW_X", "OVERFLOW_Y", "PADDING", "PADDING_BOTTOM", "PADDING_LEFT",
-            "PADDING_RIGHT", "PADDING_TOP", "PAGE_BREAK_AFTER", "PAGE_BREAK_BEFORE",
-            "PAGE_BREAK_INSIDE", "PAUSE", "PAUSE_AFTER", "PAUSE_BEFORE", "PITCH_RANGE", "PITCH",
-            "PLAY_DURING", "POSITION", "QUOTES", "RICHNESS", "RIGHT", "SPEAK_HEADER",
-            "SPEAK_NUMERAL", "SPEAK_PUNCTUATION", "SPEAK", "SPEECH_RATE", "STRESS",
-            "TABLE_LAYOUT", "TEXT_ALIGN", "TEXT_DECORATION", "TEXT_INDENT", "TEXT_TRANSFORM",
-            "TOP", "UNICODE_BIDI", "VERTICAL_ALIGN", "VISIBILITY", "VOICE_FAMILY", "VOLUME",
-            "WHITE_SPACE", "WIDOWS", "WIDTH", "WORD_SPACING", "WRITING_MODE", "Z_INDEX"
+            "ALIGN_CONTENT",        "ALIGN_ITEMS",          "ALIGN_SELF",           "AZIMUTH",              // 0
+            "BACKGROUND",           "BACKGROUND_ATTACHMENT","BACKGROUND_COLOR",     "BACKGROUND_IMAGE",     // 4
+            "BACKGROUND_POSITION",  "BACKGROUND_REPEAT",    "BORDER",               "BORDER_BOTTOM",        // 8
+            "BORDER_BOTTOM_COLOR",  "BORDER_BOTTOM_STYLE",  "BORDER_BOTTOM_WIDTH",  "BORDER_COLLAPSE",      // 12
+            "BORDER_COLOR",         "BORDER_LEFT",          "BORDER_LEFT_COLOR",    "BORDER_LEFT_STYLE",    // 16
+            "BORDER_LEFT_WIDTH",    "BORDER_RIGHT",         "BORDER_RIGHT_COLOR",   "BORDER_RIGHT_STYLE",   // 20
+            "BORDER_RIGHT_WIDTH",   "BORDER_SPACING",       "BORDER_STYLE",         "BORDER_TOP",           // 24
+            "BORDER_TOP_COLOR",     "BORDER_TOP_STYLE",     "BORDER_TOP_WIDTH",     "BORDER_WIDTH",         // 28
+            "BOTTOM",               "BOX_SIZING",           "BREAK_AFTER",          "BREAK_BEFORE",         // 32
+            "BREAK_INSIDE",         "CAPTION_SIDE",         "CLEAR",                "CLIP",                 // 36
+            "COLOR",                "COLUMNS",              "COLUMN_COUNT",         "COLUMN_FILL",          // 40
+            "COLUMN_GAP",           "COLUMN_RULE",          "COLUMN_RULE_COLOR",    "COLUMN_RULE_STYLE",    // 44
+            "COLUMN_RULE_WIDTH",    "COLUMN_SPAN",          "COLUMN_WIDTH",         "CONTENT",              // 48
+            "COUNTER_INCREMENT",    "COUNTER_RESET",        "CUE",                  "CUE_AFTER",            // 52
+            "CUE_BEFORE",           "CURSOR",               "DIRECTION",            "DISPLAY",              // 56
+            "ELEVATION",            "EMPTY_CELLS",          "FLEX",                 "FLEX_BASIS",           // 60
+            "FLEX_DIRECTION",       "FLEX_FLOW",            "FLEX_GROW",            "FLEX_SHRINK",          // 64
+            "FLEX_WRAP",            "LIBCSS_FLOAT",         "FONT",                 "FONT_FAMILY",          // 68
+            "FONT_SIZE",            "FONT_STYLE",           "FONT_VARIANT",         "FONT_WEIGHT",          // 72
+            "HEIGHT",               "JUSTIFY_CONTENT",      "LEFT",                 "LETTER_SPACING",       // 76
+            "LINE_HEIGHT",          "LIST_STYLE",           "LIST_STYLE_IMAGE",     "LIST_STYLE_POSITION",  // 80
+            "LIST_STYLE_TYPE",      "MARGIN",               "MARGIN_BOTTOM",        "MARGIN_LEFT",          // 84
+            "MARGIN_RIGHT",         "MARGIN_TOP",           "MAX_HEIGHT",           "MAX_WIDTH",            // 88
+            "MIN_HEIGHT",           "MIN_WIDTH",            "OPACITY",              "ORDER",                // 92
+            "ORPHANS",              "OUTLINE",              "OUTLINE_COLOR",        "OUTLINE_STYLE",        // 96
+            "OUTLINE_WIDTH",        "OVERFLOW",             "OVERFLOW_X",           "OVERFLOW_Y",           // 100
+            "PADDING",              "PADDING_BOTTOM",       "PADDING_LEFT",         "PADDING_RIGHT",        // 104
+            "PADDING_TOP",          "PAGE_BREAK_AFTER",     "PAGE_BREAK_BEFORE",    "PAGE_BREAK_INSIDE",    // 108
+            "PAUSE",                "PAUSE_AFTER",          "PAUSE_BEFORE",         "PITCH_RANGE",          // 112
+            "PITCH",                "PLAY_DURING",          "POSITION",             "QUOTES",               // 116
+            "RICHNESS",             "RIGHT",                "SPEAK_HEADER",         "SPEAK_NUMERAL",        // 120
+            "SPEAK_PUNCTUATION",    "SPEAK",                "SPEECH_RATE",          "STRESS",               // 124
+            "TABLE_LAYOUT",         "TEXT_ALIGN",           "TEXT_DECORATION",      "TEXT_INDENT",          // 128
+            "TEXT_TRANSFORM",       "TOP",                  "UNICODE_BIDI",         "VERTICAL_ALIGN",       // 132
+            "VISIBILITY",           "VOICE_FAMILY",         "VOLUME",               "WHITE_SPACE",          // 136
+            "WIDOWS",               "WIDTH",                "WORD_SPACING",         "WRITING_MODE",         // 140
+            "Z_INDEX"                                                                                       // 141
         };
         public const string Inherit = "inherit";
         public const string Important = "important";
@@ -111,6 +119,8 @@ namespace SkiaSharpOpenGLBenchmark.css
         HAD_RULE
     }
 
+    delegate void ParseProperty(List<CssToken> tokens, ref int index, CssStyle style);
+
     public struct CssStylesheetContextEntry
     {
         public CssParserEvent Type;
@@ -150,6 +160,8 @@ namespace SkiaSharpOpenGLBenchmark.css
         bool QuirksAllowed; // Quirks permitted 
         public bool InlineStyle; // Quirks actually used
 
+        ParseProperty[] ParseHandlers;
+
         // libcss/src/stylesheet.c:125
         public CssStylesheet(string charset, string url, string title, bool inlineStyle, CssLanguageLevel level = CssLanguageLevel.CSS_LEVEL_DEFAULT)
         {
@@ -177,6 +189,11 @@ namespace SkiaSharpOpenGLBenchmark.css
             Disabled = false;
 
             Selectors = new CssSelectorHash();
+
+            // Fill in property parse handlers table
+            ParseHandlers = new ParseProperty[CssStrings.Props.Length - 1];
+
+            ParseHandlers[40] = ParseProperty_Color;
         }
 
         // stylesheet.c:311
@@ -1115,47 +1132,6 @@ namespace SkiaSharpOpenGLBenchmark.css
             value = (ushort)OpColor.COLOR_SET;
         }
 
-        // autogenerated_color.c:35
-        void ParseProperty_Color(List<CssToken> tokens, ref int index, CssStyle style)
-        {
-            int origIndex = index;
-
-            if (index >= tokens.Count)
-            {
-                Console.WriteLine("ERROR: Invalid CSS 659");
-                return;
-            }
-
-            var token = tokens[index++];
-
-            if (token.Type == CssTokenType.CSS_TOKEN_IDENT &&
-                token.iData == CssStrings.Inherit)
-            {
-                style.AppendStyle(
-                    new OpCode(
-                        (ushort)CssPropertiesEnum.CSS_PROP_COLOR,
-                        (byte)OpCodeFlag.FLAG_INHERIT,
-                        0)
-                );
-            }
-            else
-            {
-                ushort value = 0;
-                uint color = 0;
-                index = origIndex;
-
-                ParseProperty_ColourSpecifier(tokens, ref index, out value, out color);
-
-                //ParseProperty_AppendOPV((ushort)CssPropertiesEnum.CSS_PROP_COLOR);
-                style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_COLOR, 0, value));
-
-                if (value == (ushort)OpColor.COLOR_SET)
-                {
-                    style.AppendStyle(new OpCode(color));
-                }
-            }
-        }
-
         void ParseImportant(List<CssToken> tokens, ref int index, ref OpCodeFlag flags)
         {
             int origIndex = index;
@@ -1221,11 +1197,8 @@ namespace SkiaSharpOpenGLBenchmark.css
             // Allocate style
             var style = new CssStyle(this);
 
-            // TODO: Get handler
-
-            // FIXME: Testing. Call the handler
-            Log.Unimplemented();
-            ParseProperty_Color(tokens, ref index, style);
+            // Get handler and call it
+            ParseHandlers[i](tokens, ref index, style);
 
             // Determine if this declaration is important or not
             OpCodeFlag flags = 0;
@@ -1236,7 +1209,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             if (index < tokens.Count - 1)
             {
                 // Trailing junk, so discard declaration
-                Console.WriteLine("Invalid CSS, trailig junk");
+                Console.WriteLine("Invalid CSS, trailing junk");
                 return;
             }
 
@@ -1269,6 +1242,50 @@ namespace SkiaSharpOpenGLBenchmark.css
                     break;
             }
         }
+
+        #region Property Parse Handlers
+        // autogenerated_color.c:35
+        public void ParseProperty_Color(List<CssToken> tokens, ref int index, CssStyle style)
+        {
+            int origIndex = index;
+
+            if (index >= tokens.Count)
+            {
+                Console.WriteLine("ERROR: Invalid CSS 659");
+                return;
+            }
+
+            var token = tokens[index++];
+
+            if (token.Type == CssTokenType.CSS_TOKEN_IDENT &&
+                token.iData == CssStrings.Inherit)
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_COLOR,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+            }
+            else
+            {
+                ushort value = 0;
+                uint color = 0;
+                index = origIndex;
+
+                ParseProperty_ColourSpecifier(tokens, ref index, out value, out color);
+
+                //ParseProperty_AppendOPV((ushort)CssPropertiesEnum.CSS_PROP_COLOR);
+                style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_COLOR, 0, value));
+
+                if (value == (ushort)OpColor.COLOR_SET)
+                {
+                    style.AppendStyle(new OpCode(color));
+                }
+            }
+        }
+        #endregion
+
     }
 
     // select.c:39
