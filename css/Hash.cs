@@ -287,60 +287,48 @@ namespace SkiaSharpOpenGLBenchmark.css
         // hash.c:788
         void InsertIntoChain(ref List<CssHashEntry> list, CssSelector selector)
         {
+            var entry = new CssHashEntry();
+            entry.Sel = selector;
+            entry.ChainBloomGenerate();
+
             if (!list.Any())
             {
-                var entry = new CssHashEntry();
-                entry.Sel = selector;
-                entry.ChainBloomGenerate();
                 list.Add(entry);
             } else
             {
-                Log.Unimplemented();
-                /*
-                hash_entry *search = head;
-                hash_entry *prev = NULL;
-                hash_entry *entry = malloc(sizeof(hash_entry));
-                if (entry == NULL)
-                    return CSS_NOMEM;
+                int index = -1;
 
                 // Find place to insert entry
-                do
+                for (int i=0;i<list.Count; i++)
                 {
+                    var search = list[i];
+                    index = i;
+
                     // Sort by ascending specificity
-                    if (search->sel->specificity > selector->specificity)
+                    if (search.Sel.Specificity > selector.Specificity)
                         break;
 
                     // Sort by ascending rule index
-                    if (search->sel->specificity == selector->specificity &&
-                            search->sel->rule->index >
-                            selector->rule->index)
+                    if (search.Sel.Specificity == selector.Specificity &&
+                        search.Sel.Rule.Index > selector.Rule.Index)
                         break;
+                }
 
-                    prev = search;
-                    search = search->next;
-                } while (search != NULL);
-
-                if (prev == NULL)
+                if (index < 1)
                 {
-                    *entry = *head;
-                    head->next = entry;
-
-                    entry = head;
+                    // Insert as the first element
+                    list.Insert(0, entry);
                 }
                 else
                 {
-                    entry->next = prev->next;
-                    prev->next = entry;
+                    // Insert at index
+                    list.Insert(index, entry);
                 }
 
-                entry->sel = selector;
-                _chain_bloom_generate(selector, entry->sel_chain_bloom);
-
+                /*
 # ifdef PRINT_CHAIN_BLOOM_DETAILS
                 print_chain_bloom_details(entry->sel_chain_bloom);
 #endif
-
-                ctx->hash_size += sizeof(hash_entry);
                 */
             }
         }
