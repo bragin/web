@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -22,7 +23,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         CSS_TOKEN_SUFFIXMATCH, CSS_TOKEN_SUBSTRINGMATCH, CSS_TOKEN_EOF
     }
 
-    internal struct CssToken
+    public struct CssToken
     {
         public CssTokenType Type;
 
@@ -130,6 +131,9 @@ namespace SkiaSharpOpenGLBenchmark.css
         CssLexerState State;
         int Substate;
 
+        // Context
+        char First;         // First character read for token
+        bool LastWasStar;   // Whether the previous character was an asterisk
         bool LastWasCR;     // Whether the previous character was CR
         int CurrentCol;     // Current column in source
         int CurrentLine;    // Current line in source
@@ -146,6 +150,8 @@ namespace SkiaSharpOpenGLBenchmark.css
             Token = new CssToken();
             BytesReadForToken = 0;
 
+            First = (char)0;
+            LastWasStar = false;
             LastWasCR = false;
             CurrentCol = 1;
             CurrentLine = 1;
@@ -395,7 +401,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         CssStatus Start(out CssToken token)
         {
             bool emitEOF = false;
-
+start:
             // Advance past the input read for the previous token
             if (BytesReadForToken > 0)
             {
@@ -458,7 +464,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                 case '\'':
                     State = CssLexerState.sSTRING;
                     Substate = 0;
-                    //lexer->context.first = c;
+                    First = c;
                     String(out token);
                     return CssStatus.CSS_OK;
                 case '#':
@@ -481,7 +487,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                 case '+':
                     State = CssLexerState.sNUMBER;
                     Substate = 0;
-                    //context.first = c;
+                    First = c;
                     NumberOrPercentageOrDimension(out token);
                     return CssStatus.CSS_OK;
                 case '<':
@@ -512,14 +518,12 @@ namespace SkiaSharpOpenGLBenchmark.css
                 case '/':
                     State = CssLexerState.sCOMMENT;
                     Substate = 0;
-                    //lexer->context.lastWasStar = false;
+                    LastWasStar = false;
                     LastWasCR = false;
                     Comment(out token);
+                    if (!EmitComments && token.Type == CssTokenType.CSS_TOKEN_COMMENT)
+                        goto start;
                     return CssStatus.CSS_OK;
-                /*if (!lexer->emit_comments && error == CSS_OK &&
-                        (*token)->type == CSS_TOKEN_COMMENT)
-                    goto start;
-                */
                 case '~':
                 case '|':
                 case '^':
@@ -527,7 +531,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                 case '*':
                     State = CssLexerState.sMATCH;
                     Substate = 0;
-                    //Context.First = c;
+                    First = c;
                     Match(out token);
                     return CssStatus.CSS_OK;
                 case 'u':
@@ -598,6 +602,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     return CssStatus.CSS_OK;
                 case '>':
                     // Check for >=
+                    Log.Unimplemented();
                     /*
                     perror = parserutils_inputstream_peek(lexer->input,
                             lexer->bytesReadForToken, &cptr, &clen);
@@ -627,9 +632,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             return CssStatus.CSS_OK;
         }
 
-        /******************************************************************************
-         * State machine components                                                   *
-         ******************************************************************************/
+        #region State machine components
         // lex.c:481
         CssStatus AtKeyword(out CssToken token)
         {
@@ -637,6 +640,8 @@ namespace SkiaSharpOpenGLBenchmark.css
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
+
+        // lex.c:1301
         CssStatus String(out CssToken token)
         {
             Log.Unimplemented();
@@ -650,18 +655,176 @@ namespace SkiaSharpOpenGLBenchmark.css
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
+
+        // lex.c:870
         CssStatus Hash(out CssToken token)
         {
             Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
+
+        // lex.c:996
         CssStatus NumberOrPercentageOrDimension(out CssToken token)
         {
-            Log.Unimplemented();
-            token = new CssToken(1);
+            char c;
+            const int Initial = 0, Dot = 1, MoreDigits = 2, Suffix = 3, NMChars = 4, Escape = 5;
+
+            /* NUMBER = num = [-+]? ([0-9]+ | [0-9]* '.' [0-9]+)
+	         * PERCENTAGE = num '%'
+	         * DIMENSION = num ident
+	         *
+	         * The sign, or sign and first digit or dot,
+	         * or first digit, or '.' has been consumed.
+	         */
+            switch (Substate)
+            {
+                case Initial:
+                    ConsumeDigits();
+
+                    // Fall through
+                    goto case Dot;
+                case Dot:
+                    Substate = Dot;
+
+                    // Check for EOF
+                    if (Source.Length <= Source.Index + BytesReadForToken)
+                    {
+                        if (Token.DataLen == 1 && (First == '.' || First == '+'))
+                            token = EmitToken(CssTokenType.CSS_TOKEN_CHAR);
+                        else
+                            token = EmitToken(CssTokenType.CSS_TOKEN_NUMBER);
+
+                        return CssStatus.CSS_OK;
+                    }
+
+                    c = Source[Source.Index + BytesReadForToken];
+
+                    // Bail if we've not got a '.' or we've seen one already
+                    if (c != '.' || First == '.')
+                        goto suffix;
+
+                    // Save the token length up to the end of the digits
+                    //OrigBytes = BytesReadForToken;
+                    
+                    // Append the '.' to the token
+                    //APPEND(lexer, cptr, clen);
+                    AppendToTokenData(c, 1);
+                    BytesReadForToken++;
+                    CurrentCol++;
+
+                    // Fall through
+                    goto case MoreDigits;
+
+                case MoreDigits:
+                    Substate = MoreDigits;
+                    /*
+                    ConsumeDigits();
+
+                    if (lexer->bytesReadForToken - lexer->context.origBytes == 1)
+                    {
+                        // No digits after dot => dot isn't part of number
+                        lexer->bytesReadForToken -= 1;
+                        t->data.len -= 1;
+                    }*/
+                    Log.Unimplemented();
+
+                    // Fall through
+                    goto case Suffix;
+
+                case Suffix:
+                    suffix:
+                    Substate = Suffix;
+
+                    // Check for EOF
+                    if (Source.Length <= Source.Index + BytesReadForToken)
+                    {
+                        if (Token.DataLen == 1 && (First == '.' || First == '+'))
+                            token = EmitToken(CssTokenType.CSS_TOKEN_CHAR);
+                        else
+                            token = EmitToken(CssTokenType.CSS_TOKEN_NUMBER);
+
+                        return CssStatus.CSS_OK;
+                    }
+
+                    c = Source[Source.Index + BytesReadForToken];
+
+                    // A solitary '.' or '+' is a CHAR, not numeric
+                    if (Token.DataLen == 1 && (First == '.' || First == '+'))
+                    {
+                        token = EmitToken(CssTokenType.CSS_TOKEN_CHAR);
+                        return CssStatus.CSS_OK;
+                    }
+
+                    if (c == '%')
+                    {
+                        //APPEND(lexer, cptr, clen);
+                        AppendToTokenData(c, 1);
+                        BytesReadForToken++;
+                        CurrentCol++;
+
+                        token = EmitToken(CssTokenType.CSS_TOKEN_PERCENTAGE);
+                        return CssStatus.CSS_OK;
+                    }
+                    else if (!StartNMStart(c))
+                    {
+                        token = EmitToken(CssTokenType.CSS_TOKEN_NUMBER);
+                        return CssStatus.CSS_OK;
+                    }
+
+                    if (c != '\\')
+                    {
+                        //APPEND(lexer, cptr, clen);
+                        AppendToTokenData(c, 1);
+                        BytesReadForToken++;
+                        CurrentCol++;
+                    }
+                    else
+                    {
+                        BytesReadForToken++;
+                        goto escape;
+                    }
+
+                    // Fall through
+                    goto case NMChars;
+
+                case NMChars:
+                    nmchars:
+                    Substate = NMChars;
+
+                    ConsumeNMChars();
+                    break;
+
+                case Escape:
+                    escape:
+                    Substate = Escape;
+
+                    Log.Unimplemented();
+                    /*
+                    ConsumeEscape(lexer, false);
+                    if (error != CSS_OK)
+                    {
+                        if (error == CSS_EOF || error == CSS_INVALID)
+                        {
+                            // Rewind the '\\'
+                            lexer->bytesReadForToken -= 1;
+
+                            // This can only be a number
+                            return emitToken(lexer,
+                                    CSS_TOKEN_NUMBER, token);
+                        }
+
+                        return error;
+                    }
+                    */
+                    goto case NMChars;
+            }
+
+            token = EmitToken(CssTokenType.CSS_TOKEN_DIMENSION);
             return CssStatus.CSS_OK;
         }
+
+        // lex.c:1140
         CssStatus S(out CssToken token)
         {
             /* S = wc*
@@ -673,18 +836,24 @@ namespace SkiaSharpOpenGLBenchmark.css
             token = EmitToken(CssTokenType.CSS_TOKEN_S);
             return CssStatus.CSS_OK;
         }
+        
+        // lex.c:772
         CssStatus Comment(out CssToken token)
         {
             Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
+
+        // lex.c:941
         CssStatus Match(out CssToken token)
         {
             Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
+
+        // lex.c:1370
         CssStatus URI(out CssToken token)
         {
             Log.Unimplemented();
@@ -743,12 +912,16 @@ namespace SkiaSharpOpenGLBenchmark.css
                     return CssStatus.CSS_OK;
             }
         }
+
+        // lex.c:843
         CssStatus EscapedIdentOrFunction(out CssToken token)
         {
             Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
+
+        // lex.c:1545
         CssStatus UnicodeRange(out CssToken token)
         {
             Log.Unimplemented();
@@ -756,12 +929,15 @@ namespace SkiaSharpOpenGLBenchmark.css
             return CssStatus.CSS_OK;
         }
 
+        // lex.c:670
         CssStatus CDO(out CssToken token)
         {
             Log.Unimplemented();
             token = new CssToken(1);
             return CssStatus.CSS_OK;
         }
+
+        // lex.c:547
         CssStatus CDCOrIdentOrFunctionOrNPD(out CssToken token)
         {
             Log.Unimplemented();
@@ -815,6 +991,34 @@ namespace SkiaSharpOpenGLBenchmark.css
                     //}
                 }
             } while (StartNMChar(c));
+        }
+        #endregion
+
+        #region Input consumers
+        // lex.c:1674
+        void ConsumeDigits()
+        {
+            char c;
+            int clen;
+
+            /* digit = [0-9] */
+
+            // Consume all digits
+            do
+            {
+                // Check for EOF
+                if (Source.Length <= Source.Index + BytesReadForToken)
+                    return;
+                c = Source[Source.Index + BytesReadForToken];
+
+                if (IsDigit(c))
+                {
+                    //APPEND(lexer, cptr, clen);
+                    AppendToTokenData(c, 1);
+                    BytesReadForToken++;
+                    CurrentCol++;
+                }
+            } while (IsDigit(c));
         }
 
         // lex.c:2133
@@ -872,18 +1076,30 @@ namespace SkiaSharpOpenGLBenchmark.css
                 CurrentLine++;
             }
         }
+        #endregion
 
         /******************************************************************************
          * More utility routines                                                      *
          ******************************************************************************/
-        bool StartNMChar(char c)
+        static bool StartNMChar(char c)
         {
             return c == '_' || ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') ||
                 ('0' <= c && c <= '9') || c == '-' || c >= 0x80 || c == '\\';
         }
-        bool IsSpace(char c)
+        static bool StartNMStart(char c)
+        {
+            return c == '_' || ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') ||
+                c >= 0x80 || c == '\\';
+        }
+
+        static bool IsSpace(char c)
         {
             return c == ' ' || c == '\r' || c == '\n' || c == '\f' || c == '\t';
         }
+        static bool IsDigit(char c)
+        {
+            return ('0' <= c) && (c <= '9');
+        }
+
     }
 }
