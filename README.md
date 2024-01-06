@@ -1,5 +1,6 @@
 # Web
-~~An attempt to create a~~ Web browser engine implemented in C# from scratch.
+~~An attempt to create a~~ Web browser engine implemented in C# from scratch. As of now, it turned to be a rewrite of
+some parts of NetSurf in C#, mostly CSS parser and box tree builder
 
 ## Tech Details
 - C# code with minimal syntax sugar (definitely not like [Angular](https://github.com/AngleSharp/AngleSharp))
