@@ -276,9 +276,8 @@ namespace SkiaSharpOpenGLBenchmark.css
                     /* The grammar's ambiguous here -- selectors may start with a
 		             * brace. We're going to assume that that won't happen,
 		             * however. */
-                    if (token.Type == CssTokenType.CSS_TOKEN_CHAR /*&&
-				            lwc_string_length(token->idata) == 1 &&
-				            lwc_string_data(token->idata)[0] == '{'*/)
+                    if (token.Type == CssTokenType.CSS_TOKEN_CHAR &&
+                        token.iData.Length == 1 && token.iData[0] == '{')
                     {
                         Log.Unimplemented();
 
@@ -1167,10 +1166,9 @@ namespace SkiaSharpOpenGLBenchmark.css
                         //parserutils_stack_push(parser->open_items, &")"[0]);
                         state.Substate = 1; // WS
                     }
-                    else if (token.Type == CssTokenType.CSS_TOKEN_CHAR /*&&
-                                lwc_string_length(token->idata) == 1 &&
-                                (lwc_string_data(token->idata)[0] == '(' ||
-                                lwc_string_data(token->idata)[0] == '[')*/)
+                    else if (token.Type == CssTokenType.CSS_TOKEN_CHAR &&
+                                token.iData.Length == 1 &&
+                                (token.iData[0] == '(' || token.iData[0] == '['))
                     {
                         Log.Unimplemented("idata");
                         /*parserutils_stack_push(parser->open_items,
@@ -1214,11 +1212,9 @@ namespace SkiaSharpOpenGLBenchmark.css
                     }
 
                     /* Match correct close bracket (grammar ambiguity) */
-                    if (token.Type == CssTokenType.CSS_TOKEN_CHAR /*&&
-                            lwc_string_length(token->idata) == 1 &&
-                            lwc_string_data(token->idata)[0] ==
-                            ((uint8_t*)parserutils_stack_get_current(
-                                    parser->open_items))[0]*/)
+                    if (token.Type == CssTokenType.CSS_TOKEN_CHAR &&
+                            token.iData.Length == 1 /*&&
+                            token.iData[0] == ((uint8_t*)parserutils_stack_get_current(parser->open_items))[0]*/)
                     {
                         Log.Unimplemented("idata 2");
                         //parserutils_stack_pop(parser->open_items, NULL);

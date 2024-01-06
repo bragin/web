@@ -20,7 +20,6 @@ namespace SkiaSharpOpenGLBenchmark.css
          */
         public static int CSS_STYLE_DEFAULT_SIZE = 16;
 
-
         // stylesheet.c:631
         public CssStyle(CssStylesheet sheet)
         {
@@ -63,6 +62,5 @@ namespace SkiaSharpOpenGLBenchmark.css
             Array.Copy(style.Bytecode, 0, Bytecode, Used, style.Used);
             Used += style.Used;
         }
-
     }
 }
