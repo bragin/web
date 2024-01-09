@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
+using System.Runtime.Intrinsics;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -474,20 +476,118 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
         }
 
-        // language.c:1461
-        void ParseSpecific(List<CssToken> tokens, ref int index, bool inNot, CssSelector parent)
+        // language.c:949
+        void ParseClass(List<CssToken> tokens, ref int index, out CssSelectorDetail specific)
         {
-            Log.Unimplemented();
+            CssQname qname = new CssQname();
+            CssSelectorDetailValue detail_value = new CssSelectorDetailValue();
+
+            /* class     -> '.' IDENT */
+            //token = parserutils_vector_iterate(vector, ctx);
+            if (index >= tokens.Count - 1)
+            {
+                specific = new CssSelectorDetail();
+                return; // CSS_INVALID
+            }
+
+            var token = tokens[index++];
+
+            if (token.IsChar('.') == false)
+            {
+                specific = new CssSelectorDetail();
+                return;// CSS_IVALID;
+            }
+
+            //token = parserutils_vector_iterate(vector, ctx);
+            if (index >= tokens.Count - 1)
+            {
+                specific = new CssSelectorDetail();
+                return; // CSS_INVALID
+            }
+
+            token = tokens[index++];
+
+            if (token.Type != CssTokenType.CSS_TOKEN_IDENT)
+            {
+                specific = new CssSelectorDetail();
+                return;// CSS_INVALID;
+            }
+
+            detail_value.Str = null;
+
+            qname.Namespace = null;
+            qname.Name = token.iData;
+
+            specific = new CssSelectorDetail(
+                CssSelectorType.CSS_SELECTOR_CLASS,
+                ref qname, ref detail_value, CssSelectorDetailValueType.CSS_SELECTOR_DETAIL_VALUE_STRING, false);
+        }
+
+        // language.c:1461
+        void ParseSpecific(List<CssToken> tokens, ref int index, bool inNot, out CssSelectorDetail specific)
+        {
+            // specific  -> [ HASH | class | attrib | pseudo ]
+            var token = tokens[index];
+
+            if (token.Type == CssTokenType.CSS_TOKEN_HASH)
+            {
+                /*
+                css_qname qname;
+                css_selector_detail_value detail_value;
+
+                detail_value.string = NULL;
+
+                qname.ns = NULL;
+                qname.name = token->idata;
+
+                // Ensure lwc insensitive string is available for id names
+                if (qname.name->insensitive == NULL &&
+                        lwc__intern_caseless_string(
+                        qname.name) != lwc_error_ok)
+                    return CSS_NOMEM;
+
+                error = css__stylesheet_selector_detail_init(c->sheet,
+                        CSS_SELECTOR_ID, &qname, detail_value,
+                        CSS_SELECTOR_DETAIL_VALUE_STRING, false,
+                        specific);
+                if (error != CSS_OK)
+                    return error;
+
+                parserutils_vector_iterate(vector, ctx);*/
+                Log.Unimplemented();
+                specific = new CssSelectorDetail();
+            }
+            else if (token.IsChar('.'))
+            {
+                ParseClass(tokens, ref index, out specific);
+            }
+            else if (token.IsChar('['))
+            {
+                Log.Unimplemented();
+                specific = new CssSelectorDetail();
+                //error = parseAttrib(c, vector, ctx, specific);
+            }
+            else if (token.IsChar(':'))
+            {
+                Log.Unimplemented();
+                specific = new CssSelectorDetail();
+                //error = parsePseudo(c, vector, ctx, in_not, specific);
+            }
+            else
+            {
+                Console.WriteLine("CSS_INVALID");
+                specific = new CssSelectorDetail();
+                return;
+            }
         }
 
         // language.c:1516
         void ParseAppendSpecific(List<CssToken> tokens, ref int index, CssSelector parent)
         {
-            ParseSpecific(tokens, ref index, false, parent);
+            CssSelectorDetail specific;
+            ParseSpecific(tokens, ref index, false, out specific);
 
-            Log.Unimplemented();
-
-            //css__stylesheet_selector_append_specific(c->sheet, parent, &specific);
+            parent.AppendSpecific(specific);
         }
 
         // language.c:1531

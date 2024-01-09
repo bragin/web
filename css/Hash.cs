@@ -120,6 +120,31 @@ namespace SkiaSharpOpenGLBenchmark.css
             Universal = new List<CssHashEntry>();
         }
 
+        /**
+         * Test first selector on selector chain for having matching element name.
+         *
+         *   If source of rule is element or universal hash, we know the
+         *   element name is a match.  If it comes from the class or id hash,
+         *   we have to test for a match.
+         *
+         * \param selector	selector chain head to test
+         * \param qname		element name to look for
+         * \return true iff chain head doesn't fail to match element name
+         */
+        // hash.c:99
+        bool ChainGoodForElementName(CssSelector selector, CssQname qname, string uni)
+        {
+            if (selector.Data[0].Qname.Name != uni)
+            {
+                return System.String.Equals(
+                        selector.Data[0].Qname.Name,
+                        qname.Name,
+                        StringComparison.OrdinalIgnoreCase);
+            }
+
+            return true;
+        }
+
         // hash.c:232
         public void Insert(CssSelector selector)
         {
@@ -191,48 +216,41 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         // Find the first selector that has a class that matches name
         // hash.c:406
-        public void FindByClass(CssHashSelectionRequirments req, out CssSelector matched)
+        public void FindByClass(CssHashSelectionRequirments req, out CssSelector matched, out int indexInChain)
         {
             matched = null;
+            indexInChain = -1;
 
             // Let's omit the slots optimisation of hash lists
             if (Classes.Any() && Classes[0].Sel != null)
             {
-                Log.Unimplemented();
-
                 // Search through chain for first match
                 foreach (var c in Classes)
                 {
-                    string n;
                     bool match = false;
-                    /*
-                    n = _class_name(head->sel);
-			        if (n != NULL)
+
+                    var n = ClassName(c.Sel);
+                    if (n != null)
                     {
-				        lerror = lwc_string_isequal(req->class->insensitive, n->insensitive, &match);
-				        if (lerror != lwc_error_ok)
-					        return css_error_from_lwc_error(lerror);
+                        //lerror = lwc_string_isequal(req->class->insensitive, n->insensitive, &match);
+                        match = System.String.Equals(req.Class, n, StringComparison.OrdinalIgnoreCase);
 
-				        if (match && RULE_HAS_BYTECODE(head))
+                        //if (match && RULE_HAS_BYTECODE(head))
+                        if (match && c.Sel.Rule.HasBytecode())
                         {
-					        if (css_bloom_in_bloom(head->sel_chain_bloom, req->node_bloom) &&
-					            _chain_good_for_element_name(head->sel, &(req->qname), req->uni) &&
-					            mq_rule_good_for_media(head->sel->rule, req->unit_ctx,req->media))
+                            if (req.NodeBloom.InBloom(c.SelChainBloom) &&
+                                ChainGoodForElementName(c.Sel, req.Qname, req.Uni) &&
+                                req.Media.RuleGoodForMedia(c.Sel.Rule, req.UnitCtx))
                             {
-						        // Found a match
-                                matched = c;
-						        break;
-					        }
+                                // Found a match
+                                matched = c.Sel;
+                                indexInChain = Elements.IndexOf(c);
+                                break;
+                            }
         				}
-		        	}*/
+		        	}
                 }
-
-                //if (head == NULL)
-                //    head = &empty_slot;
             }
-
-            //(*iterator) = _iterate_classes;
-            //(*matched) = (const css_selector**) head;
         }
 
         // hash.c:488
@@ -248,6 +266,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         }
 
         // TODO: Maybe move those to CssSelector class?
+        // _class_name
         // hash.c:632
         string ClassName(CssSelector selector)
         {
@@ -381,5 +400,54 @@ namespace SkiaSharpOpenGLBenchmark.css
             indexInChain = -1;
             return null;
         }
+
+        // _iterate_classes
+        // hash.c:905
+        public CssSelector FindNextClass(CssHashSelectionRequirments req, ref int indexInChain)
+        {
+            // The end
+            if ((indexInChain >= Elements.Count - 1) || (indexInChain == -1))
+            {
+                indexInChain = -1;
+                return null;
+            }
+
+            // Iterate to the next one
+            indexInChain++;
+
+            // Slots optimisation of hash lists is omitted
+            if (Classes.Any() && Classes[indexInChain].Sel != null)
+            {
+                // Search through chain for first match
+                for (int i = indexInChain; i < Classes.Count; i++)
+                {
+                    var head = Classes[i];
+                    var name = ClassName(head.Sel);
+
+                    var match = System.String.Equals(
+                        req.Class,
+                        name,
+                        StringComparison.OrdinalIgnoreCase);
+
+                    if (match && head.Sel.Rule.HasBytecode())
+                    {
+                        if (req.NodeBloom.InBloom(head.SelChainBloom) &&
+                            ChainGoodForElementName(head.Sel, req.Qname, req.Uni) &&
+                            req.Media.RuleGoodForMedia(head.Sel.Rule, req.UnitCtx))
+                        {
+                            // Found a match
+                            indexInChain = i;
+                            return head.Sel;
+                        }
+
+                    }
+
+                }
+            }
+
+            indexInChain = -1;
+            return null;
+        }
+
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -63,14 +64,36 @@ namespace SkiaSharpOpenGLBenchmark.css
         //public bool Next;      // Another selector detail follows
         public CssSelectorDetailValueType ValueType; // Type of value field
         public bool Negate;    // Detail match is inverted
+
+        public CssSelectorDetail(CssSelectorType type,
+            ref CssQname qname,
+            ref CssSelectorDetailValue value,
+            CssSelectorDetailValueType valueType,
+            bool negate)
+        {
+            Type = type;
+            Qname = qname;
+            Value = value;
+            ValueType = valueType;
+            Negate = negate;
+        }
+
+        public CssSelectorDetail()
+        {
+            Type = CssSelectorType.CSS_SELECTOR_ELEMENT;
+            Qname = new CssQname();
+            Value = new CssSelectorDetailValue();
+            ValueType = CssSelectorDetailValueType.CSS_SELECTOR_DETAIL_VALUE_STRING;
+            Negate = false;
+        }
     }
 
     public class CssSelector
     {
-        public CssSelector Combinator;                 // Combining selector
-        public CssRule Rule;                           // Owning rule
-        public CssSelectorSpecificity Specificity;     // Specificity of selector, enum CssSelectorSpecificity
-        public List<CssSelectorDetail> Data;		            // Selector data
+        public CssSelector Combinator;          // Combining selector
+        public CssRule Rule;                    // Owning rule
+        public uint Specificity;                // Specificity of selector, enum CssSelectorSpecificity
+        public List<CssSelectorDetail> Data;    // Selector data
 
         // stylesheet.c:788
         public CssSelector(ref CssQname qname, bool inlineStyle)
@@ -92,14 +115,14 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             if (inlineStyle)
             {
-                Specificity = CssSelectorSpecificity.CSS_SPECIFICITY_A;
+                Specificity = (uint)CssSelectorSpecificity.CSS_SPECIFICITY_A;
             }
             else
             {
                 // Initial specificity -- 1 for an element, 0 for universal
                 if (qname.Name.Length != 1 || qname.Name[0] != '*')
                 {
-                    Specificity = CssSelectorSpecificity.CSS_SPECIFICITY_D;
+                    Specificity = (uint)CssSelectorSpecificity.CSS_SPECIFICITY_D;
                 }
                 else
                 {
@@ -108,6 +131,35 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
 
             Combinator = null;
+        }
+
+        // stylesheet.c:943
+        public void AppendSpecific(CssSelectorDetail detail)
+        {
+            // Update parent's specificity
+            switch (detail.Type)
+            {
+                case CssSelectorType.CSS_SELECTOR_CLASS:
+                case CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS:
+                case CssSelectorType.CSS_SELECTOR_ATTRIBUTE:
+                case CssSelectorType.CSS_SELECTOR_ATTRIBUTE_EQUAL:
+                case CssSelectorType.CSS_SELECTOR_ATTRIBUTE_DASHMATCH:
+                case CssSelectorType.CSS_SELECTOR_ATTRIBUTE_INCLUDES:
+                case CssSelectorType.CSS_SELECTOR_ATTRIBUTE_PREFIX:
+                case CssSelectorType.CSS_SELECTOR_ATTRIBUTE_SUFFIX:
+                case CssSelectorType.CSS_SELECTOR_ATTRIBUTE_SUBSTRING:
+                    Specificity += (uint)CssSelectorSpecificity.CSS_SPECIFICITY_C;
+                    break;
+                case CssSelectorType.CSS_SELECTOR_ID:
+                    Specificity += (uint)CssSelectorSpecificity.CSS_SPECIFICITY_B;
+                    break;
+                case CssSelectorType.CSS_SELECTOR_PSEUDO_ELEMENT:
+                case CssSelectorType.CSS_SELECTOR_ELEMENT:
+                    Specificity += (uint)CssSelectorSpecificity.CSS_SPECIFICITY_D;
+                    break;
+            }
+
+            Data.Add(detail);
         }
 
         // select.c:2960

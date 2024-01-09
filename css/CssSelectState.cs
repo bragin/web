@@ -13,7 +13,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 {
     public struct PropState
     {
-        public CssSelectorSpecificity Specificity;   // Specificity of property in result
+        public uint Specificity;   // Specificity of property in result
         public bool Set;           // Whether property is set in result
         public CssOrigin Origin;   // Origin of property in result
         public bool Important;     // Importance of property in result
@@ -93,7 +93,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         CssStylesheet Sheet;        // Current sheet being processed
 
         CssOrigin CurrentOrigin;    // Origin of current sheet
-        CssSelectorSpecificity CurrentSpecificity;    // Specificity of current rule
+        uint CurrentSpecificity;    // Specificity of current rule
 
         public CssQname Element;           // Element we're selecting for
         string Id;                  // Node id, if any
@@ -368,6 +368,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             CssSelector nodeSelectors;
             int nodeSelectorsIndex;
             CssSelector[] classSelectors = null;
+            int classSelectorsIndex = -1;
             CssSelector idSelectors = null;
             CssSelector univSelectors = null;
 
@@ -385,7 +386,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                 for (i = 0; i < Classes.Length; i++)
                 {
                     req.Class = Classes[i];
-                    sheet.Selectors.FindByClass(req, out classSelectors[i]);
+                    sheet.Selectors.FindByClass(req, out classSelectors[i], out classSelectorsIndex);
                 }
             }
             // class_iterator
@@ -438,16 +439,18 @@ namespace SkiaSharpOpenGLBenchmark.css
                         break;
 
                     case CssSelectRuleEnum.CSS_SELECT_RULE_SRC_ID:
+                        Log.Unimplemented();
                         //error = id_iterator(&req, id_selectors, &id_selectors);
                         break;
 
                     case CssSelectRuleEnum.CSS_SELECT_RULE_SRC_UNIVERSAL:
+                        Log.Unimplemented();
                         //error = univ_iterator(&req, univ_selectors, &univ_selectors);
                         break;
 
                     case CssSelectRuleEnum.CSS_SELECT_RULE_SRC_CLASS:
-                        //req.class = state->classes[src.class];
-                        //error = class_iterator(&req, class_selectors[src.class], &class_selectors[src.class]);
+                        req.Class = Classes[src.Class];
+                        classSelectors[src.Class] = sheet.Selectors.FindNextClass(req, ref classSelectorsIndex);
                         break;
 
                     default:
