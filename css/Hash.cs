@@ -253,10 +253,45 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
         }
 
+        // Find the first selector that has an ID that matches name
         // hash.c:488
-        public void FindById()
+        public void FindById(CssHashSelectionRequirments req, out CssSelector matched, out int indexInChain)
         {
-            Log.Unimplemented();
+            matched = null;
+            indexInChain = -1;
+
+            // Slots optimisation of hash lists is omitted
+            if (Ids.Any() && Ids[0].Sel != null)
+            {
+                // Search through chain for first match
+                for (int i=0; i<Ids.Count(); i++)
+                {
+                    var head = Ids[i];
+                    var name = IdName(head.Sel);
+
+                    if (name != null)
+                    {
+                        var match = System.String.Equals(
+                            req.Id,
+                            name,
+                            StringComparison.OrdinalIgnoreCase);
+
+                        if (match && head.Sel.Rule.HasBytecode())
+                        {
+                            if (req.NodeBloom.InBloom(head.SelChainBloom) &&
+                                ChainGoodForElementName(head.Sel, req.Qname, req.Uni) &&
+                                req.Media.RuleGoodForMedia(head.Sel.Rule, req.UnitCtx))
+                            {
+                                // Found a match
+                                matched = head.Sel;
+                                indexInChain = i;
+                                break;
+                            }
+
+                        }
+                    }
+                }
+            }
         }
 
         // hash.c:568
@@ -285,6 +320,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             return name;
         }
 
+        // _id_name
         // hash.c:659
         string IdName(CssSelector selector)
         {
@@ -402,7 +438,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         }
 
         // _iterate_classes
-        // hash.c:905
+        // hash.c:957
         public CssSelector FindNextClass(CssHashSelectionRequirments req, ref int indexInChain)
         {
             // The end
@@ -449,5 +485,53 @@ namespace SkiaSharpOpenGLBenchmark.css
             return null;
         }
 
+        // _iterate_ids
+        // Find the next selector that matches
+        // hash.c:1019
+        public CssSelector FindNextId(CssHashSelectionRequirments req, ref int indexInChain)
+        {
+            // The end
+            if (indexInChain >= Ids.Count - 1)
+            {
+                indexInChain = -1;
+                return null;
+            }
+
+            // Iterate to the next one
+            indexInChain++;
+
+            // Slots optimisation of hash lists is omitted
+            if (Ids.Any() && Ids[0].Sel != null)
+            {
+                // Search through chain for first match
+                for (int i = indexInChain; i < Ids.Count; i++)
+                {
+                    var head = Ids[i];
+                    var name = IdName(head.Sel);
+
+                    var match = System.String.Equals(
+                        req.Id,
+                        name,
+                        StringComparison.OrdinalIgnoreCase);
+
+                    if (match && head.Sel.Rule.HasBytecode())
+                    {
+                        if (req.NodeBloom.InBloom(head.SelChainBloom) &&
+                            ChainGoodForElementName(head.Sel, req.Qname, req.Uni) &&
+                            req.Media.RuleGoodForMedia(head.Sel.Rule, req.UnitCtx))
+                        {
+                            // Found a match
+                            indexInChain = i;
+                            return head.Sel;
+                        }
+
+                    }
+
+                }
+            }
+
+            indexInChain = -1;
+            return null;
+        }
     }
 }

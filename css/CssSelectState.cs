@@ -370,12 +370,12 @@ namespace SkiaSharpOpenGLBenchmark.css
             CssSelector[] classSelectors = null;
             int classSelectorsIndex = -1;
             CssSelector idSelectors = null;
+            int idSelectorsIndex = -1;
             CssSelector univSelectors = null;
 
             // Find hash chain that applies to current node
             req.Qname = Element;
             sheet.Selectors.Find(req, out nodeSelectors, out nodeSelectorsIndex);
-            // node_iterator -> iterateElements
 
             int i;
             if (Classes != null && Classes.Length > 0)
@@ -389,20 +389,12 @@ namespace SkiaSharpOpenGLBenchmark.css
                     sheet.Selectors.FindByClass(req, out classSelectors[i], out classSelectorsIndex);
                 }
             }
-            // class_iterator
 
             if (Id != null)
             {
-                Log.Unimplemented();
                 // Find hash chain for node ID
-                /*
-                req.id = state->id;
-                error = css__selector_hash_find_by_id(sheet->selectors,
-                        &req, &id_iterator, &id_selectors);
-                if (error != CSS_OK)
-                    goto cleanup;
-                */
-                // id_iterator
+                req.Id = Id;
+                sheet.Selectors.FindById(req, out idSelectors, out idSelectorsIndex);
             }
 /*
             // Find hash chain for universal selector
@@ -439,8 +431,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                         break;
 
                     case CssSelectRuleEnum.CSS_SELECT_RULE_SRC_ID:
-                        Log.Unimplemented();
-                        //error = id_iterator(&req, id_selectors, &id_selectors);
+                        idSelectors = sheet.Selectors.FindNextId(req, ref idSelectorsIndex);
                         break;
 
                     case CssSelectRuleEnum.CSS_SELECT_RULE_SRC_UNIVERSAL:

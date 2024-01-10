@@ -531,31 +531,24 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             if (token.Type == CssTokenType.CSS_TOKEN_HASH)
             {
-                /*
-                css_qname qname;
-                css_selector_detail_value detail_value;
+                CssQname qname = new CssQname();
+                CssSelectorDetailValue detailValue = new CssSelectorDetailValue();
 
-                detail_value.string = NULL;
+                detailValue.Str = null;
 
-                qname.ns = NULL;
-                qname.name = token->idata;
+                qname.Namespace = null;
+                qname.Name = token.iData;
 
-                // Ensure lwc insensitive string is available for id names
-                if (qname.name->insensitive == NULL &&
-                        lwc__intern_caseless_string(
-                        qname.name) != lwc_error_ok)
-                    return CSS_NOMEM;
+                specific = new CssSelectorDetail(
+                    CssSelectorType.CSS_SELECTOR_ID,
+                    ref qname,
+                    ref detailValue,
+                    CssSelectorDetailValueType.CSS_SELECTOR_DETAIL_VALUE_STRING,
+                    false);
 
-                error = css__stylesheet_selector_detail_init(c->sheet,
-                        CSS_SELECTOR_ID, &qname, detail_value,
-                        CSS_SELECTOR_DETAIL_VALUE_STRING, false,
-                        specific);
-                if (error != CSS_OK)
-                    return error;
-
-                parserutils_vector_iterate(vector, ctx);*/
-                Log.Unimplemented();
-                specific = new CssSelectorDetail();
+                //parserutils_vector_iterate(vector, ctx);
+                if (index < tokens.Count)
+                    index++;
             }
             else if (token.IsChar('.'))
             {
@@ -704,16 +697,9 @@ namespace SkiaSharpOpenGLBenchmark.css
 
                 qname.Name = CssStrings.Universal;
                 selector = new CssSelector(ref qname, InlineStyle);
-                /*
 
                 // Ensure we have at least one specific selector
-                error = parseAppendSpecific(c, vector, ctx, &selector);
-                if (error != CSS_OK)
-                {
-                    css__stylesheet_selector_destroy(c->sheet, selector);
-                    return error;
-                }*/
-                Log.Unimplemented();
+                ParseAppendSpecific(tokens, ref index, selector);
             }
 
             ParseSelectorSpecifics(tokens, ref index, selector);

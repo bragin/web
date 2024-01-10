@@ -133,6 +133,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         // Context
         char First;         // First character read for token
+        int OrigBytes;   // < Storage of current number of bytes read, for rewinding
         bool LastWasStar;   // Whether the previous character was an asterisk
         bool LastWasCR;     // Whether the previous character was CR
         int CurrentCol;     // Current column in source
@@ -470,7 +471,7 @@ start:
                 case '#':
                     State = CssLexerState.sHASH;
                     Substate = 0;
-                    //lexer->context.origBytes = lexer->bytesReadForToken;
+                    OrigBytes = BytesReadForToken;
                     Hash(out token);
                     return CssStatus.CSS_OK;
                 case '0':
@@ -659,8 +660,20 @@ start:
         // lex.c:870
         CssStatus Hash(out CssToken token)
         {
-            Log.Unimplemented();
-            token = new CssToken(1);
+            /* HASH = '#' name  = '#' nmchar+
+             *
+             * The '#' has been consumed.
+             */
+            ConsumeNMChars();
+
+            // Require at least one NMChar otherwise, we're just a raw '#'
+            if (BytesReadForToken - OrigBytes > 0)
+            {
+                token = EmitToken(CssTokenType.CSS_TOKEN_HASH);
+                return CssStatus.CSS_OK;
+            }
+
+            token = EmitToken(CssTokenType.CSS_TOKEN_CHAR);
             return CssStatus.CSS_OK;
         }
 
@@ -705,7 +718,7 @@ start:
                         goto suffix;
 
                     // Save the token length up to the end of the digits
-                    //OrigBytes = BytesReadForToken;
+                    OrigBytes = BytesReadForToken;
                     
                     // Append the '.' to the token
                     //APPEND(lexer, cptr, clen);
@@ -718,16 +731,14 @@ start:
 
                 case MoreDigits:
                     Substate = MoreDigits;
-                    /*
                     ConsumeDigits();
 
-                    if (lexer->bytesReadForToken - lexer->context.origBytes == 1)
+                    if (BytesReadForToken - OrigBytes == 1)
                     {
                         // No digits after dot => dot isn't part of number
-                        lexer->bytesReadForToken -= 1;
-                        t->data.len -= 1;
-                    }*/
-                    Log.Unimplemented();
+                        BytesReadForToken -= 1;
+                        Token.DataLen -= 1;
+                    }
 
                     // Fall through
                     goto case Suffix;
