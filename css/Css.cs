@@ -160,7 +160,9 @@ namespace SkiaSharpOpenGLBenchmark.css
         CssLanguageLevel Level; // Language level of sheet
 
         bool QuirksAllowed; // Quirks permitted 
-        public bool InlineStyle; // Quirks actually used
+        bool QuirksUsed;    // Quirks actually used
+
+        public bool InlineStyle; // Is an inline style
 
         ParseProperty[] ParseHandlers;
 
@@ -188,6 +190,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             RuleList = new LinkedList<CssRule>();
 
             QuirksAllowed = false;
+            QuirksUsed = false;
             Disabled = false;
 
             Selectors = new CssSelectorHash();
@@ -868,6 +871,8 @@ namespace SkiaSharpOpenGLBenchmark.css
         {
             result = 0;
             value = 0;
+            var origIndex = index;
+            CssStatus error;
 
             ConsumeWhitespace(tokens, ref index);
 
@@ -917,15 +922,12 @@ namespace SkiaSharpOpenGLBenchmark.css
                     return;
                 }
 
-                var error = ParseProperty_NamedColour(token.iData, ref result);
+                error = ParseProperty_NamedColour(token.iData, ref result);
                 if (error != CssStatus.CSS_OK && QuirksAllowed)
                 {
-                    Log.Unimplemented();
-                    /*
-                    error = css__parse_hash_colour(token->idata, result);
-                    if (error == CSS_OK)
-                        c->sheet->quirks_used = true;
-                    */
+                    error = error = ParseHashColour(token.iData, out result);
+                    if (error == CssStatus.CSS_OK)
+                        QuirksUsed = true;
                 }
 
                 if (error != CssStatus.CSS_OK)
@@ -936,34 +938,43 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
             else if (token.Type == CssTokenType.CSS_TOKEN_HASH)
             {
-                Log.Unimplemented();
-                /*
-                error = css__parse_hash_colour(token->idata, result);
-                if (error != CSS_OK)
-                    goto invalid;
-                */
+                error = ParseHashColour(token.iData, out result);
+                if (error != CssStatus.CSS_OK)
+                {
+                    index = origIndex;
+                    return;
+                    //goto invalid;
+                }
             }
             else if (QuirksAllowed &&
                   token.Type == CssTokenType.CSS_TOKEN_NUMBER)
             {
-                /*
-                error = css__parse_hash_colour(token->idata, result);
-                if (error == CSS_OK)
-                    c->sheet->quirks_used = true;
+                error = ParseHashColour(token.iData, out result);
+                if (error == CssStatus.CSS_OK)
+                {
+                    QuirksUsed = true;
+                }
                 else
-                    goto invalid;*/
-                Log.Unimplemented();
+                {
+                    index = origIndex;
+                    return;
+                    //goto invalid;
+                }
             }
             else if (QuirksAllowed &&
                   token.Type == CssTokenType.CSS_TOKEN_DIMENSION)
             {
-                /*
-                error = css__parse_hash_colour(token->idata, result);
-                if (error == CSS_OK)
-                    c->sheet->quirks_used = true;
+                error = ParseHashColour(token.iData, out result);
+                if (error == CssStatus.CSS_OK)
+                {
+                    QuirksUsed = true;
+                }
                 else
-                    goto invalid;*/
-                Log.Unimplemented();
+                {
+                    index = origIndex;
+                    return;
+                    //goto invalid;
+                }
             }
             else if (token.Type == CssTokenType.CSS_TOKEN_FUNCTION)
             {
@@ -1216,6 +1227,51 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
 
             value = (ushort)OpColor.COLOR_SET;
+        }
+
+        /**
+         * Parse a hash colour (#rgb or #rrggbb)
+         *
+         * \param data    Pointer to colour string
+         * \param result  Pointer to location to receive result (AARRGGBB)
+         */
+        // utils.c:869
+        CssStatus ParseHashColour(string data, out uint result)
+        {
+            byte r = 0, g = 0, b = 0, a = 0xff;
+            int len = data.Length;
+
+            if ((len == 3) && data[0].IsHex() && data[1].IsHex() &&
+                    data[2].IsHex())
+            {
+                r = data[0].ToByte();
+                g = data[1].ToByte();
+                b = data[2].ToByte();
+
+                r |= (byte)(r << 4);
+                g |= (byte)(g << 4);
+                b |= (byte)(b << 4);
+            }
+            else if (len == 6 && data[0].IsHex() && data[1].IsHex() &&
+                    data[2].IsHex() && data[3].IsHex() &&
+                    data[4].IsHex() && data[5].IsHex())
+            {
+                r = (byte)(data[0].ToByte() << 4);
+                r |= data[1].ToByte();
+                g = (byte)(data[2].ToByte() << 4);
+                g |= data[3].ToByte();
+                b = (byte)(data[4].ToByte() << 4);
+                b |= data[5].ToByte();
+            }
+            else
+            {
+                result = 0;
+                return CssStatus.CSS_INVALID;
+            }
+
+            result = ((uint)a << 24) | ((uint)r << 16) | ((uint)g << 8) | b;
+
+            return CssStatus.CSS_OK;
         }
 
         void ParseImportant(List<CssToken> tokens, ref int index, ref OpCodeFlag flags)

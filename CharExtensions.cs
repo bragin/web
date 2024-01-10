@@ -16,6 +16,19 @@ namespace SkiaSharpOpenGLBenchmark
         {
             return ((int)character).ToString("x");
         }
+        public static byte ToByte(this char character)
+        {
+            byte c = (byte)character;
+            c -= (byte)'0';
+
+            if (c > 9)
+                c -= (byte)'A' - (byte)'9' - 1;
+
+            if (c > 15)
+                c -= (byte)'a' - (byte)'A';
+
+            return c;
+        }
 
         public static bool IsInRange(this char c, int lower, int upper)
         {
