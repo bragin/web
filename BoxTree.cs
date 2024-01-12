@@ -470,7 +470,7 @@ namespace SkiaSharpOpenGLBenchmark
                 sw.Write("  ");
             }
 
-            sw.Write($"{"ptrtobox"} ");
+            sw.Write($"{GetHashCode().ToString("X")} ");
 
             sw.Write($"x{x} y{y} w{width} h{height} ");
 
@@ -625,7 +625,7 @@ namespace SkiaSharpOpenGLBenchmark
             for (prev = null, c = Children; c != null; prev = c, c = c.Next)
             {
                 if (c.Parent != this)
-                    sw.WriteLine("warning: box->parent %p (should be %p) (box on next line)"); // c->parent, box
+                    sw.WriteLine($"warning: box->parent {(c.Parent != null ? c.Parent.GetHashCode() : "null") } (should be {GetHashCode().ToString("X")}) (box on next line)"); // c->parent, box
                 if (c.Prev != prev)
                     sw.WriteLine("warning: box->prev %p (should be %p) (box on next line)"); //c->prev, prev);
 
@@ -732,7 +732,7 @@ namespace SkiaSharpOpenGLBenchmark
                  * value. */
                 if (!prop.Set || (parent == null && prop.Inherit))
                 {
-                    state.Properties.SetInitial(state, i, CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE, parent);
+                    CssProps.SetInitial(state, i, CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE, parent);
                 }
             }
 
@@ -773,6 +773,7 @@ namespace SkiaSharpOpenGLBenchmark
 
                 /* Complete the computed style, by composing with the parent
                  * element's style */
+                var composed = new ComputedStyle(parentStyle, styles.Styles[(int)CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE], unitCtx);
                 /*
                 error = css_computed_style_compose(ctx->parent_style,
                         styles->styles[CSS_PSEUDO_ELEMENT_NONE],

@@ -434,6 +434,36 @@ namespace SkiaSharpOpenGLBenchmark
             i = new ComputedStyleI();
         }
 
+        // css_computed_style_compose
+        // select.c:253
+        public ComputedStyle(ComputedStyle parent, ComputedStyle child, CssUnitCtx unitCtx)
+        {
+            /* TODO:
+             *   Make this function take a composition context, to allow us
+             *   to avoid the churn of unnecesaraly allocating and freeing
+             *   the memory to compose styles into.
+             */
+            bin = UInt32.MaxValue;
+            i = new ComputedStyleI();
+
+            // Iterate through the properties
+            for (int i = 0; i < (int)CssPropertiesEnum.CSS_N_PROPERTIES; i++)
+            {
+                // Compose the property
+                //error = prop_dispatch[i].compose(parent, child, composed);
+                //if (error != CSS_OK)
+                  //  break;
+            }
+
+            Log.Unimplemented();
+
+            // Finally, compute absolute values for everything
+            //css__compute_absolute_values(parent, composed, unit_ctx);
+
+            //*result = composed;
+            //return css__arena_intern_style(result);
+        }
+
         private delegate byte GetForAbsLen(ComputedStyle style, out Fixed len1, out CssUnit unit1, out Fixed len2, out CssUnit unit2);
 
         private delegate void SetForAbsLen(ComputedStyle style, byte type, Fixed len1, CssUnit unit1, Fixed len2, CssUnit unit2);
