@@ -144,6 +144,19 @@ namespace SkiaSharpOpenGLBenchmark
         }
         #endregion
 
+        #region <>
+        public static bool operator <(Fixed one, int other)
+        {
+            Fixed o = (Fixed)other;
+            return one.RawValue < o.RawValue;
+        }
+        public static bool operator >(Fixed one, int other)
+        {
+            Fixed o = (Fixed)other;
+            return one.RawValue > o.RawValue;
+        }
+        #endregion
+
         public static explicit operator int(Fixed src)
         {
             return src.ToInt();
