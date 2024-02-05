@@ -67,7 +67,7 @@ margin_left:CSS_PROP_MARGIN_LEFT WRAP:css__parse_margin_side
 margin_right:CSS_PROP_MARGIN_RIGHT WRAP:css__parse_margin_side
 
 #generic for {top, bottom, left, right}.c
-side:op GENERIC: IDENT:( INHERIT: AUTO:0,BOTTOM_AUTO IDENT:) LENGTH_UNIT:( UNIT_PX:BOTTOM_SET ALLOW:unit&(UNIT_LENGTH|UNIT_PCT) LENGTH_UNIT:)
+side:op GENERIC: IDENT:( INHERIT: AUTO:0,BOTTOM_AUTO IDENT:) LENGTH_UNIT:( UNIT_PX:BOTTOM_SET ALLOW:unit&(OpcodeUnit.LENGTH|OpcodeUnit.PCT) LENGTH_UNIT:)
 
 top:CSS_PROP_TOP WRAP:css__parse_side
 bottom:CSS_PROP_BOTTOM WRAP:css__parse_side

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -96,6 +97,8 @@ namespace SkiaSharpOpenGLBenchmark
          * list_style_position:CSS_PROP_LIST_STYLE_POSITION IDENT:( INHERIT: INSIDE:0,LIST_STYLE_POSITION_INSIDE OUTSIDE:0,LIST_STYLE_POSITION_OUTSIDE IDENT:)
         */
 
+        // example: css__stylesheet_style_appendOPV (style, Opcode, Flags, Value)
+
         // css_property_parser_gen.c
 
         static bool GetKeyVal(string descriptor, ref int pos, out KeyValuePair<string, string> keyVal)
@@ -150,25 +153,50 @@ namespace SkiaSharpOpenGLBenchmark
             sw.WriteLine($" * {descriptor}");
             sw.WriteLine(" */");
             sw.WriteLine($"// Parse {parserId.Key}");
+
+            sw.WriteLine("namespace SkiaSharpOpenGLBenchmark.css\r\n{");
+            sw.WriteLine("    public partial class CssPropertyParser {");
+
+            sw.WriteLine($"        public CssStatus Parse_{parserId.Key}(List<CssToken> tokens, ref int index, CssStyle style)\r\n        {{");
+            /*
             sw.WriteLine($"css_error css__parse_{parserId.Key}(css_language *c,");
             sw.WriteLine("        const parserutils_vector *vector, int *ctx,");
             sw.WriteLine($"        css_style *result{s})");
-            sw.WriteLine("{");
+            sw.WriteLine("{");*/
+        }
+
+        static void OutputTokenTypeCheck(
+            StreamWriter sw,
+            bool doTokenCheck,
+            List<KeyValuePair<string, string>> IDENT,
+            List<KeyValuePair<string, string>> URI,
+            List<KeyValuePair<string, string>> NUMBER)
+        {
+            sw.WriteLine("            int origIndex = index;");
+            sw.WriteLine("            CssStatus error = CssStatus.CSS_OK;");
+            sw.WriteLine(); ;
+            sw.WriteLine("            if (index >= tokens.Count)\r\n            {\r\n                Console.WriteLine(\"ERROR: Invalid CSS 659\");\r\n                return CssStatus.CSS_INVALID;\r\n            }\r\n\r\n            var token = tokens[index++];\r\n");
         }
 
         static void OutputFooter(StreamWriter sw)
         {
+            /*
             sw.WriteLine("    if (errpr != CSS_OK)");
             sw.WriteLine("        *ctx = orig_ctx;");
             sw.WriteLine("");
             sw.WriteLine("    return error;");
             sw.WriteLine("}");
-            sw.WriteLine("");
+            sw.WriteLine("");*/
+
+            sw.WriteLine("        return error;\r\n    }\r\n    }\r\n}");
+
         }
 
         static void OutputIdent(StreamWriter sw, bool onlyIdent, KeyValuePair<string, string> parseId, List<KeyValuePair<string, string>> IDENT)
         {
             int ident_count;
+
+            sw.Write("            ");
 
             for (ident_count = 0; ident_count < IDENT.Count; ident_count++)
             {
@@ -178,24 +206,21 @@ namespace SkiaSharpOpenGLBenchmark
                 if (!onlyIdent)
                 {
                     sw.Write(
-                    "(token->type == CSS_TOKEN_IDENT) && ");
+                    "(token.Type == CssTokenType.CSS_TOKEN_IDENT) &&\r\n                ");
                 }
                 sw.WriteLine(
-                        $"(lwc_string_caseless_isequal(token->idata, c->strings[{ckv.Key}], &match) == lwc_error_ok && match)) {{");
+                    $"System.String.Equals(token.iData, \"{ckv.Key.ToLower()}\", StringComparison.OrdinalIgnoreCase))\r\n            {{");
                 if (ckv.Key == "INHERIT")
                 {
-                    sw.WriteLine(
-                        $"\t\t\terror = css_stylesheet_style_inherit(result, {parseId.Value});"
-                        );
+                    sw.WriteLine($"                style.AppendStyle(\r\n                    new OpCode(\r\n                        (ushort)CssPropertiesEnum.{parseId.Value},\r\n                        (byte)OpCodeFlag.FLAG_INHERIT,\r\n                        0)\r\n                );");
                 }
                 else
                 {
-                    sw.WriteLine(
-                        $"\t\t\terror = css__stylesheet_style_appendOPV(result, {parseId.Value}, {ckv.Value});"
-                    );
+                    var v2 = ckv.Value.Split(',');
+                    v2[1] = "OpCodeValues." + v2[1];
+                    sw.WriteLine($"                style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.{parseId.Value}, {v2[0]}, (ushort){v2[1]}));");
                 }
-                sw.Write(
-                "\t} else ");
+                sw.Write("            } else ");
             }
         }
 
@@ -204,16 +229,14 @@ namespace SkiaSharpOpenGLBenchmark
             var ckv = kvlist[0];
             int ident_count;
 
-
-            sw.WriteLine("if (token->type == CSS_TOKEN_NUMBER) {");
-            sw.WriteLine("\t\tcss_fixed num = 0;");
-            sw.WriteLine("\t\tsize_t consumed = 0;\n");
-            sw.WriteLine($"\t\tnum = css__number_from_lwc_string(token->idata, {ckv.Key}, &consumed);");
-            sw.WriteLine("\t\t/* Invalid if there are trailing characters */");
-            sw.WriteLine("\t\tif (consumed != lwc_string_length(token->idata)) {");
-            sw.WriteLine("\t\t\t*ctx = orig_ctx;");
-            sw.WriteLine("\t\t\treturn CSS_INVALID;");
-            sw.WriteLine("\t\t}");
+            sw.WriteLine("if (token.Type == CssTokenType.CSS_TOKEN_NUMBER) {");
+            sw.WriteLine("            int consumed;\n");
+            sw.WriteLine($"            var num = CssStylesheet.NumberFromString(token.iData, {ckv.Key}, out consumed);");
+            sw.WriteLine("            // Invalid if there are trailing characters");
+            sw.WriteLine("            if (consumed != token.iData.Length) {");
+            sw.WriteLine("                index = origIndex;");
+            sw.WriteLine("                return CssStatus.CSS_INVALID;");
+            sw.WriteLine("            }");
 
             for (ident_count = 1; ident_count < kvlist.Count; ident_count++)
             {
@@ -221,73 +244,55 @@ namespace SkiaSharpOpenGLBenchmark
 
                 if (ulkv.Key == "RANGE")
                 {
-                    sw.WriteLine($"\t\tif ({ulkv.Value}) {{");
-                    sw.WriteLine("\t\t\t*ctx = orig_ctx;");
-                    sw.WriteLine("\t\t\treturn CSS_INVALID;");
-                    sw.WriteLine("\t\t}\n");
+                    sw.WriteLine($"            if ({ulkv.Value}) {{");
+                    sw.WriteLine("                index = origIndex;");
+                    sw.WriteLine("                return CssStatus.CSS_INVALID;");
+                    sw.WriteLine("            }\n");
                 }
 
             }
 
-            sw.WriteLine($"\t\terror = css__stylesheet_style_appendOPV(result, {parseId.Value}, 0, {ckv.Value});");
-            sw.WriteLine("\t\tif (error != CSS_OK) {");
-            sw.WriteLine("\t\t\t*ctx = orig_ctx;");
-            sw.WriteLine("\t\t\treturn error;");
-            sw.WriteLine("\t\t}\n");
-            sw.WriteLine("\t\terror = css__stylesheet_style_append(result, num);");
+            //sw.WriteLine($"\t\terror = css__stylesheet_style_appendOPV(result, {parseId.Value}, 0, {ckv.Value});");
+            sw.WriteLine($"            style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.{parseId.Value}, 0, (ushort)OpCodeValues.{ckv.Value}));");
+            //sw.WriteLine("\t\terror = css__stylesheet_style_append(result, num);");
+            sw.WriteLine("            style.AppendStyle(new OpCode((uint)num.RawValue));");
             sw.Write("\t} else ");
         }
 
         static void OutputUri(StreamWriter sw, KeyValuePair<string, string> parseId, List<KeyValuePair<string, string>> kvlist)
         {
-            sw.WriteLine("if (token->type == CSS_TOKEN_URI) {");
-            sw.WriteLine("		lwc_string *uri = NULL;");
-            sw.WriteLine("		uint32_t uri_snumber;");
+
+            sw.WriteLine("if (token.Type == CssTokenType.CSS_TOKEN_URI) {");
+            sw.WriteLine("                string uri;");
+            sw.WriteLine("                uint uri_snumber;");
             sw.WriteLine();
-            sw.WriteLine("		error = c->sheet->resolve(c->sheet->resolve_pw,");
-            sw.WriteLine("				c->sheet->url,");
-            sw.WriteLine("				token->idata, &uri);");
-            sw.WriteLine("		if (error != CSS_OK) {");
-            sw.WriteLine("			*ctx = orig_ctx;");
-            sw.WriteLine("			return error;");
-            sw.WriteLine("		}");
+            sw.WriteLine("                /*error = c->sheet->resolve(c->sheet->resolve_pw,");
+            sw.WriteLine("                c->sheet->url,");
+            sw.WriteLine("                token->idata, &uri);");
+            sw.WriteLine("                */ Log.Unimplemented();");
             sw.WriteLine();
-            sw.WriteLine("		error = css__stylesheet_string_add(c->sheet, uri, &uri_snumber);");
-            sw.WriteLine("		if (error != CSS_OK) {");
-            sw.WriteLine("			*ctx = orig_ctx;");
-            sw.WriteLine("			return error;");
-            sw.WriteLine("		}");
+            sw.WriteLine("                /*css__stylesheet_string_add(c->sheet, uri, &uri_snumber);*/");
             sw.WriteLine();
-            sw.WriteLine($"		error = css__stylesheet_style_appendOPV(result, {parseId.Value}, 0, {kvlist[0].Value});");
-            sw.WriteLine("		if (error != CSS_OK) {");
-            sw.WriteLine("			*ctx = orig_ctx;");
-            sw.WriteLine("			return error;");
-            sw.WriteLine("		}");
+            sw.WriteLine($"                style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.{parseId.Value}, 0, (ushort)OpCodeValues.{kvlist[0].Value}));");
+
             sw.WriteLine();
-            sw.WriteLine("		error = css__stylesheet_style_append(result, uri_snumber);");
-            sw.Write("	} else ");
+            sw.WriteLine("                /*error = css__stylesheet_style_append(result, uri_snumber);*/");
+            sw.Write("            } else ");
         }
 
         static void OutputColor(StreamWriter sw, KeyValuePair<string, string> parseId, List<KeyValuePair<string, string>> COLOR)
         {
+
             sw.WriteLine("{");
-            sw.WriteLine("\t\tuint16_t value = 0;");
-            sw.WriteLine("\t\tuint32_t color = 0;");
-            sw.WriteLine("\t\t*ctx = orig_ctx;\n");
-            sw.WriteLine("\t\terror = css__parse_colour_specifier(c, vector, ctx, &value, &color);");
-            sw.WriteLine("\t\tif (error != CSS_OK) {");
-            sw.WriteLine("\t\t\t*ctx = orig_ctx;");
-            sw.WriteLine("\t\t\treturn error;");
-            sw.WriteLine("\t\t}\n");
-            sw.WriteLine($"\t\terror = css__stylesheet_style_appendOPV(result, {parseId.Value}, 0, value);");
-            sw.WriteLine("\t\tif (error != CSS_OK) {");
-            sw.WriteLine("\t\t\t*ctx = orig_ctx;");
-            sw.WriteLine("\t\t\treturn error;");
-            sw.WriteLine("\t\t}");
-            sw.WriteLine();
-            sw.WriteLine("\t\tif (value == COLOR_SET)");
-            sw.WriteLine("\t\t\terror = css__stylesheet_style_append(result, color);");
-            sw.WriteLine("\t}\n");
+            sw.WriteLine("                ushort value = 0;");
+            sw.WriteLine("                uint color = 0;");
+            sw.WriteLine("                index = origIndex;");
+
+            sw.WriteLine("                CssStylesheet.ParseProperty_ColourSpecifier(tokens, ref index, out value, out color);\r\n");
+            sw.WriteLine($"                style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.{parseId.Value}, 0, value));\r\n");
+            sw.WriteLine("                if (value == (ushort)OpColor.COLOR_SET)");
+            sw.WriteLine($"                    style.AppendStyle(new OpCode(color));");
+            sw.WriteLine("            }");
         }
 
         static void OutputLengthUnit(StreamWriter sw, KeyValuePair<string, string> parseId, List<KeyValuePair<string, string>> kvlist)
@@ -296,14 +301,14 @@ namespace SkiaSharpOpenGLBenchmark
             int ident_count;
 
             sw.WriteLine("{");
-            sw.WriteLine("\t\tcss_fixed length = 0;");
-            sw.WriteLine("\t\tuint32_t unit = 0;");
-            sw.WriteLine("\t\t*ctx = orig_ctx;\n");
-            sw.WriteLine($"\t\terror = css__parse_unit_specifier(c, vector, ctx, {ckv.Key}, &length, &unit);");
-            sw.WriteLine("\t\tif (error != CSS_OK) {");
-            sw.WriteLine("\t\t\t*ctx = orig_ctx;");
-            sw.WriteLine("\t\t\treturn error;");
-            sw.WriteLine("\t\t}\n");
+            sw.WriteLine("                Fixed length;");
+            sw.WriteLine("                uint unit;");
+            sw.WriteLine("                index = origIndex;\n");
+            sw.WriteLine($"                error = CssStylesheet.ParseProperty_UnitSpecifier(tokens, ref index, OpcodeUnit.{ckv.Key.Substring(5)}, out length, out unit);");
+            sw.WriteLine("                if (error != CssStatus.CSS_OK) {");
+            sw.WriteLine("                    index = origIndex;");
+            sw.WriteLine("                    return error;");
+            sw.WriteLine("                }\n");
 
             for (ident_count = 1; ident_count < kvlist.Count; ident_count++)
             {
@@ -312,42 +317,41 @@ namespace SkiaSharpOpenGLBenchmark
 
                 if (ulkv.Key == "ALLOW")
                 {
-                    sw.WriteLine($"\t\tif (({ulkv.Value}) == false) {{");
-                    sw.WriteLine("\t\t\t*ctx = orig_ctx;");
-                    sw.WriteLine("\t\t\treturn CSS_INVALID;");
-                    sw.WriteLine("\t\t}\n");
+                    sw.WriteLine($"                if (({ulkv.Value}) == false) {{");
+                    sw.WriteLine("                    index = origIndex;");
+                    sw.WriteLine("                    return CssStatus.CSS_INVALID;");
+                    sw.WriteLine("                }\n");
                 }
                 else if (ulkv.Key == "DISALLOW")
                 {
-                    sw.WriteLine($"\t\tif ({ulkv.Value}) {{");
-                    sw.WriteLine("\t\t\t*ctx = orig_ctx;");
-                    sw.WriteLine("\t\t\treturn CSS_INVALID;");
-                    sw.WriteLine("\t\t}\n");
+                    sw.WriteLine($"                if ({ulkv.Value}) {{");
+                    sw.WriteLine("                    index = origIndex;");
+                    sw.WriteLine("                    return CssStatus.CSS_INVALID;");
+                    sw.WriteLine("                }\n");
                 }
                 else if (ulkv.Key == "MASK")
                 {
-                    sw.WriteLine($"\t\tif ((unit & {ulkv.Value} ) == 0) {{");
-                    sw.WriteLine("\t\t\t*ctx = orig_ctx;");
-                    sw.WriteLine("\t\t\treturn CSS_INVALID;");
-                    sw.WriteLine("\t\t}\n");
+                    sw.WriteLine($"                if ((unit & (uint)UnitMask.{ulkv.Value} ) == 0) {{");
+                    sw.WriteLine("                    index = origIndex;");
+                    sw.WriteLine("                    return CssStatus.CSS_INVALID;");
+                    sw.WriteLine("                }\n");
                 }
                 else if (ulkv.Key == "RANGE")
                 {
-                    sw.WriteLine($"\t\tif (length {ulkv.Value}) {{");
-                    sw.WriteLine("\t\t\t*ctx = orig_ctx;");
-                    sw.WriteLine("\t\t\treturn CSS_INVALID;");
-                    sw.WriteLine("\t\t}\n");
+                    sw.WriteLine($"                if (length.RawValue {ulkv.Value}) {{");
+                    sw.WriteLine("                    index = origIndex;");
+                    sw.WriteLine("                    return CssStatus.CSS_INVALID;");
+                    sw.WriteLine("                }\n");
                 }
             }
 
-            sw.WriteLine($"\t\terror = css__stylesheet_style_appendOPV(result, {parseId.Value}, 0, {ckv.Value});");
-            sw.WriteLine("\t\tif (error != CSS_OK) {");
-            sw.WriteLine("\t\t\t*ctx = orig_ctx;");
-            sw.WriteLine("\t\t\treturn error;");
-            sw.WriteLine("\t\t}");
+            //sw.WriteLine($"                error = css__stylesheet_style_appendOPV(result, {parseId.Value}, 0, {ckv.Value});");
+            sw.WriteLine($"                style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.{parseId.Value}, 0, (ushort)OpCodeValues.{ckv.Value}));\r\n");
             sw.WriteLine();
-            sw.WriteLine("\t\terror = css__stylesheet_style_vappend(result, 2, length, unit);");
-            sw.WriteLine("\t}\n");
+            //sw.WriteLine("                error = css__stylesheet_style_vappend(result, 2, length, unit);");
+            sw.WriteLine("                style.AppendStyle(new OpCode((uint)length.RawValue));");
+            sw.WriteLine("                style.AppendStyle(new OpCode(unit));");
+            sw.WriteLine("            }\n");
         }
 
         static void OutputIdentList(StreamWriter sw, KeyValuePair<string, string> parseId, List<KeyValuePair<string, string>> kvlist)
@@ -370,71 +374,92 @@ namespace SkiaSharpOpenGLBenchmark
             var ikv = kvlist[1]; // numeric default : end condition
 
             sw.WriteLine("{");
-            sw.WriteLine($"\t\terror = css__stylesheet_style_appendOPV(result, {parseId.Value}, 0, {ckv.Value});");
-            sw.WriteLine("\t\tif (error != CSS_OK) {");
-            sw.WriteLine("\t\t\t*ctx = orig_ctx;");
-            sw.WriteLine("\t\t\treturn error;");
-            sw.WriteLine("\t\t}\n");
-            sw.WriteLine("\t\twhile ((token != NULL) && (token->type == CSS_TOKEN_IDENT)) {");
-            sw.WriteLine("\t\t\tuint32_t snumber;");
-            sw.WriteLine("\t\t\tcss_fixed num;");
-            sw.WriteLine("\t\t\tint pctx;\n");
-            sw.WriteLine("\t\t\terror = css__stylesheet_string_add(c->sheet, lwc_string_ref(token->idata), &snumber);");
-            sw.WriteLine("\t\t\tif (error != CSS_OK) {");
-            sw.WriteLine("\t\t\t\t*ctx = orig_ctx;");
-            sw.WriteLine("\t\t\t\treturn error;");
-            sw.WriteLine("\t\t\t}\n");
-            sw.WriteLine("\t\t\terror = css__stylesheet_style_append(result, snumber);");
-            sw.WriteLine("\t\t\tif (error != CSS_OK) {");
-            sw.WriteLine("\t\t\t\t*ctx = orig_ctx;");
-            sw.WriteLine("\t\t\t\treturn error;");
-            sw.WriteLine("\t\t\t}\n");
-            sw.WriteLine("\t\t\tconsumeWhitespace(vector, ctx);\n");
-            sw.WriteLine("\t\t\tpctx = *ctx;");
-            sw.WriteLine("\t\t\ttoken = parserutils_vector_iterate(vector, ctx);");
-            sw.WriteLine("\t\t\tif ((token != NULL) && (token->type == CSS_TOKEN_NUMBER)) {");
-            sw.WriteLine("\t\t\t\tsize_t consumed = 0;\n");
-            sw.WriteLine("\t\t\t\tnum = css__number_from_lwc_string(token->idata, true, &consumed);");
-            sw.WriteLine("\t\t\t\tif (consumed != lwc_string_length(token->idata)) {");
-            sw.WriteLine("\t\t\t\t\t*ctx = orig_ctx;");
-            sw.WriteLine("\t\t\t\t\treturn CSS_INVALID;");
-            sw.WriteLine("\t\t\t\t}");
-            sw.WriteLine("\t\t\t\tconsumeWhitespace(vector, ctx);\n");
-            sw.WriteLine("\t\t\t\tpctx = *ctx;");
-            sw.WriteLine("\t\t\t\ttoken = parserutils_vector_iterate(vector, ctx);");
-            sw.WriteLine("\t\t\t} else {");
-            sw.WriteLine($"\t\t\t\tnum = INTTOFIX({ikv.Key});");
-            sw.WriteLine("\t\t\t}\n");
-            sw.WriteLine("\t\t\terror = css__stylesheet_style_append(result, num);");
-            sw.WriteLine("\t\t\tif (error != CSS_OK) {");
-            sw.WriteLine("\t\t\t\t*ctx = orig_ctx;");
-            sw.WriteLine("\t\t\t\treturn error;");
-            sw.WriteLine("\t\t\t}\n");
-            sw.WriteLine("\t\t\tif (token == NULL)");
-            sw.WriteLine("\t\t\t\tbreak;\n");
-            sw.WriteLine("\t\t\tif (token->type == CSS_TOKEN_IDENT) {");
-            sw.WriteLine($"\t\t\t\terror = css__stylesheet_style_append(result, {ckv.Value});");
-            sw.WriteLine("\t\t\t\tif (error != CSS_OK) {");
-            sw.WriteLine("\t\t\t\t\t*ctx = orig_ctx;");
-            sw.WriteLine("\t\t\t\t\treturn error;");
-            sw.WriteLine("\t\t\t\t}");
-            sw.WriteLine("\t\t\t} else {");
-            sw.WriteLine("\t\t\t\t*ctx = pctx; /* rewind one token back */");
-            sw.WriteLine("\t\t\t}");
-            sw.WriteLine("\t\t}\n");
-            sw.WriteLine($"\t\terror = css__stylesheet_style_append(result, {ikv.Value});");
-            sw.WriteLine("\t}\n");
+            sw.WriteLine($"                style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.{parseId.Value}, 0, (ushort)OpCodeValues.{ckv.Value}));");
+            sw.WriteLine("                while (token.Type == CssTokenType.CSS_TOKEN_IDENT) {");
+            sw.WriteLine("                    uint snumber = 0;");
+            sw.WriteLine("                    Fixed num;");
+            sw.WriteLine("                    int pctx;");
+            sw.WriteLine("");
+            sw.WriteLine("                    //error = css__stylesheet_string_add(c->sheet, lwc_string_ref(token->idata), &snumber);");
+            sw.WriteLine("                    Log.Unimplemented();");
+            sw.WriteLine("                    style.AppendStyle(new OpCode(snumber));");
+            sw.WriteLine("                    CssStylesheet.ConsumeWhitespace(tokens, ref index);");
+            sw.WriteLine();
+            sw.WriteLine("                    pctx = index;");
+
+            //sw.WriteLine("                    token = parserutils_vector_iterate(vector, ctx);");
+            sw.WriteLine("                    bool tokenNull = false;");
+            sw.WriteLine("                    if (index >= tokens.Count - 1) {");
+            sw.WriteLine("                        tokenNull = true;");
+            sw.WriteLine("                    }");
+            sw.WriteLine("                    else token = tokens[index++];");
+
+            sw.WriteLine("                    if (!tokenNull && token.Type == CssTokenType.CSS_TOKEN_NUMBER) {");
+            sw.WriteLine("                        int consumed = 0;\n");
+            //sw.WriteLine("                        num = css__number_from_lwc_string(token->idata, true, &consumed);");
+            sw.WriteLine($"                        num = CssStylesheet.NumberFromString(token.iData, true, out consumed);");
+            sw.WriteLine("                        if (consumed != token.iData.Length) {");
+            sw.WriteLine("                            index = origIndex;");
+            sw.WriteLine("                            return CssStatus.CSS_INVALID;");
+            sw.WriteLine("                        }");
+            sw.WriteLine("                        CssStylesheet.ConsumeWhitespace(tokens, ref index);");
+            sw.WriteLine();
+            sw.WriteLine("                        pctx = index;");
+            //sw.WriteLine("                        token = parserutils_vector_iterate(vector, ctx);");
+            sw.WriteLine("                        tokenNull = false;");
+            sw.WriteLine("                        if (index >= tokens.Count - 1) {");
+            sw.WriteLine("                            tokenNull = true;");
+            sw.WriteLine("                        }");
+            sw.WriteLine("                        else token = tokens[index++];");
+
+            sw.WriteLine("                    } else {");
+            sw.WriteLine($"                        num = new Fixed({ikv.Key});");
+            sw.WriteLine("                    }");
+            sw.WriteLine("");
+            sw.WriteLine("                    style.AppendStyle(new OpCode((uint)num.RawValue));");
+            sw.WriteLine("                    if (tokenNull)");
+            sw.WriteLine("                        break;");
+            sw.WriteLine("");
+            sw.WriteLine("                    if (token.Type == CssTokenType.CSS_TOKEN_IDENT) {");
+            //sw.WriteLine($"                    error = css__stylesheet_style_append(result, {ckv.Value});");
+            sw.WriteLine($"                        style.AppendStyle(new OpCode((uint)OpCodeValues.{ckv.Value}));");
+            sw.WriteLine("                    } else {");
+            sw.WriteLine("                        index = pctx; // rewind one token back");
+            sw.WriteLine("                    }");
+            sw.WriteLine("                }");
+            sw.WriteLine("");
+            //sw.WriteLine($"                error = css__stylesheet_style_append(result, {ikv.Value});");
+            sw.WriteLine($"                style.AppendStyle(new OpCode((uint)OpCodeValues.{ikv.Value}));");
+            sw.WriteLine("            }");
+            sw.WriteLine("");
         }
 
         static void OutputInvalidcss(StreamWriter sw)
         {
-            sw.WriteLine("{\n\t\terror = CSS_INVALID;\n\t}\n");
+            sw.WriteLine("{\r\n                error = CssStatus.CSS_INVALID;\r\n            }\r\n");
         }
 
         static void OutputWrap(StreamWriter sw, KeyValuePair<string, string> parseId, List<KeyValuePair<string, string>> WRAP)
         {
             var ckv = WRAP[0];
-            sw.WriteLine($"	return {ckv.Value}(c, vector, ctx, result, {parseId.Value});\n}}");
+            var fn = ckv.Value;
+            fn = fn.Substring(10); // strip the "css__parse" prefix
+
+            var classPrefix = "";
+            var enumPrefix = "CssPropertiesEnum";
+
+            if (fn == "border_side")
+            {
+                classPrefix = "CssStylesheet";
+                enumPrefix = "BorderSide";
+            }
+
+            fn = ".Parse" + fn;
+
+            sw.WriteLine($"            return {classPrefix}.{fn}(tokens, ref index, style, {enumPrefix}.{parseId.Value});");
+            sw.WriteLine("        }");
+            sw.WriteLine("    }");
+            sw.WriteLine("}");
         }
 
         static bool ProcessDescriptor(StreamWriter sw, string descriptor)
@@ -566,7 +591,7 @@ namespace SkiaSharpOpenGLBenchmark
             else
             {
                 // check token type is correct
-                //output_token_type_check(outputf, do_token_check, &IDENT, &URI, &NUMBER);
+                OutputTokenTypeCheck(sw, do_token_check, IDENT, URI, NUMBER);
 
                 if (IDENT.Count > 0)
                     OutputIdent(sw, only_ident, baselist[0], IDENT);
@@ -618,10 +643,10 @@ namespace SkiaSharpOpenGLBenchmark
 
                 // Debug using "color" only
                 var name = line.Split(':')[0];
-                if (name != "border_top")
+                if (name != "counter_increment")
                     continue;
 
-                using (var stream = File.Create($"autogenerated/autogenerated_{name}.c"))
+                using (var stream = File.Create($"autogenerated/autogenerated_{name}.cs"))
                 {
                     using (StreamWriter sw = new StreamWriter(stream))
                     {

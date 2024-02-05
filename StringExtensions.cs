@@ -11,6 +11,16 @@ namespace SkiaSharpOpenGLBenchmark
 {
     internal static class StringExtensions
     {
+        public static string FirstCharToUpper(this string input)
+        {
+            switch (input)
+            {
+                case null: throw new ArgumentNullException(nameof(input));
+                case "": throw new ArgumentException($"{nameof(input)} cannot be empty", nameof(input));
+                default: return input[0].ToString().ToUpper() + input.Substring(1);
+            }
+        }
+
         public static bool Has(this string value, char chr, int index = 0)
         {
             return value != null && value.Length > index && value[index] == chr;

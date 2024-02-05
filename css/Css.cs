@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SkiaSharpOpenGLBenchmark.css
 {
@@ -63,6 +63,8 @@ namespace SkiaSharpOpenGLBenchmark.css
             "WIDOWS",               "WIDTH",                "WORD_SPACING",         "WRITING_MODE",         // 140
             "Z_INDEX"                                                                                       // 141
         };
+
+        // FIXME: Maybe unnecessary, or could be converted to an array
         public const string Inherit = "inherit";
         public const string Important = "important";
         public const string Transparent = "transparent";
@@ -97,6 +99,120 @@ namespace SkiaSharpOpenGLBenchmark.css
         };
     }
 
+    // properties.h:464
+    public enum UnitMask : uint
+    {
+        UNIT_MASK_AZIMUTH               = OpcodeUnit.ANGLE,
+        UNIT_MASK_BACKGROUND_ATTACHMENT = 0,
+        UNIT_MASK_BACKGROUND_COLOR      = 0,
+        UNIT_MASK_BACKGROUND_IMAGE      = 0,
+        UNIT_MASK_BACKGROUND_POSITION   = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_BACKGROUND_REPEAT     = 0,
+        UNIT_MASK_BORDER_COLLAPSE       = 0,
+        UNIT_MASK_BORDER_SPACING        = OpcodeUnit.LENGTH,
+        UNIT_MASK_BORDER_SIDE_COLOR     = 0,
+        UNIT_MASK_BORDER_SIDE_STYLE     = 0,
+        UNIT_MASK_BORDER_SIDE_WIDTH     = OpcodeUnit.LENGTH,
+        UNIT_MASK_BOTTOM                = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_CAPTION_SIDE          = 0,
+        UNIT_MASK_CLEAR                 = 0,
+        UNIT_MASK_CLIP                  = OpcodeUnit.LENGTH,
+        UNIT_MASK_COLOR                 = 0,
+        UNIT_MASK_CONTENT               = 0,
+        UNIT_MASK_COUNTER_INCREMENT     = 0,
+        UNIT_MASK_COUNTER_RESET         = 0,
+        UNIT_MASK_CUE_AFTER             = 0,
+        UNIT_MASK_CUE_BEFORE            = 0,
+        UNIT_MASK_CURSOR                = 0,
+        UNIT_MASK_DIRECTION             = 0,
+        UNIT_MASK_DISPLAY               = 0,
+        UNIT_MASK_ELEVATION             = OpcodeUnit.ANGLE,
+        UNIT_MASK_EMPTY_CELLS           = 0,
+        UNIT_MASK_FLOAT                 = 0,
+        UNIT_MASK_FONT_FAMILY           = 0,
+        UNIT_MASK_FONT_SIZE             = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_FONT_STYLE            = 0,
+        UNIT_MASK_FONT_VARIANT          = 0,
+        UNIT_MASK_FONT_WEIGHT           = 0,
+        UNIT_MASK_HEIGHT                = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_LEFT                  = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_LETTER_SPACING        = OpcodeUnit.LENGTH,
+        UNIT_MASK_LINE_HEIGHT           = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_LIST_STYLE_IMAGE      = 0,
+        UNIT_MASK_LIST_STYLE_POSITION   = 0,
+        UNIT_MASK_LIST_STYLE_TYPE       = 0,
+        UNIT_MASK_MARGIN_SIDE           = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_MAX_HEIGHT            = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_MAX_WIDTH             = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_MIN_HEIGHT            = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_MIN_WIDTH             = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_ORPHANS               = 0,
+        UNIT_MASK_OUTLINE_COLOR         = 0,
+        UNIT_MASK_OUTLINE_STYLE         = 0,
+        UNIT_MASK_OUTLINE_WIDTH         = OpcodeUnit.LENGTH,
+        UNIT_MASK_OVERFLOW_X            = 0,
+        UNIT_MASK_PADDING_SIDE          = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_PAGE_BREAK_AFTER      = 0,
+        UNIT_MASK_PAGE_BREAK_BEFORE     = 0,
+        UNIT_MASK_PAGE_BREAK_INSIDE     = 0,
+        UNIT_MASK_PAUSE_AFTER           = OpcodeUnit.TIME | OpcodeUnit.PCT,
+        UNIT_MASK_PAUSE_BEFORE          = OpcodeUnit.TIME | OpcodeUnit.PCT,
+        UNIT_MASK_PITCH_RANGE           = 0,
+        UNIT_MASK_PITCH                 = OpcodeUnit.FREQ,
+        UNIT_MASK_PLAY_DURING           = 0,
+        UNIT_MASK_POSITION              = 0,
+        UNIT_MASK_QUOTES                = 0,
+        UNIT_MASK_RICHNESS              = 0,
+        UNIT_MASK_RIGHT                 = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_SPEAK_HEADER          = 0,
+        UNIT_MASK_SPEAK_NUMERAL         = 0,
+        UNIT_MASK_SPEAK_PUNCTUATION     = 0,
+        UNIT_MASK_SPEAK                 = 0,
+        UNIT_MASK_SPEECH_RATE           = 0,
+        UNIT_MASK_STRESS                = 0,
+        UNIT_MASK_TABLE_LAYOUT          = 0,
+        UNIT_MASK_TEXT_ALIGN            = 0,
+        UNIT_MASK_TEXT_DECORATION       = 0,
+        UNIT_MASK_TEXT_INDENT           = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_TEXT_TRANSFORM        = 0,
+        UNIT_MASK_TOP                   = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_UNICODE_BIDI          = 0,
+        UNIT_MASK_VERTICAL_ALIGN        = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_VISIBILITY            = 0,
+        UNIT_MASK_VOICE_FAMILY          = 0,
+        UNIT_MASK_VOLUME                = OpcodeUnit.PCT,
+        UNIT_MASK_WHITE_SPACE           = 0,
+        UNIT_MASK_WIDOWS                = 0,
+        UNIT_MASK_WIDTH                 = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_WORD_SPACING          = OpcodeUnit.LENGTH,
+        UNIT_MASK_Z_INDEX               = 0,
+        UNIT_MASK_OPACITY               = 0,
+        UNIT_MASK_BREAK_AFTER           = 0,
+        UNIT_MASK_BREAK_BEFORE          = 0,
+        UNIT_MASK_BREAK_INSIDE          = 0,
+        UNIT_MASK_COLUMN_COUNT          = 0,
+        UNIT_MASK_COLUMN_FILL           = 0,
+        UNIT_MASK_COLUMN_GAP            = OpcodeUnit.LENGTH,
+        UNIT_MASK_COLUMN_RULE_COLOR     = 0,
+        UNIT_MASK_COLUMN_RULE_STYLE     = 0,
+        UNIT_MASK_COLUMN_RULE_WIDTH     = OpcodeUnit.LENGTH,
+        UNIT_MASK_COLUMN_SPAN           = 0,
+        UNIT_MASK_COLUMN_WIDTH          = OpcodeUnit.LENGTH,
+        UNIT_MASK_WRITING_MODE          = 0,
+        UNIT_MASK_OVERFLOW_Y            = 0,
+        UNIT_MASK_BOX_SIZING            = 0,
+        UNIT_MASK_ALIGN_CONTENT         = 0,
+        UNIT_MASK_ALIGN_ITEMS           = 0,
+        UNIT_MASK_ALIGN_SELF            = 0,
+        UNIT_MASK_FLEX_BASIS            = OpcodeUnit.LENGTH | OpcodeUnit.PCT,
+        UNIT_MASK_FLEX_DIRECTION        = 0,
+        UNIT_MASK_FLEX_GROW             = 0,
+        UNIT_MASK_FLEX_SHRINK           = 0,
+        UNIT_MASK_FLEX_WRAP             = 0,
+        UNIT_MASK_JUSTIFY_CONTENT       = 0,
+        UNIT_MASK_ORDER                 = 0
+    }
+
     public enum CssLanguageLevel : int
     {
         CSS_LEVEL_1 = 0,
@@ -120,6 +236,15 @@ namespace SkiaSharpOpenGLBenchmark.css
         NAMESPACE_PERMITTED,
         HAD_RULE
     }
+
+    // utils.h:22
+    public enum BorderSide : int
+    {
+        BORDER_SIDE_TOP = 0,
+        BORDER_SIDE_RIGHT = 1,
+        BORDER_SIDE_BOTTOM = 2,
+        BORDER_SIDE_LEFT = 3
+    };
 
     delegate void ParseProperty(List<CssToken> tokens, ref int index, CssStyle style);
 
@@ -838,8 +963,138 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
         }
 
+        // utils/utils.c:26
+        public static Fixed NumberFromString(string data, bool intOnly, out int consumed)
+        {
+            //const uint8_t* ptr = data;
+            int k = 0;
+            int sign = 1;
+            int intpart = 0;
+            int fracpart = 0;
+            int pwr = 1;
+            int len = data.Length;
+
+            // number = [+-]? ([0-9]+ | [0-9]* '.' [0-9]+)
+
+            // Extract sign, if any
+            if (data[k+0] == '-')
+            {
+                sign = -1;
+                len--;
+                k++;
+            }
+            else if (data[k+0] == '+')
+            {
+                len--;
+                k++;
+            }
+
+            // Ensure we have either a digit or a '.' followed by a digit
+            if (len == 0)
+            {
+                consumed = 0;
+                return new Fixed(0);
+            }
+            else
+            {
+                if (data[k+0] == '.')
+                {
+                    if (len == 1 || data[k+1] < '0' || '9' < data[k+1])
+                    {
+                        consumed = 0;
+                        return new Fixed(0);
+                    }
+                }
+                else if (data[k+0] < '0' || '9' < data[k+0])
+                {
+                    consumed = 0;
+                    return new Fixed(0);
+                }
+            }
+
+            // Now extract intpart, assuming base 10
+            while (len > 0)
+            {
+                // Stop on first non-digit
+                if (data[k+0] < '0' || '9' < data[k+0])
+                    break;
+
+                // Prevent overflow of 'intpart'; proper clamping below
+                if (intpart < (1 << 22))
+                {
+                    intpart *= 10;
+                    intpart += data[k+0] - '0';
+                }
+                k++;
+                len--;
+            }
+
+            // And fracpart, again, assuming base 10
+            if (intOnly == false && len > 1 && data[k+0] == '.' &&
+                    ('0' <= data[k + 1] && data[k + 1] <= '9'))
+            {
+                k++;
+                len--;
+
+                while (len > 0)
+                {
+                    if (data[k + 0] < '0' || '9' < data[k + 0])
+                        break;
+
+                    if (pwr < 1000000)
+                    {
+                        pwr *= 10;
+                        fracpart *= 10;
+                        fracpart += data[k + 0] - '0';
+                    }
+                    k++;
+                    len--;
+                }
+                fracpart = ((1 << 10) * fracpart + pwr / 2) / pwr;
+                if (fracpart >= (1 << 10))
+                {
+                    intpart++;
+                    fracpart &= (1 << 10) - 1;
+                }
+            }
+
+            consumed = k;
+
+            if (sign > 0)
+            {
+                // If the result is larger than we can represent,
+                // then clamp to the maximum value we can store.
+                if (intpart >= (1 << 21))
+                {
+                    intpart = (1 << 21) - 1;
+                    fracpart = (1 << 10) - 1;
+                }
+            }
+            else
+            {
+                // If the negated result is smaller than we can represent
+                // then clamp to the minimum value we can store.
+                if (intpart >= (1 << 21))
+                {
+                    intpart = -(1 << 21);
+                    fracpart = 0;
+                }
+                else
+                {
+                    intpart = -intpart;
+                    if (fracpart != 0)
+                    {
+                        fracpart = (1 << 10) - fracpart;
+                        intpart--;
+                    }
+                }
+            }
+
+            return new Fixed((int)(((uint)intpart << 10) | fracpart), true);
+        }
+
         // utils.c:682
-        CssStatus ParseProperty_NamedColour(string data, ref uint result)
+        static CssStatus ParseProperty_NamedColour(string data, ref uint result)
         {
             result = 0;
 
@@ -866,9 +1121,18 @@ namespace SkiaSharpOpenGLBenchmark.css
             return CssStatus.CSS_INVALID;
         }
 
-        // parse/properties/utils.c:368
-        void ParseProperty_ColourSpecifier(List<CssToken> tokens, ref int index, out ushort value, out uint result)
+        // parse/properties/utils.c:131
+        public static CssStatus Parse_border_side(List<CssToken> tokens, ref int index, CssStyle style, BorderSide side)
         {
+            Log.Unimplemented();
+            return CssStatus.CSS_OK;
+        }
+
+        // parse/properties/utils.c:368
+        public static void ParseProperty_ColourSpecifier(List<CssToken> tokens, ref int index, out ushort value, out uint result)
+        {
+            bool quirksAllowed = false, quirksUsed = false; // FIXME: quirks are hardcoded to be disallowed
+
             result = 0;
             value = 0;
             var origIndex = index;
@@ -898,7 +1162,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                  token.Type != CssTokenType.CSS_TOKEN_FUNCTION))
             {
 
-                if (!QuirksAllowed ||
+                if (!quirksAllowed ||
                     (token.Type != CssTokenType.CSS_TOKEN_NUMBER &&
                      token.Type != CssTokenType.CSS_TOKEN_DIMENSION))
                 {
@@ -923,11 +1187,11 @@ namespace SkiaSharpOpenGLBenchmark.css
                 }
 
                 error = ParseProperty_NamedColour(token.iData, ref result);
-                if (error != CssStatus.CSS_OK && QuirksAllowed)
+                if (error != CssStatus.CSS_OK && quirksAllowed)
                 {
                     error = error = ParseHashColour(token.iData, out result);
                     if (error == CssStatus.CSS_OK)
-                        QuirksUsed = true;
+                        quirksUsed = true;
                 }
 
                 if (error != CssStatus.CSS_OK)
@@ -946,13 +1210,13 @@ namespace SkiaSharpOpenGLBenchmark.css
                     //goto invalid;
                 }
             }
-            else if (QuirksAllowed &&
+            else if (quirksAllowed &&
                   token.Type == CssTokenType.CSS_TOKEN_NUMBER)
             {
                 error = ParseHashColour(token.iData, out result);
                 if (error == CssStatus.CSS_OK)
                 {
-                    QuirksUsed = true;
+                    quirksUsed = true;
                 }
                 else
                 {
@@ -961,13 +1225,13 @@ namespace SkiaSharpOpenGLBenchmark.css
                     //goto invalid;
                 }
             }
-            else if (QuirksAllowed &&
+            else if (quirksAllowed &&
                   token.Type == CssTokenType.CSS_TOKEN_DIMENSION)
             {
                 error = ParseHashColour(token.iData, out result);
                 if (error == CssStatus.CSS_OK)
                 {
-                    QuirksUsed = true;
+                    quirksUsed = true;
                 }
                 else
                 {
@@ -1236,7 +1500,7 @@ namespace SkiaSharpOpenGLBenchmark.css
          * \param result  Pointer to location to receive result (AARRGGBB)
          */
         // utils.c:869
-        CssStatus ParseHashColour(string data, out uint result)
+        static CssStatus ParseHashColour(string data, out uint result)
         {
             byte r = 0, g = 0, b = 0, a = 0xff;
             int len = data.Length;
@@ -1270,6 +1534,202 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
 
             result = ((uint)a << 24) | ((uint)r << 16) | ((uint)g << 8) | b;
+
+            return CssStatus.CSS_OK;
+        }
+
+        // parse/properties/utils.c:919
+        public static CssStatus ParseProperty_UnitSpecifier(List<CssToken> tokens, ref int index, OpcodeUnit defaultUnit, out Fixed length, out uint unit)
+        {
+            // FIXME: Hack for now
+            bool quirksAllowed = false;
+            bool quirksUsed = false;
+
+            int origIndex = index;
+
+            length = new Fixed(0);
+            unit = 0;
+
+            ConsumeWhitespace(tokens, ref index);
+
+            if (index >= tokens.Count - 1) return CssStatus.CSS_INVALID;
+            var token = tokens[index++];
+
+            if (token.Type != CssTokenType.CSS_TOKEN_DIMENSION &&
+                token.Type != CssTokenType.CSS_TOKEN_NUMBER &&
+                token.Type != CssTokenType.CSS_TOKEN_PERCENTAGE)
+            {
+                index = origIndex;
+                return CssStatus.CSS_INVALID;
+            }
+
+            int consumed = 0;
+            var num = NumberFromString(token.iData, false, out consumed);
+
+            if (token.Type == CssTokenType.CSS_TOKEN_DIMENSION)
+            {
+                var len = token.iData.Length;
+                //const char* data = lwc_string_data(token->idata);
+                OpcodeUnit temp_unit = OpcodeUnit.PX;
+
+                var error = ParseUnitKeyword(token.iData.Substring(consumed, len - consumed), out temp_unit);
+                if (error != CssStatus.CSS_OK)
+                {
+                    index = origIndex;
+                    return error;
+                }
+
+                unit = (uint)temp_unit;
+            }
+            else if (token.Type == CssTokenType.CSS_TOKEN_NUMBER)
+            {
+                // Non-zero values are permitted in quirks mode
+                if (num.RawValue != 0)
+                {
+                    if (quirksAllowed)
+                    {
+                        quirksUsed = true;
+                    }
+                    else
+                    {
+                        index = origIndex;
+                        return CssStatus.CSS_INVALID;
+                    }
+                }
+
+                unit = (uint)defaultUnit;
+
+                if (quirksAllowed)
+                {
+                    // Also, in quirks mode, we need to cater for
+                    // dimensions separated from their units by whitespace
+                    // (e.g. "0 px")
+                    int tempIndex = index;
+                    CssUnit tempUnit;
+
+                    ConsumeWhitespace(tokens,  ref tempIndex);
+
+                    Log.Unimplemented();
+
+                    /*
+                    // Try to parse the unit keyword, ignoring errors
+                    token = parserutils_vector_iterate(vector, &temp_ctx);
+                    if (token != NULL && token->type == CSS_TOKEN_IDENT)
+                    {
+                        error = css__parse_unit_keyword(
+                                lwc_string_data(token->idata),
+                                lwc_string_length(token->idata),
+                                &temp_unit);
+                        if (error == CSS_OK)
+                        {
+                            c->sheet->quirks_used = true;
+                            *ctx = temp_ctx;
+                            *unit = (uint32_t)temp_unit;
+                        }
+                    }*/
+                }
+            }
+            else
+            {
+                // Percentage -- number must be entire token data
+                if (consumed != token.iData.Length)
+                {
+                    index = origIndex;
+                    return CssStatus.CSS_INVALID;
+                }
+                unit = (uint)OpcodeUnit.PCT;
+            }
+
+            length = num;
+            return CssStatus.CSS_OK;
+        }
+
+        // utils.c:1012
+        public static CssStatus ParseUnitKeyword(string ptr, out OpcodeUnit unit)
+        {
+            var len = ptr.Length;
+            unit = (OpcodeUnit)0;
+
+            if (len == 4)
+            {
+                if (String.Equals(ptr, "grad", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.GRAD;
+                else if (String.Equals(ptr, "turn", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.TURN;
+                else if (String.Equals(ptr, "dppx", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.DPPX;
+                else if (String.Equals(ptr, "dpcm", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.DPCM;
+                else if (String.Equals(ptr, "vmin", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.VMIN;
+                else if (String.Equals(ptr, "vmax", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.VMAX;
+                else
+                    return CssStatus.CSS_INVALID;
+            }
+            else if (len == 3)
+            {
+                if (String.Equals(ptr, "kHz", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.KHZ;
+                else if (String.Equals(ptr, "deg", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.DEG;
+                else if (String.Equals(ptr, "rad", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.RAD;
+                else if (String.Equals(ptr, "rem", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.REM;
+                else if (String.Equals(ptr, "dpi", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.DPI;
+                else
+                    return CssStatus.CSS_INVALID;
+            }
+            else if (len == 2)
+            {
+                if (String.Equals(ptr, "Hz", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.HZ;
+                else if (String.Equals(ptr, "ms", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.MS;
+                else if (String.Equals(ptr, "px", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.PX;
+                else if (String.Equals(ptr, "ex", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.EX;
+                else if (String.Equals(ptr, "em", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.EM;
+                else if (String.Equals(ptr, "in", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.IN;
+                else if (String.Equals(ptr, "cm", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.CM;
+                else if (String.Equals(ptr, "mm", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.MM;
+                else if (String.Equals(ptr, "pt", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.PT;
+                else if (String.Equals(ptr, "pc", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.PC;
+                else if (String.Equals(ptr, "ch", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.CH;
+                else if (String.Equals(ptr, "lh", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.LH;
+                else if (String.Equals(ptr, "vh", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.VH;
+                else if (String.Equals(ptr, "vw", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.VW;
+                else if (String.Equals(ptr, "vi", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.VI;
+                else if (String.Equals(ptr, "vb", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.VB;
+                else
+                    return CssStatus.CSS_INVALID;
+            }
+            else if (len == 1)
+            {
+                if (String.Equals(ptr, "s", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.S;
+                else if (String.Equals(ptr, "q", StringComparison.OrdinalIgnoreCase))
+                    unit = OpcodeUnit.Q;
+                else
+                    return CssStatus.CSS_INVALID;
+            }
+            else
+                return CssStatus.CSS_INVALID;
 
             return CssStatus.CSS_OK;
         }
@@ -1366,7 +1826,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             rule.AppendStyle(style);
         }
 
-        static void ConsumeWhitespace(List<CssToken> tokens, ref int index)
+        public static void ConsumeWhitespace(List<CssToken> tokens, ref int index)
         {
             /*while ((token = parserutils_vector_peek(vector, * ctx)) != NULL &&
 			        token->type == CSS_TOKEN_S)
