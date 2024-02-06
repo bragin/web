@@ -154,10 +154,15 @@ namespace SkiaSharpOpenGLBenchmark
             sw.WriteLine(" */");
             sw.WriteLine($"// Parse {parserId.Key}");
 
+            string param = "";
+
+            if (isGeneric) param = ", CssPropertiesEnum op";
+
             sw.WriteLine("namespace SkiaSharpOpenGLBenchmark.css\r\n{");
             sw.WriteLine("    public partial class CssPropertyParser {");
 
-            sw.WriteLine($"        public CssStatus Parse_{parserId.Key}(List<CssToken> tokens, ref int index, CssStyle style)\r\n        {{");
+            sw.WriteLine($"        public CssStatus Parse_{parserId.Key}(List<CssToken> tokens, ref int index, CssStyle style{param})");
+            sw.WriteLine("        {");
             /*
             sw.WriteLine($"css_error css__parse_{parserId.Key}(css_language *c,");
             sw.WriteLine("        const parserutils_vector *vector, int *ctx,");
@@ -210,15 +215,23 @@ namespace SkiaSharpOpenGLBenchmark
                 }
                 sw.WriteLine(
                     $"System.String.Equals(token.iData, \"{ckv.Key.ToLower()}\", StringComparison.OrdinalIgnoreCase))\r\n            {{");
+
+                var enumPrefix = (parseId.Value == "op") ? "" : "CssPropertiesEnum.";
+
                 if (ckv.Key == "INHERIT")
                 {
-                    sw.WriteLine($"                style.AppendStyle(\r\n                    new OpCode(\r\n                        (ushort)CssPropertiesEnum.{parseId.Value},\r\n                        (byte)OpCodeFlag.FLAG_INHERIT,\r\n                        0)\r\n                );");
+                    sw.WriteLine("                style.AppendStyle(");
+                    sw.WriteLine("                    new OpCode(");
+                    sw.WriteLine($"                        (ushort){enumPrefix}{parseId.Value},");
+                    sw.WriteLine("                        (byte)OpCodeFlag.FLAG_INHERIT,");
+                    sw.WriteLine("                        0)");
+                    sw.WriteLine("                );");
                 }
                 else
                 {
                     var v2 = ckv.Value.Split(',');
                     v2[1] = "OpCodeValues." + v2[1];
-                    sw.WriteLine($"                style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.{parseId.Value}, {v2[0]}, (ushort){v2[1]}));");
+                    sw.WriteLine($"                style.AppendStyle(new OpCode((ushort){enumPrefix}{parseId.Value}, {v2[0]}, (ushort){v2[1]}));");
                 }
                 sw.Write("            } else ");
             }
@@ -252,8 +265,10 @@ namespace SkiaSharpOpenGLBenchmark
 
             }
 
+            var enumPrefix = (parseId.Value == "op") ? "" : "CssPropertiesEnum.";
+
             //sw.WriteLine($"\t\terror = css__stylesheet_style_appendOPV(result, {parseId.Value}, 0, {ckv.Value});");
-            sw.WriteLine($"            style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.{parseId.Value}, 0, (ushort)OpCodeValues.{ckv.Value}));");
+            sw.WriteLine($"            style.AppendStyle(new OpCode((ushort){enumPrefix}{parseId.Value}, 0, (ushort)OpCodeValues.{ckv.Value}));");
             //sw.WriteLine("\t\terror = css__stylesheet_style_append(result, num);");
             sw.WriteLine("            style.AppendStyle(new OpCode((uint)num.RawValue));");
             sw.Write("\t} else ");
@@ -288,8 +303,10 @@ namespace SkiaSharpOpenGLBenchmark
             sw.WriteLine("                uint color = 0;");
             sw.WriteLine("                index = origIndex;");
 
+            var enumPrefix = (parseId.Value == "op") ? "" : "CssPropertiesEnum.";
+
             sw.WriteLine("                CssStylesheet.ParseProperty_ColourSpecifier(tokens, ref index, out value, out color);\r\n");
-            sw.WriteLine($"                style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.{parseId.Value}, 0, value));\r\n");
+            sw.WriteLine($"                style.AppendStyle(new OpCode((ushort){enumPrefix}{parseId.Value}, 0, value));\r\n");
             sw.WriteLine("                if (value == (ushort)OpColor.COLOR_SET)");
             sw.WriteLine($"                    style.AppendStyle(new OpCode(color));");
             sw.WriteLine("            }");
@@ -346,7 +363,8 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
             //sw.WriteLine($"                error = css__stylesheet_style_appendOPV(result, {parseId.Value}, 0, {ckv.Value});");
-            sw.WriteLine($"                style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.{parseId.Value}, 0, (ushort)OpCodeValues.{ckv.Value}));\r\n");
+            var enumPrefix = (parseId.Value == "op") ? "" : "CssPropertiesEnum.";
+            sw.WriteLine($"                style.AppendStyle(new OpCode((ushort){enumPrefix}{parseId.Value}, 0, (ushort)OpCodeValues.{ckv.Value}));\r\n");
             sw.WriteLine();
             //sw.WriteLine("                error = css__stylesheet_style_vappend(result, 2, length, unit);");
             sw.WriteLine("                style.AppendStyle(new OpCode((uint)length.RawValue));");
@@ -373,8 +391,10 @@ namespace SkiaSharpOpenGLBenchmark
             // list of IDENT and optional numbers
             var ikv = kvlist[1]; // numeric default : end condition
 
+            var enumPrefix = (parseId.Value == "op") ? "" : "CssPropertiesEnum.";
+
             sw.WriteLine("{");
-            sw.WriteLine($"                style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.{parseId.Value}, 0, (ushort)OpCodeValues.{ckv.Value}));");
+            sw.WriteLine($"                style.AppendStyle(new OpCode((ushort){enumPrefix}{parseId.Value}, 0, (ushort)OpCodeValues.{ckv.Value}));");
             sw.WriteLine("                while (token.Type == CssTokenType.CSS_TOKEN_IDENT) {");
             sw.WriteLine("                    uint snumber = 0;");
             sw.WriteLine("                    Fixed num;");
@@ -443,20 +463,21 @@ namespace SkiaSharpOpenGLBenchmark
         {
             var ckv = WRAP[0];
             var fn = ckv.Value;
-            fn = fn.Substring(10); // strip the "css__parse" prefix
+            fn = fn.Substring(11); // strip the "css__parse" prefix
 
             var classPrefix = "";
             var enumPrefix = "CssPropertiesEnum";
 
-            if (fn == "border_side")
+            if (fn == "border_side" || fn == "border_bottom" ||
+                fn == "border_top" || fn == "border_left" || fn == "border_right")
             {
-                classPrefix = "CssStylesheet";
+                classPrefix = "CssStylesheet.";
                 enumPrefix = "BorderSide";
             }
 
-            fn = ".Parse" + fn;
+            fn = "Parse_" + fn;
 
-            sw.WriteLine($"            return {classPrefix}.{fn}(tokens, ref index, style, {enumPrefix}.{parseId.Value});");
+            sw.WriteLine($"            return {classPrefix}{fn}(tokens, ref index, style, {enumPrefix}.{parseId.Value});");
             sw.WriteLine("        }");
             sw.WriteLine("    }");
             sw.WriteLine("}");
@@ -641,10 +662,14 @@ namespace SkiaSharpOpenGLBenchmark
                     line[0] == '#')
                     continue;
 
+                // Replace some symbols
+                line = line.Replace("F_100", "Fixed.F_100");
+                line = line.Replace("INTTOFIX(100)", "Fixed.F_100");
+
                 // Debug using "color" only
                 var name = line.Split(':')[0];
-                if (name != "counter_increment")
-                    continue;
+                //if (name != "counter_increment")
+                    //continue;
 
                 using (var stream = File.Create($"autogenerated/autogenerated_{name}.cs"))
                 {
