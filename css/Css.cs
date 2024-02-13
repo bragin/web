@@ -246,7 +246,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         BORDER_SIDE_LEFT = 3
     };
 
-    delegate void ParseProperty(List<CssToken> tokens, ref int index, CssStyle style);
+    delegate CssStatus ParseProperty(List<CssToken> tokens, ref int index, CssStyle style);
 
     public struct CssStylesheetContextEntry
     {
@@ -320,10 +320,132 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             Selectors = new CssSelectorHash();
 
-            // Fill in property parse handlers table
+            // Fill in property parse handlers table (CodeGenerator.GenerateCodeStubs2())
             ParseHandlers = new ParseProperty[CssStrings.Props.Length - 1];
-
-            ParseHandlers[40] = ParseProperty_Color;
+            ParseHandlers[0] = CssPropertyParser.Parse_align_content;
+            ParseHandlers[1] = CssPropertyParser.Parse_align_items;
+            ParseHandlers[2] = CssPropertyParser.Parse_align_self;
+            //ParseHandlers[3] = CssPropertyParser.Parse_azimuth;
+            //ParseHandlers[4] = CssPropertyParser.Parse_background;
+            ParseHandlers[5] = CssPropertyParser.Parse_background_attachment;
+            ParseHandlers[6] = CssPropertyParser.Parse_background_color;
+            ParseHandlers[7] = CssPropertyParser.Parse_background_image;
+            //ParseHandlers[8] = CssPropertyParser.Parse_background_position;
+            ParseHandlers[9] = CssPropertyParser.Parse_background_repeat;
+            //ParseHandlers[10] = CssPropertyParser.Parse_border;
+            ParseHandlers[11] = CssPropertyParser.Parse_border_bottom;
+            ParseHandlers[12] = CssPropertyParser.Parse_border_bottom_color;
+            ParseHandlers[13] = CssPropertyParser.Parse_border_bottom_style;
+            ParseHandlers[14] = CssPropertyParser.Parse_border_bottom_width;
+            ParseHandlers[15] = CssPropertyParser.Parse_border_collapse;
+            //ParseHandlers[16] = CssPropertyParser.Parse_border_color;
+            ParseHandlers[17] = CssPropertyParser.Parse_border_left;
+            ParseHandlers[18] = CssPropertyParser.Parse_border_left_color;
+            ParseHandlers[19] = CssPropertyParser.Parse_border_left_style;
+            ParseHandlers[20] = CssPropertyParser.Parse_border_left_width;
+            ParseHandlers[21] = CssPropertyParser.Parse_border_right;
+            ParseHandlers[22] = CssPropertyParser.Parse_border_right_color;
+            ParseHandlers[23] = CssPropertyParser.Parse_border_right_style;
+            ParseHandlers[24] = CssPropertyParser.Parse_border_right_width;
+            //ParseHandlers[25] = CssPropertyParser.Parse_border_spacing;
+            //ParseHandlers[26] = CssPropertyParser.Parse_border_style;
+            ParseHandlers[27] = CssPropertyParser.Parse_border_top;
+            ParseHandlers[28] = CssPropertyParser.Parse_border_top_color;
+            ParseHandlers[29] = CssPropertyParser.Parse_border_top_style;
+            ParseHandlers[30] = CssPropertyParser.Parse_border_top_width;
+            //ParseHandlers[31] = CssPropertyParser.Parse_border_width;
+            ParseHandlers[32] = CssPropertyParser.Parse_bottom;
+            ParseHandlers[33] = CssPropertyParser.Parse_box_sizing;
+            ParseHandlers[34] = CssPropertyParser.Parse_break_after;
+            ParseHandlers[35] = CssPropertyParser.Parse_break_before;
+            ParseHandlers[36] = CssPropertyParser.Parse_break_inside;
+            ParseHandlers[37] = CssPropertyParser.Parse_caption_side;
+            ParseHandlers[38] = CssPropertyParser.Parse_clear;
+            //ParseHandlers[39] = CssPropertyParser.Parse_clip;
+            ParseHandlers[40] = CssPropertyParser.Parse_color;
+            //ParseHandlers[41] = CssPropertyParser.Parse_columns;
+            ParseHandlers[42] = CssPropertyParser.Parse_column_count;
+            ParseHandlers[43] = CssPropertyParser.Parse_column_fill;
+            ParseHandlers[44] = CssPropertyParser.Parse_column_gap;
+            //ParseHandlers[45] = CssPropertyParser.Parse_column_rule;
+            ParseHandlers[46] = CssPropertyParser.Parse_column_rule_color;
+            ParseHandlers[47] = CssPropertyParser.Parse_column_rule_style;
+            ParseHandlers[48] = CssPropertyParser.Parse_column_rule_width;
+            ParseHandlers[49] = CssPropertyParser.Parse_column_span;
+            ParseHandlers[50] = CssPropertyParser.Parse_column_width;
+            //ParseHandlers[51] = CssPropertyParser.Parse_content;
+            ParseHandlers[52] = CssPropertyParser.Parse_counter_increment;
+            ParseHandlers[53] = CssPropertyParser.Parse_counter_reset;
+            //ParseHandlers[54] = CssPropertyParser.Parse_cue;
+            ParseHandlers[55] = CssPropertyParser.Parse_cue_after;
+            ParseHandlers[56] = CssPropertyParser.Parse_cue_before;
+            //ParseHandlers[57] = CssPropertyParser.Parse_cursor;
+            ParseHandlers[58] = CssPropertyParser.Parse_direction;
+            ParseHandlers[59] = CssPropertyParser.Parse_display;
+            //ParseHandlers[60] = CssPropertyParser.Parse_elevation;
+            ParseHandlers[61] = CssPropertyParser.Parse_empty_cells;
+            //ParseHandlers[62] = CssPropertyParser.Parse_flex;
+            ParseHandlers[63] = CssPropertyParser.Parse_flex_basis;
+            ParseHandlers[64] = CssPropertyParser.Parse_flex_direction;
+            //ParseHandlers[65] = CssPropertyParser.Parse_flex_flow;
+            ParseHandlers[66] = CssPropertyParser.Parse_flex_grow;
+            ParseHandlers[67] = CssPropertyParser.Parse_flex_shrink;
+            ParseHandlers[68] = CssPropertyParser.Parse_flex_wrap;
+            //ParseHandlers[69] = CssPropertyParser.Parse_libcss_float;
+            //ParseHandlers[70] = CssPropertyParser.Parse_font;
+            //ParseHandlers[71] = CssPropertyParser.Parse_font_family;
+            ParseHandlers[72] = CssPropertyParser.Parse_font_size;
+            ParseHandlers[73] = CssPropertyParser.Parse_font_style;
+            ParseHandlers[74] = CssPropertyParser.Parse_font_variant;
+            //ParseHandlers[75] = CssPropertyParser.Parse_font_weight;
+            ParseHandlers[76] = CssPropertyParser.Parse_height;
+            ParseHandlers[77] = CssPropertyParser.Parse_justify_content;
+            ParseHandlers[78] = CssPropertyParser.Parse_left;
+            ParseHandlers[79] = CssPropertyParser.Parse_letter_spacing;
+            ParseHandlers[80] = CssPropertyParser.Parse_line_height;
+            //ParseHandlers[81] = CssPropertyParser.Parse_list_style;
+            ParseHandlers[82] = CssPropertyParser.Parse_list_style_image;
+            ParseHandlers[83] = CssPropertyParser.Parse_list_style_position;
+            //ParseHandlers[84] = CssPropertyParser.Parse_list_style_type;
+            //ParseHandlers[85] = CssPropertyParser.Parse_margin;
+            ParseHandlers[86] = CssPropertyParser.Parse_margin_bottom;
+            ParseHandlers[87] = CssPropertyParser.Parse_margin_left;
+            ParseHandlers[88] = CssPropertyParser.Parse_margin_right;
+            ParseHandlers[89] = CssPropertyParser.Parse_margin_top;
+            ParseHandlers[90] = CssPropertyParser.Parse_max_height;
+            ParseHandlers[91] = CssPropertyParser.Parse_max_width;
+            ParseHandlers[92] = CssPropertyParser.Parse_min_height;
+            ParseHandlers[93] = CssPropertyParser.Parse_min_width;
+            //ParseHandlers[94] = CssPropertyParser.Parse_opacity;
+            ParseHandlers[95] = CssPropertyParser.Parse_order;
+            ParseHandlers[96] = CssPropertyParser.Parse_orphans;
+            //ParseHandlers[97] = CssPropertyParser.Parse_outline;
+            ParseHandlers[98] = CssPropertyParser.Parse_outline_color;
+            ParseHandlers[99] = CssPropertyParser.Parse_outline_style;
+            ParseHandlers[100] = CssPropertyParser.Parse_outline_width;
+            //ParseHandlers[101] = CssPropertyParser.Parse_overflow;
+            ParseHandlers[102] = CssPropertyParser.Parse_overflow_x;
+            ParseHandlers[103] = CssPropertyParser.Parse_overflow_y;
+            //ParseHandlers[104] = CssPropertyParser.Parse_padding;
+            ParseHandlers[105] = CssPropertyParser.Parse_padding_bottom;
+            ParseHandlers[106] = CssPropertyParser.Parse_padding_left;
+            ParseHandlers[107] = CssPropertyParser.Parse_padding_right;
+            ParseHandlers[108] = CssPropertyParser.Parse_padding_top;
+            ParseHandlers[109] = CssPropertyParser.Parse_page_break_after;
+            ParseHandlers[110] = CssPropertyParser.Parse_page_break_before;
+            ParseHandlers[111] = CssPropertyParser.Parse_page_break_inside;
+            //ParseHandlers[112] = CssPropertyParser.Parse_pause;
+            ParseHandlers[113] = CssPropertyParser.Parse_pause_after;
+            ParseHandlers[114] = CssPropertyParser.Parse_pause_before;
+            ParseHandlers[115] = CssPropertyParser.Parse_pitch_range;
+            ParseHandlers[116] = CssPropertyParser.Parse_pitch;
+            //ParseHandlers[117] = CssPropertyParser.Parse_play_during;
+            ParseHandlers[118] = CssPropertyParser.Parse_position;
+            //ParseHandlers[119] = CssPropertyParser.Parse_quotes;
+            ParseHandlers[120] = CssPropertyParser.Parse_richness;
+            ParseHandlers[121] = CssPropertyParser.Parse_right;
+            ParseHandlers[122] = CssPropertyParser.Parse_speak_header;
+            ParseHandlers[123] = CssPropertyParser.Parse_speak_numeral;
         }
 
         // stylesheet.c:311
@@ -1786,7 +1908,8 @@ namespace SkiaSharpOpenGLBenchmark.css
             // TODO: improve on this linear search
             for (i = 0; i < CssStrings.Props.Length; i++)
             {
-                if (property.iData.Equals(CssStrings.Props[i], StringComparison.OrdinalIgnoreCase))
+                var propname = CssStrings.Props[i].Replace('_', '-'); // So that we don't have to have two tables
+                if (property.iData.Equals(propname, StringComparison.OrdinalIgnoreCase))
                     break;
             }
 
@@ -1848,14 +1971,14 @@ namespace SkiaSharpOpenGLBenchmark.css
         // css/parse/properties/css_property_parser_gen.c
         #region Property Parse Handlers
         // autogenerated_color.c:35
-        public void ParseProperty_Color(List<CssToken> tokens, ref int index, CssStyle style)
+        public CssStatus ParseProperty_Color(List<CssToken> tokens, ref int index, CssStyle style)
         {
             int origIndex = index;
 
             if (index >= tokens.Count)
             {
                 Console.WriteLine("ERROR: Invalid CSS 659");
-                return;
+                return CssStatus.CSS_INVALID;
             }
 
             var token = tokens[index++];
@@ -1886,6 +2009,8 @@ namespace SkiaSharpOpenGLBenchmark.css
                     style.AppendStyle(new OpCode(color));
                 }
             }
+
+            return CssStatus.CSS_OK;
         }
         #endregion
 

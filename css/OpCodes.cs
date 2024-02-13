@@ -15,6 +15,9 @@
     }
 
     // same as opcode_t (bytecode.h:19)
+    // libcss/include/libcss/properties.h:16
+    // This is for CssProps:Dispatch
+    // FIXME: For some reason different order than in strings
     public enum CssPropertiesEnum
     {
         CSS_PROP_AZIMUTH = 0x000,

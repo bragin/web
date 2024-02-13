@@ -88,6 +88,21 @@ namespace SkiaSharpOpenGLBenchmark
             }
         }
 
+        // This is for generating property parsers dispatch table in CssStylesheet constructor
+        public static void GenerateCodeStubs2()
+        {
+            //             ParseHandlers[0] = CssPropertyParser.Parse_align_content;
+            string code = "";
+
+            const int numProps = (int)CssPropertiesEnum.CSS_N_PROPERTIES;
+            int i;
+            for (i = 0; i < numProps; i++)
+            {
+                var n = CssStrings.Props[i].ToLower();
+                code += $"ParseHandlers[{i}] = CssPropertyParser.Parse_{n};\r\n";
+            }
+        }
+
         /* Descriptors are space separated key:value pairs brackets () are
          * used to quote in values.
          *
@@ -161,7 +176,7 @@ namespace SkiaSharpOpenGLBenchmark
             sw.WriteLine("namespace SkiaSharpOpenGLBenchmark.css\r\n{");
             sw.WriteLine("    public partial class CssPropertyParser {");
 
-            sw.WriteLine($"        public CssStatus Parse_{parserId.Key}(List<CssToken> tokens, ref int index, CssStyle style{param})");
+            sw.WriteLine($"        public static CssStatus Parse_{parserId.Key}(List<CssToken> tokens, ref int index, CssStyle style{param})");
             sw.WriteLine("        {");
             /*
             sw.WriteLine($"css_error css__parse_{parserId.Key}(css_language *c,");

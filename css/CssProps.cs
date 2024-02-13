@@ -180,7 +180,7 @@ namespace SkiaSharpOpenGLBenchmark.css
     public static class CssProps
     {
         // dispatch.c:20, prop_dispatch
-        // Dispatch table for properties, indexed by opcode
+        // Dispatch table for properties, indexed by opcode (CssPropertiesEnum)
         public static CssPropDispatch[] Dispatch = {
             new CssPropDispatch { // 0x0 azimuth
                 Inherited = true,
