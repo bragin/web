@@ -3029,19 +3029,29 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispSFH_margin_top(CssHint hint, ComputedStyle style)
         {
-            Log.Unimplemented();
+            style.SetMarginTop((CssMarginEnum)hint.Status, hint.Length.Value, hint.Length.Unit);
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispInitial_margin_top(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetMarginTop(CssMarginEnum.CSS_MARGIN_SET, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispCompose_margin_top(ComputedStyle parent, ComputedStyle child, ComputedStyle result)
         {
-            Log.Unimplemented();
+            Fixed length = Fixed.F_0;
+            CssUnit unit = CssUnit.CSS_UNIT_PX;
+            var type = child.GetMarginTop(ref length, ref unit);
+
+            if (type == CssMarginEnum.CSS_MARGIN_INHERIT)
+            {
+                type = parent.GetMarginTop(ref length, ref unit);
+            }
+
+            result.SetMarginTop(type, length, unit);
+
             return CssStatus.CSS_OK;
         }
         #endregion
@@ -3055,19 +3065,29 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispSFH_margin_right(CssHint hint, ComputedStyle style)
         {
-            Log.Unimplemented();
+            style.SetMarginRight((CssMarginEnum)hint.Status, hint.Length.Value, hint.Length.Unit);
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispInitial_margin_right(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetMarginRight(CssMarginEnum.CSS_MARGIN_SET, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispCompose_margin_right(ComputedStyle parent, ComputedStyle child, ComputedStyle result)
         {
-            Log.Unimplemented();
+            Fixed length = Fixed.F_0;
+            CssUnit unit = CssUnit.CSS_UNIT_PX;
+            var type = child.GetMarginRight(ref length, ref unit);
+
+            if (type == CssMarginEnum.CSS_MARGIN_INHERIT)
+            {
+                type = parent.GetMarginRight(ref length, ref unit);
+            }
+
+            result.SetMarginRight(type, length, unit);
+
             return CssStatus.CSS_OK;
         }
         #endregion
@@ -3081,19 +3101,29 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispSFH_margin_bottom(CssHint hint, ComputedStyle style)
         {
-            Log.Unimplemented();
+            style.SetMarginBottom((CssMarginEnum)hint.Status, hint.Length.Value, hint.Length.Unit);
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispInitial_margin_bottom(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetMarginBottom(CssMarginEnum.CSS_MARGIN_SET, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispCompose_margin_bottom(ComputedStyle parent, ComputedStyle child, ComputedStyle result)
         {
-            Log.Unimplemented();
+            Fixed length = Fixed.F_0;
+            CssUnit unit = CssUnit.CSS_UNIT_PX;
+            var type = child.GetMarginBottom(ref length, ref unit);
+
+            if (type == CssMarginEnum.CSS_MARGIN_INHERIT)
+            {
+                type = parent.GetMarginBottom(ref length, ref unit);
+            }
+
+            result.SetMarginBottom(type, length, unit);
+
             return CssStatus.CSS_OK;
         }
         #endregion
@@ -3107,19 +3137,29 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispSFH_margin_left(CssHint hint, ComputedStyle style)
         {
-            Log.Unimplemented();
+            style.SetMarginLeft((CssMarginEnum)hint.Status, hint.Length.Value, hint.Length.Unit);
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispInitial_margin_left(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetMarginLeft(CssMarginEnum.CSS_MARGIN_SET, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispCompose_margin_left(ComputedStyle parent, ComputedStyle child, ComputedStyle result)
         {
-            Log.Unimplemented();
+            Fixed length = Fixed.F_0;
+            CssUnit unit = CssUnit.CSS_UNIT_PX;
+            var type = child.GetMarginLeft(ref length, ref unit);
+
+            if (type == CssMarginEnum.CSS_MARGIN_INHERIT)
+            {
+                type = parent.GetMarginLeft(ref length, ref unit);
+            }
+
+            result.SetMarginLeft(type, length, unit);
+
             return CssStatus.CSS_OK;
         }
         #endregion
