@@ -769,25 +769,12 @@ namespace SkiaSharpOpenGLBenchmark
             // complete computed style for element
             if (parentStyle != null)
             {
-                Log.Unimplemented("parentStyle != null");
-
                 /* Complete the computed style, by composing with the parent
                  * element's style */
                 var composed = new ComputedStyle(parentStyle, styles.Styles[(int)CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE], unitCtx);
-                /*
-                error = css_computed_style_compose(ctx->parent_style,
-                        styles->styles[CSS_PSEUDO_ELEMENT_NONE],
-                        unit_len_ctx, &composed);
-                if (error != CSS_OK)
-                {
-                    css_select_results_destroy(styles);
-                    return NULL;
-                }
 
                 // Replace select_results style with composed style
-                css_computed_style_destroy(
-                        styles->styles[CSS_PSEUDO_ELEMENT_NONE]);
-                styles->styles[CSS_PSEUDO_ELEMENT_NONE] = composed;*/
+                styles.Styles[(int)CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE] = composed;
             }
             Log.Unimplemented();
             
