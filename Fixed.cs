@@ -24,6 +24,7 @@ namespace SkiaSharpOpenGLBenchmark
         public static readonly Fixed F_270 = new Fixed(0x00043800, true);    /* 270 */
         public static readonly Fixed F_360 = new Fixed(0x0005a000, true);    /* 360 */
 
+        public static readonly Fixed F_0 = new Fixed(0x00000000, true);      /* 0 */
         public static readonly Fixed F_0_5 = new Fixed(0x00000200, true);    /* 0.5 */
         public static readonly Fixed F_1 = new Fixed(0x00000400, true);      /*   1 */
         public static readonly Fixed F_10 = new Fixed(0x00002800, true);     /*  10 */
