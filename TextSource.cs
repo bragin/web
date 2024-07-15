@@ -143,6 +143,29 @@ namespace SkiaSharpOpenGLBenchmark
             return _content.ToString(start, characters);
         }
 
+        /* 
+         * Look at the character in the stream that starts at
+         * offset bytes from the cursor
+         *
+         * offset - Byte offset of start of character
+         */
+        public char Peek(int offset)
+        {
+            if (Index + offset >= _content.Length)
+                return Symbols.EndOfFile;
+            else
+                return _content[Index + offset];
+        }
+
+        // Advance the stream's current position
+        public void Advance(int bytes)
+        {
+            if (bytes > _content.Length - Index)
+                bytes = _content.Length - Index;
+
+            Index += bytes;
+        }
+
         public string GetContents(int start, int len)
         {
             var end = start + len;

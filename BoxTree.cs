@@ -190,10 +190,10 @@ namespace SkiaSharpOpenGLBenchmark
         int max_width;
 
         // Text, or NULL if none. Unterminated.
-        string Text;
+        public string Text;
 
         // Length of text.
-        // size_t length;
+        public int Length;
 
         // Width of space after current text (depends on font and size).
         int space;
@@ -1330,8 +1330,7 @@ namespace SkiaSharpOpenGLBenchmark
             else if (((int)box.Flags & (int)BoxFlags.IS_REPLACED) == 0)
             {
                 // Handle the :after pseudo element
-                //box_construct_generate(n, content, box, box->styles->styles[CSS_PSEUDO_ELEMENT_AFTER]);
-                Log.Unimplemented();
+                BoxConstructGenerate(n, box, box.Styles.Styles[(int)CssPseudoElement.CSS_PSEUDO_ELEMENT_AFTER]);
             }
         }
 
@@ -1348,19 +1347,17 @@ namespace SkiaSharpOpenGLBenchmark
 
             var props = Box.ExtractProperties(n, this);
 
-            Log.Unimplemented();
-
             Debug.Assert(props.ContainingBlock != null);
-            /*
-                err = dom_characterdata_get_data(ctx->n, &content);
-	        if (err != DOM_NO_ERR || content == NULL)
-		        return false;
 
-	        if (css_computed_white_space(props.parent_style) ==
-			        CSS_WHITE_SPACE_NORMAL ||
-			        css_computed_white_space(props.parent_style) ==
-			        CSS_WHITE_SPACE_NOWRAP)
+            var content = n.Value;
+            if (string.IsNullOrEmpty(content))
+                return false;
+
+            if (props.ParentStyle.ComputedWhitespace() == CssWhiteSpaceEnum.CSS_WHITE_SPACE_NORMAL ||
+                props.ParentStyle.ComputedWhitespace() == CssWhiteSpaceEnum.CSS_WHITE_SPACE_NOWRAP)
             {
+                Log.Unimplemented();
+                /*
 		        char* text;
 
                 text = squash_whitespace(dom_string_data(content));
@@ -1449,48 +1446,36 @@ namespace SkiaSharpOpenGLBenchmark
                     if (box->prev != NULL)
                         box->prev->space = UNKNOWN_WIDTH;
                 }
-	        }
+                */
+            }
             else
             {
-                    // white-space: pre 
-                    char* text;
-                    size_t text_len = dom_string_byte_length(content);
-                    size_t i;
-                    char* current;
+                // white-space: pre 
 
-                        enum css_white_space_e white_space =
-                                css_computed_white_space(props.parent_style);
+                var text_len = content.Length;
+                var white_space = props.ParentStyle.ComputedWhitespace();
 
                 // note: pre-wrap/pre-line are unimplemented
-                assert(white_space == CSS_WHITE_SPACE_PRE ||
-                        white_space == CSS_WHITE_SPACE_PRE_LINE ||
-                        white_space == CSS_WHITE_SPACE_PRE_WRAP);
-
-                text = malloc(text_len + 1);
-                dom_string_unref(content);
-
-                if (text == NULL)
-                    return false;
-
-                memcpy(text, dom_string_data(content), text_len);
-                text[text_len] = '\0';
+                //Debug.Assert(white_space == CssWhiteSpaceEnum.CSS_WHITE_SPACE_PRE ||
+                //        white_space == CssWhiteSpaceEnum.CSS_WHITE_SPACE_PRE_LINE ||
+                //        white_space == CssWhiteSpaceEnum.CSS_WHITE_SPACE_PRE_WRAP);
 
                 // TODO: Handle tabs properly
-                for (i = 0; i < text_len; i++)
-                    if (text[i] == '\t')
-                        text[i] = ' ';
+                var text = content.Replace('\t', ' ');
 
-                if (css_computed_text_transform(props.parent_style) !=
-                        CSS_TEXT_TRANSFORM_NONE)
-                    box_text_transform(text, strlen(text),
-                        css_computed_text_transform(
-                                props.parent_style));
+                if (props.ParentStyle.ComputedTextTransform() != CssTextTransformEnum.CSS_TEXT_TRANSFORM_NONE)
+                {
+                    //box_text_transform(text, strlen(text), css_computed_text_transform(props.parent_style));
+                    Log.Unimplemented();
+                }
 
-                current = text;
+                int current = 0;
 
                 // swallow a single leading new line
-                if (props.containing_block->flags & PRE_STRIP)
+                if (((uint)props.ContainingBlock.Flags & (uint)BoxFlags.PRE_STRIP) != 0)
                 {
+                    Log.Unimplemented();
+                    /*
                     switch (*current)
                     {
                         case '\n':
@@ -1501,96 +1486,67 @@ namespace SkiaSharpOpenGLBenchmark
                             if (*current == '\n')
                                 current++;
                             break;
-                    }
-                    props.containing_block->flags &= ~PRE_STRIP;
+                    }*/
+
+                    props.ContainingBlock.Flags = (BoxFlags)((uint)props.ContainingBlock.Flags & ~(uint)BoxFlags.PRE_STRIP);
                 }
 
                 do
                 {
-                    size_t len = strcspn(current, "\r\n");
+                    int len = text.IndexOfAny(new char[] { '\r', '\n' }, current);
+                    if (len == -1)
+                    {
+                        len = text.Length;
+                    }
+                    else
+                    {
+                        len -= current; // Adjust length to be local to the current index
+                    }
 
-                    char old = current[len];
-
-                    current[len] = 0;
-
-                    if (props.inline_container == NULL)
+                    if (props.InlineContainer == null)
                     {
                         // Child of a block without a current container
                         // (i.e. this box is the first child of its
                         // parent, or was preceded by block-level
                         // siblings)
-                        props.inline_container = box_create(NULL, NULL,
-                                false, NULL, NULL, NULL, NULL,
-                                ctx->bctx);
-                        if (props.inline_container == NULL)
-                        {
-                            free(text);
-                            return false;
-                        }
-
-                        props.inline_container->type =
-                                BOX_INLINE_CONTAINER;
-
-                        box_add_child(props.containing_block,
-                                props.inline_container);
+                        props.InlineContainer = new Box(null, null, false, 0, null, null, null);
+                        props.InlineContainer.Type = BoxType.BOX_INLINE_CONTAINER;
+                        props.ContainingBlock.AddChild(props.InlineContainer);
                     }
 
                     // \todo Dropping const isn't clever
-                    box = box_create(NULL,
-                        (css_computed_style*)props.parent_style,
-                        false, props.href, props.target, props.title,
-                        NULL, ctx->bctx);
-                    if (box == NULL)
-                    {
-                        free(text);
-                        return false;
-                    }
+                    var box = new Box(null,
+                                  props.ParentStyle,
+                                  false,
+                                  0, //props.href,
+                                  props.Target,
+                                  props.Title,
+                                  null);
 
-                    box->type = BOX_TEXT;
+                    box.Type = BoxType.BOX_TEXT;
+                    box.Text = text.Substring(current, len);
+                    box.Length = box.Text.Length;
+                    props.ContainingBlock.AddChild(box);
 
-                    box->text = talloc_strdup(ctx->bctx, current);
-                    if (box->text == NULL)
-                    {
-                        free(text);
-                        return false;
-                    }
-
-                    box->length = strlen(box->text);
-
-                    box_add_child(props.inline_container, box);
-
-                    current[len] = old;
+                    //current[len] = old;
 
                     current += len;
 
-                    if (current[0] != '\0')
+                    if (current < text.Length)
                     {
                         // Linebreak: create new inline container
-                        props.inline_container = box_create(NULL, NULL,
-                                false, NULL, NULL, NULL, NULL,
-                                ctx->bctx);
-                        if (props.inline_container == NULL)
-                        {
-                            free(text);
-                            return false;
-                        }
+                        props.InlineContainer = new Box(null, null, false, 0, null, null, null);
+                        props.InlineContainer.Type = BoxType.BOX_INLINE_CONTAINER;
+                        props.ContainingBlock.AddChild(props.InlineContainer);
 
-                        props.inline_container->type =
-                                BOX_INLINE_CONTAINER;
-
-                        box_add_child(props.containing_block,
-                                props.inline_container);
-
-                        if (current[0] == '\r' && current[1] == '\n')
+                        if (text[current] == '\r' || text[current] == '\n')
                             current += 2;
                         else
                             current++;
                     }
-                } while (*current);
+                } while (current < text.Length);
+            }
 
-                free(text);
-	        }
-*/
             return true;
         }
 

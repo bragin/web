@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -65,6 +67,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         public CssSelectorDetailValueType ValueType; // Type of value field
         public bool Negate;    // Detail match is inverted
 
+        // stylesheet.c:917
         public CssSelectorDetail(CssSelectorType type,
             ref CssQname qname,
             ref CssSelectorDetailValue value,
@@ -161,6 +164,41 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             Data.Add(detail);
         }
+
+        /* Combine a pair of selectors. a is the first operand, this is the second
+         * For example, given A + B, the combinator field of B would point at A,
+         * with a combinator type of CSS_COMBINATOR_SIBLING.Thus, given B, we can
+         * find its combinator.It is not possible to find B given A.
+         */
+        // stylesheet.c:1021 css__stylesheet_selector_combine()
+        public CssStatus Combine(CssCombinator type, CssSelector a)
+        {
+
+            // Ensure that there is no existing combinator on B
+            Debug.Assert(Combinator == null);
+
+            // A must not contain a pseudo element
+            //for (det = &a->data; det != NULL;)
+            foreach (var det in a.Data)
+            {
+                if (det.Type == CssSelectorType.CSS_SELECTOR_PSEUDO_ELEMENT)
+                    return CssStatus.CSS_INVALID;
+            }
+
+            Combinator = a;
+
+            // FIXME Can't modify directly,
+            //Data[0].Comb = type;
+            var d = Data[0];
+            d.Comb = type;
+            Data[0] = d;
+
+            // And propagate A's specificity to B
+            Specificity += a.Specificity;
+
+            return CssStatus.CSS_OK;
+        }
+
 
         // select.c:2960
         public void DumpChain(StreamWriter sw)

@@ -124,6 +124,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             Element = new CssQname();
             Element.Name = node.Name;
             Element.Namespace = null; // FIXME: check if it's correct
+            Log.Unimplemented("Check Element.Namespace 127");
 
             // Get node's ID, if any
             Id = node.Attributes["id"] != null ? node.Attributes["id"].Value : null;
@@ -604,7 +605,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             return match;
         }
 
-        // select.c:2588
+        // libcss/src/select/select.c:2588
         bool MatchDetail(CssSelectionContext ctx, XmlNode node, CssSelectorDetail detail, out CssPseudoElement pseudoElement)
         {
             pseudoElement = CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE;
@@ -627,12 +628,12 @@ namespace SkiaSharpOpenGLBenchmark.css
                     }
                     break;
                 case CssSelectorType.CSS_SELECTOR_CLASS:
-                    Log.Unimplemented();
+                    match = node.HasClass(detail.Qname.Name);
                     //error = state->handler->node_has_class(state->pw, node,
                     //      detail->qname.name, match);
                     break;
                 case CssSelectorType.CSS_SELECTOR_ID:
-                    Log.Unimplemented();
+                    match = node.HasId(detail.Qname.Name);
                     //error = state->handler->node_has_id(state->pw, node,
                     //detail->qname.name, match);
                     break;

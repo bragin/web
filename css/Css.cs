@@ -2,11 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using System.IO;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SkiaSharpOpenGLBenchmark.css
@@ -65,10 +66,80 @@ namespace SkiaSharpOpenGLBenchmark.css
         };
 
         // FIXME: Maybe unnecessary, or could be converted to an array
+        public const string Auto = "auto";
         public const string Inherit = "inherit";
         public const string Important = "important";
+        public const string None = "none";
         public const string Transparent = "transparent";
         public const string CurrentColor = "currentColor";
+        public const string Normal = "normal";
+
+        public const string Bold = "bold"; // :297
+        public const string Bolder = "bolder";
+        public const string Lighter = "lighter";
+        public const string Inside = "inside";
+        public const string Outside = "outside";
+        public const string Disc = "disc";
+        public const string Circle = "circle";
+        public const string Square = "square";
+        public const string Decimal = "decimal";
+        public const string DecimalLeadingZero = "decimal-leading-zero";
+        public const string LowerRoman = "lower-roman";
+        public const string UpperRoman = "upper-roman";
+        public const string LowerGreek = "lower-greek";
+        public const string LowerLatin = "lower-latin";
+        public const string UpperLatin = "upper-latin";
+        public const string Armenian = "armenian";
+        public const string Georgian = "georgian";
+        public const string LowerAlpha = "lower-alpha";
+        public const string UpperAlpha = "upper-alpha";
+        public const string Binary = "binary";
+        public const string Octal = "octal";
+        public const string LowerHexadecimal = "lower-hexadecimal";
+        public const string UpperHexadecimal = "upper-hexadecimal";
+        public const string ArabicIndic = "arabic-indic";
+        public const string LowerArmenian = "lower-armenian";
+        public const string UpperArmenian = "upper-armenian";
+        public const string Bengali = "bengali";
+        public const string Cambodian = "cambodian";
+        public const string Khmer = "khmer";
+        public const string CjkDecimal = "cjk-decimal";
+        public const string Devanagari = "devanagari";
+        public const string Gujarati = "gujarati";
+        public const string Gurmukhi = "gurmukhi";
+        public const string Hebrew = "hebrew";
+        public const string Kannada = "kannada";
+        public const string Lao = "lao";
+        public const string Malayalam = "malayalam";
+        public const string Mongolian = "mongolian";
+        public const string Myanmar = "myanmar";
+        public const string Oriya = "oriya";
+        public const string Persian = "persian";
+        public const string Tamil = "tamil";
+        public const string Telugu = "telugu";
+        public const string Thai = "thai";
+        public const string Tibetan = "tibetan";
+        public const string CjkEarthlyBranch = "cjk-earthly-branch";
+        public const string CjkHeavenlyStem = "cjk-heavenly-stem";
+        public const string Hiragana = "hiragana";
+        public const string HiraganaIroha = "hiragana-iroha";
+        public const string Katakana = "katakana";
+        public const string KatakanaIroha = "katakana-iroha";
+        public const string JapaneseInformal = "japanese-informal";
+        public const string JapaneseFormal = "japanese-formal";
+        public const string KoreanHangulFormal = "korean-hangul-formal";
+        public const string KoreanHanjaInformal = "korean-hanja-informal";
+        public const string KoreanHanjaFormal = "korean-hanja-formal"; // :352
+
+        public const string Underline = "underline"; // :439
+        public const string Overline = "overline";
+        public const string LineThrough = "line-through";
+        public const string Serif = "serif"; // 430
+        public const string SansSerif = "sans-serif";
+        public const string Cursive = "cursive";
+        public const string Fantasy = "fantasy";
+        public const string Monospace = "monospace"; // 434
+        public const string Blink = "blink"; // :442
 
         public static readonly string[] Colors =  {
             "ALICEBLUE", "ANTIQUEWHITE", "AQUA", "AQUAMARINE", "AZURE",
@@ -264,6 +335,12 @@ namespace SkiaSharpOpenGLBenchmark.css
         }
     }
 
+    public struct CssNamespace
+    {
+        public string Prefix; // Namespace prefix
+        public string Uri; // Namespace URI
+    }
+
     // stylesheet.h:170, struct css_stylesheet
     public class CssStylesheet
     {
@@ -280,6 +357,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         Stack<CssStylesheetContextEntry> Context;
         CssLanguageState LanguageState; // State flag, for at-rule handling
         string DefaultNamespace; // Default namespace URI
+        List<CssNamespace> Namespaces; // Array of namespace mappings
 
         CssParser Parser; // Core parser for sheet
         CssLanguageLevel Level; // Language level of sheet
@@ -310,6 +388,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             Title = title;
 
             DefaultNamespace = null;
+            Namespaces = new List<CssNamespace>();
 
             RuleCount = 0;
             RuleList = new LinkedList<CssRule>();
@@ -393,11 +472,11 @@ namespace SkiaSharpOpenGLBenchmark.css
             ParseHandlers[68] = CssPropertyParser.Parse_flex_wrap;
             //ParseHandlers[69] = CssPropertyParser.Parse_libcss_float;
             //ParseHandlers[70] = CssPropertyParser.Parse_font;
-            //ParseHandlers[71] = CssPropertyParser.Parse_font_family;
+            ParseHandlers[71] = Parse_font_family;
             ParseHandlers[72] = CssPropertyParser.Parse_font_size;
             ParseHandlers[73] = CssPropertyParser.Parse_font_style;
             ParseHandlers[74] = CssPropertyParser.Parse_font_variant;
-            //ParseHandlers[75] = CssPropertyParser.Parse_font_weight;
+            ParseHandlers[75] = Parse_font_weight;
             ParseHandlers[76] = CssPropertyParser.Parse_height;
             ParseHandlers[77] = CssPropertyParser.Parse_justify_content;
             ParseHandlers[78] = CssPropertyParser.Parse_left;
@@ -406,8 +485,8 @@ namespace SkiaSharpOpenGLBenchmark.css
             //ParseHandlers[81] = CssPropertyParser.Parse_list_style;
             ParseHandlers[82] = CssPropertyParser.Parse_list_style_image;
             ParseHandlers[83] = CssPropertyParser.Parse_list_style_position;
-            //ParseHandlers[84] = CssPropertyParser.Parse_list_style_type;
-            //ParseHandlers[85] = CssPropertyParser.Parse_margin;
+            ParseHandlers[84] = Parse_list_style_type;
+            ParseHandlers[85] = Parse_margin;
             ParseHandlers[86] = CssPropertyParser.Parse_margin_bottom;
             ParseHandlers[87] = CssPropertyParser.Parse_margin_left;
             ParseHandlers[88] = CssPropertyParser.Parse_margin_right;
@@ -446,12 +525,42 @@ namespace SkiaSharpOpenGLBenchmark.css
             ParseHandlers[121] = CssPropertyParser.Parse_right;
             ParseHandlers[122] = CssPropertyParser.Parse_speak_header;
             ParseHandlers[123] = CssPropertyParser.Parse_speak_numeral;
+            //ParseHandlers[124] = css__parse_speak_punctuation;
+            //ParseHandlers[125] = css__parse_speak;
+            //ParseHandlers[126] = css__parse_speech_rate;
+            //ParseHandlers[127] = css__parse_stress;
+            //ParseHandlers[128] = css__parse_table_layout;
+            //ParseHandlers[129] = css__parse_text_align;
+            ParseHandlers[130] = Parse_text_decoration;
+            //ParseHandlers[131] = css__parse_text_indent;
+            //ParseHandlers[132] = css__parse_text_transform;
+            //ParseHandlers[133] = css__parse_top;
+            //ParseHandlers[134] = css__parse_unicode_bidi;
+            ParseHandlers[135] = CssPropertyParser.Parse_vertical_align;
+            //ParseHandlers[136] = css__parse_visibility;
+            //ParseHandlers[137] = css__parse_voice_family;
+            //ParseHandlers[138] = css__parse_volume;
+            ParseHandlers[139] = CssPropertyParser.Parse_white_space;
+            //ParseHandlers[140] = css__parse_widows;
+            //ParseHandlers[141] = css__parse_width;
+            //ParseHandlers[142] = css__parse_word_spacing;
+            //ParseHandlers[143] = css__parse_writing_mode;
+            //ParseHandlers[144] = css__parse_z_index;
+
         }
 
         // stylesheet.c:311
         public void AppendData(string data)
         {
             Parser.ParseChunk(data);
+        }
+
+        // css__stylesheet_string_add()
+        // stylesheet.c:39
+        public void AddString(string str, out uint stringNumber)
+        {
+            stringNumber = 0;
+            Log.Unimplemented();
         }
 
         // libcss/src/stylesheet.c:1534
@@ -726,6 +835,23 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
         }
 
+        // Look up a namespace prefix
+        // TODO: This function belongs to some other place
+        // language.c:920
+        void LookupNamespace(string prefix, out string uri)
+        {
+            foreach (var entry in Namespaces)
+            {
+                if (entry.Prefix == prefix)
+                {
+                    uri = entry.Uri;
+                    break;
+                }
+            }
+
+            uri = "";
+        }
+
         // language.c:949
         void ParseClass(List<CssToken> tokens, ref int index, out CssSelectorDetail specific)
         {
@@ -736,6 +862,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             //token = parserutils_vector_iterate(vector, ctx);
             if (index >= tokens.Count - 1)
             {
+                Log.Unimplemented(); // To check that condition, it's maybe off by one
                 specific = new CssSelectorDetail();
                 return; // CSS_INVALID
             }
@@ -749,7 +876,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
 
             //token = parserutils_vector_iterate(vector, ctx);
-            if (index >= tokens.Count - 1)
+            if (index >= tokens.Count)
             {
                 specific = new CssSelectorDetail();
                 return; // CSS_INVALID
@@ -771,6 +898,147 @@ namespace SkiaSharpOpenGLBenchmark.css
             specific = new CssSelectorDetail(
                 CssSelectorType.CSS_SELECTOR_CLASS,
                 ref qname, ref detail_value, CssSelectorDetailValueType.CSS_SELECTOR_DETAIL_VALUE_STRING, false);
+        }
+
+        // language.c:980
+        CssStatus ParseAttrib(List<CssToken> tokens, ref int index, out CssSelectorDetail specific)
+        {
+            CssQname qname = new CssQname();
+            CssSelectorDetailValue detail_value = new CssSelectorDetailValue();
+
+            //const css_token* token, *value = NULL;
+            CssSelectorType type = CssSelectorType.CSS_SELECTOR_ATTRIBUTE;
+            //css_error error;
+            specific = new CssSelectorDetail(); // just a placeholder
+            string prefix = null;
+
+            /* attrib    -> '[' ws namespace_prefix? IDENT ws [
+             *		       [ '=' |
+             *		         INCLUDES |
+             *		         DASHMATCH |
+             *		         PREFIXMATCH |
+             *		         SUFFIXMATCH |
+             *		         SUBSTRINGMATCH
+             *		       ] ws
+             *		       [ IDENT | STRING ] ws ]? ']'
+             * namespace_prefix -> [ IDENT | '*' ]? '|'
+             */
+            if (index >= tokens.Count)
+                return CssStatus.CSS_INVALID;
+
+            var token = tokens[index++];
+
+            if (token.IsChar('[') == false)
+                return CssStatus.CSS_INVALID;
+
+
+            ConsumeWhitespace(tokens, ref index);
+
+            // again iterate tokens vector
+            if (index >= tokens.Count)
+                return CssStatus.CSS_INVALID;
+
+            token = tokens[index++];
+
+            if ((token.Type != CssTokenType.CSS_TOKEN_IDENT &&
+                    token.IsChar('*') == false &&
+                    token.IsChar('|') == false))
+            {
+                return CssStatus.CSS_INVALID;
+            }
+
+            if (token.IsChar('|'))
+            {
+                if (index >= tokens.Count)
+                    return CssStatus.CSS_INVALID;
+
+                token = tokens[index++];
+            }
+            else
+            {
+                var temp = tokens[index];
+                if (/*temp != NULL &&*/ temp.IsChar('|'))
+                {
+                    prefix = token.iData;
+
+                    index++;
+
+                    if (index >= tokens.Count)
+                    {
+                        specific = new CssSelectorDetail();
+                        return CssStatus.CSS_INVALID;
+                    }
+                    token = tokens[index++];
+                }
+            }
+
+            if (token.Type != CssTokenType.CSS_TOKEN_IDENT)
+            {
+                specific = new CssSelectorDetail();
+                return CssStatus.CSS_INVALID;
+            }
+
+            LookupNamespace(prefix, out qname.Namespace);
+
+            qname.Name = token.iData;
+
+            ConsumeWhitespace(tokens, ref index);
+
+            if (index >= tokens.Count)
+                return CssStatus.CSS_INVALID;
+            token = tokens[index++];
+
+            if (token.IsChar(']') == false)
+            {
+                if (token.IsChar('='))
+                    type = CssSelectorType.CSS_SELECTOR_ATTRIBUTE_EQUAL;
+                else if (token.Type == CssTokenType.CSS_TOKEN_INCLUDES)
+                    type = CssSelectorType.CSS_SELECTOR_ATTRIBUTE_INCLUDES;
+                else if (token.Type == CssTokenType.CSS_TOKEN_DASHMATCH)
+                    type = CssSelectorType.CSS_SELECTOR_ATTRIBUTE_DASHMATCH;
+                else if (token.Type == CssTokenType.CSS_TOKEN_PREFIXMATCH)
+                    type = CssSelectorType.CSS_SELECTOR_ATTRIBUTE_PREFIX;
+                else if (token.Type == CssTokenType.CSS_TOKEN_SUFFIXMATCH)
+                    type = CssSelectorType.CSS_SELECTOR_ATTRIBUTE_SUFFIX;
+                else if (token.Type == CssTokenType.CSS_TOKEN_SUBSTRINGMATCH)
+                    type = CssSelectorType.CSS_SELECTOR_ATTRIBUTE_SUBSTRING;
+                else
+                    return CssStatus.CSS_INVALID;
+
+                ConsumeWhitespace(tokens, ref index);
+
+                if (index >= tokens.Count)
+                    return CssStatus.CSS_INVALID;
+                token = tokens[index++];
+
+                if (token.Type != CssTokenType.CSS_TOKEN_IDENT &&
+                    token.Type != CssTokenType.CSS_TOKEN_STRING)
+                {
+                    return CssStatus.CSS_INVALID;
+                }
+
+                var value = token;
+
+                ConsumeWhitespace(tokens, ref index);
+
+                if (index >= tokens.Count)
+                {
+                    specific = new CssSelectorDetail();
+                    return CssStatus.CSS_INVALID;
+                }
+                token = tokens[index++];
+                if (token.IsChar(']') == false)
+                    return CssStatus.CSS_INVALID;
+
+                detail_value.Str = value.iData;
+            }
+
+            //detail_value.Str = value != NULL ? value->idata : NULL; // moved it upwards
+
+            specific = new CssSelectorDetail(type, ref qname, ref detail_value,
+                CssSelectorDetailValueType.CSS_SELECTOR_DETAIL_VALUE_STRING, false);
+
+            return CssStatus.CSS_OK;
         }
 
         // language.c:1461
@@ -806,9 +1074,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
             else if (token.IsChar('['))
             {
-                Log.Unimplemented();
-                specific = new CssSelectorDetail();
-                //error = parseAttrib(c, vector, ctx, specific);
+                ParseAttrib(tokens, ref index, out specific);
             }
             else if (token.IsChar(':'))
             {
@@ -1032,22 +1298,21 @@ namespace SkiaSharpOpenGLBenchmark.css
 
                 // TODO: Test this place!
                 if (comb == CssCombinator.CSS_COMBINATOR_ANCESTOR &&
-                    (index >= tokens.Count || tokens[index + 1].IsChar(',')))
+                    (index >= tokens.Count || tokens[index].IsChar(',')))
                 {
                     continue;
                 }
 
                 var other = ParseSimpleSelector(tokens, ref index);
                 result = other;
-                /*
-                error = css__stylesheet_selector_combine(c->sheet,
-                        comb, selector, other);
-                if (error != CSS_OK)
+
+                var error = other.Combine(comb, selector);
+                if (error != CssStatus.CSS_OK)
                 {
-                    css__stylesheet_selector_destroy(c->sheet, selector);
-                    return error;
-                }*/
-                Log.Unimplemented();
+                    Log.Unimplemented("ERROR 1316");
+                    return null;
+                }
+
                 selector = other;
             }
 
@@ -1099,13 +1364,13 @@ namespace SkiaSharpOpenGLBenchmark.css
             // number = [+-]? ([0-9]+ | [0-9]* '.' [0-9]+)
 
             // Extract sign, if any
-            if (data[k+0] == '-')
+            if (data[k + 0] == '-')
             {
                 sign = -1;
                 len--;
                 k++;
             }
-            else if (data[k+0] == '+')
+            else if (data[k + 0] == '+')
             {
                 len--;
                 k++;
@@ -1119,15 +1384,15 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
             else
             {
-                if (data[k+0] == '.')
+                if (data[k + 0] == '.')
                 {
-                    if (len == 1 || data[k+1] < '0' || '9' < data[k+1])
+                    if (len == 1 || data[k + 1] < '0' || '9' < data[k + 1])
                     {
                         consumed = 0;
                         return new Fixed(0);
                     }
                 }
-                else if (data[k+0] < '0' || '9' < data[k+0])
+                else if (data[k + 0] < '0' || '9' < data[k + 0])
                 {
                     consumed = 0;
                     return new Fixed(0);
@@ -1138,21 +1403,21 @@ namespace SkiaSharpOpenGLBenchmark.css
             while (len > 0)
             {
                 // Stop on first non-digit
-                if (data[k+0] < '0' || '9' < data[k+0])
+                if (data[k + 0] < '0' || '9' < data[k + 0])
                     break;
 
                 // Prevent overflow of 'intpart'; proper clamping below
                 if (intpart < (1 << 22))
                 {
                     intpart *= 10;
-                    intpart += data[k+0] - '0';
+                    intpart += data[k + 0] - '0';
                 }
                 k++;
                 len--;
             }
 
             // And fracpart, again, assuming base 10
-            if (intOnly == false && len > 1 && data[k+0] == '.' &&
+            if (intOnly == false && len > 1 && data[k + 0] == '.' &&
                     ('0' <= data[k + 1] && data[k + 1] <= '9'))
             {
                 k++;
@@ -1674,7 +1939,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             ConsumeWhitespace(tokens, ref index);
 
-            if (index >= tokens.Count - 1) return CssStatus.CSS_INVALID;
+            if (index >= tokens.Count) return CssStatus.CSS_INVALID;
             var token = tokens[index++];
 
             if (token.Type != CssTokenType.CSS_TOKEN_DIMENSION &&
@@ -1729,7 +1994,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     int tempIndex = index;
                     CssUnit tempUnit;
 
-                    ConsumeWhitespace(tokens,  ref tempIndex);
+                    ConsumeWhitespace(tokens, ref tempIndex);
 
                     Log.Unimplemented();
 
@@ -1774,78 +2039,78 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             if (len == 4)
             {
-                if (String.Equals(ptr, "grad", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(ptr, "grad", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.GRAD;
-                else if (String.Equals(ptr, "turn", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "turn", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.TURN;
-                else if (String.Equals(ptr, "dppx", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "dppx", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.DPPX;
-                else if (String.Equals(ptr, "dpcm", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "dpcm", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.DPCM;
-                else if (String.Equals(ptr, "vmin", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "vmin", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.VMIN;
-                else if (String.Equals(ptr, "vmax", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "vmax", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.VMAX;
                 else
                     return CssStatus.CSS_INVALID;
             }
             else if (len == 3)
             {
-                if (String.Equals(ptr, "kHz", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(ptr, "kHz", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.KHZ;
-                else if (String.Equals(ptr, "deg", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "deg", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.DEG;
-                else if (String.Equals(ptr, "rad", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "rad", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.RAD;
-                else if (String.Equals(ptr, "rem", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "rem", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.REM;
-                else if (String.Equals(ptr, "dpi", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "dpi", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.DPI;
                 else
                     return CssStatus.CSS_INVALID;
             }
             else if (len == 2)
             {
-                if (String.Equals(ptr, "Hz", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(ptr, "Hz", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.HZ;
-                else if (String.Equals(ptr, "ms", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "ms", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.MS;
-                else if (String.Equals(ptr, "px", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "px", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.PX;
-                else if (String.Equals(ptr, "ex", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "ex", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.EX;
-                else if (String.Equals(ptr, "em", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "em", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.EM;
-                else if (String.Equals(ptr, "in", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "in", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.IN;
-                else if (String.Equals(ptr, "cm", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "cm", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.CM;
-                else if (String.Equals(ptr, "mm", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "mm", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.MM;
-                else if (String.Equals(ptr, "pt", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "pt", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.PT;
-                else if (String.Equals(ptr, "pc", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "pc", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.PC;
-                else if (String.Equals(ptr, "ch", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "ch", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.CH;
-                else if (String.Equals(ptr, "lh", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "lh", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.LH;
-                else if (String.Equals(ptr, "vh", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "vh", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.VH;
-                else if (String.Equals(ptr, "vw", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "vw", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.VW;
-                else if (String.Equals(ptr, "vi", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "vi", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.VI;
-                else if (String.Equals(ptr, "vb", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "vb", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.VB;
                 else
                     return CssStatus.CSS_INVALID;
             }
             else if (len == 1)
             {
-                if (String.Equals(ptr, "s", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(ptr, "s", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.S;
-                else if (String.Equals(ptr, "q", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(ptr, "q", StringComparison.OrdinalIgnoreCase))
                     unit = OpcodeUnit.Q;
                 else
                     return CssStatus.CSS_INVALID;
@@ -1861,42 +2126,39 @@ namespace SkiaSharpOpenGLBenchmark.css
             int origIndex = index;
             ConsumeWhitespace(tokens, ref index);
 
-            if (index < tokens.Count - 1)
+            if (index >= tokens.Count) return;
+            var token = tokens[index++];
+
+            if (token.IsChar('!'))
             {
-                var token = tokens[index++];
+                ConsumeWhitespace(tokens, ref index);
+                token = tokens[index++];
 
-                if (token.IsChar('!'))
+                if (index >= tokens.Count || token.Type != CssTokenType.CSS_TOKEN_IDENT)
                 {
-                    ConsumeWhitespace(tokens, ref index);
-                    token = tokens[index++];
+                    Console.WriteLine("CSS Invalid 721");
+                    index = origIndex;
+                    return;
+                }
 
-                    if (index >= tokens.Count || token.Type != CssTokenType.CSS_TOKEN_IDENT)
-                    {
-                        Console.WriteLine("CSS Invalid 721");
-                        index = origIndex;
-                        return;
-                    }
-
-                    if (token.iData.Equals(CssStrings.Important, StringComparison.OrdinalIgnoreCase))
-                    {
-                        flags |= OpCodeFlag.FLAG_IMPORTANT;
-                    }
-                    else
-                    {
-                        Console.WriteLine("CSS Invalid 731");
-                        index = origIndex;
-                        return;
-                    }
+                if (token.iData.Equals(CssStrings.Important, StringComparison.OrdinalIgnoreCase))
+                {
+                    flags |= OpCodeFlag.FLAG_IMPORTANT;
                 }
                 else
                 {
-                    Console.WriteLine("CSS Invalid 738");
+                    Console.WriteLine("CSS Invalid 731");
                     index = origIndex;
                     return;
                 }
             }
+            else
+            {
+                Console.WriteLine("CSS Invalid 738");
+                index = origIndex;
+                return;
+            }
         }
-
 
         // language.c:1845
         void ParseProperty(CssToken property, List<CssToken> tokens, ref int index, CssRule rule)
@@ -1958,7 +2220,6 @@ namespace SkiaSharpOpenGLBenchmark.css
             while (true)
             {
                 if (index >= tokens.Count - 1) break; // FIXME: Check this place!
-
                 var token = tokens[index];
 
                 if (token.Type == CssTokenType.CSS_TOKEN_S)
@@ -2012,8 +2273,704 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             return CssStatus.CSS_OK;
         }
-        #endregion
 
+        static Dictionary<string, OpCodeValues> ListTypeMapping = new Dictionary<string, OpCodeValues>()
+        {
+            { CssStrings.Disc, OpCodeValues.LIST_STYLE_TYPE_DISC},
+            { CssStrings.Circle, OpCodeValues.LIST_STYLE_TYPE_CIRCLE},
+            { CssStrings.Square, OpCodeValues.LIST_STYLE_TYPE_SQUARE},
+            { CssStrings.Decimal, OpCodeValues.LIST_STYLE_TYPE_DECIMAL},
+            { CssStrings.DecimalLeadingZero, OpCodeValues.LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO},
+            { CssStrings.LowerRoman, OpCodeValues.LIST_STYLE_TYPE_LOWER_ROMAN},
+            { CssStrings.UpperRoman, OpCodeValues.LIST_STYLE_TYPE_UPPER_ROMAN},
+            { CssStrings.LowerGreek, OpCodeValues.LIST_STYLE_TYPE_LOWER_GREEK},
+            { CssStrings.LowerLatin, OpCodeValues.LIST_STYLE_TYPE_LOWER_LATIN},
+            { CssStrings.UpperLatin, OpCodeValues.LIST_STYLE_TYPE_UPPER_LATIN},
+            { CssStrings.Armenian, OpCodeValues.LIST_STYLE_TYPE_ARMENIAN},
+            { CssStrings.Georgian, OpCodeValues.LIST_STYLE_TYPE_GEORGIAN},
+            { CssStrings.LowerAlpha, OpCodeValues.LIST_STYLE_TYPE_LOWER_ALPHA},
+            { CssStrings.UpperAlpha, OpCodeValues.LIST_STYLE_TYPE_UPPER_ALPHA},
+            { CssStrings.None, OpCodeValues.LIST_STYLE_TYPE_NONE},
+            { CssStrings.Binary, OpCodeValues.LIST_STYLE_TYPE_BINARY},
+            { CssStrings.Octal, OpCodeValues.LIST_STYLE_TYPE_OCTAL},
+            { CssStrings.LowerHexadecimal, OpCodeValues.LIST_STYLE_TYPE_LOWER_HEXADECIMAL},
+            { CssStrings.UpperHexadecimal, OpCodeValues.LIST_STYLE_TYPE_UPPER_HEXADECIMAL},
+            { CssStrings.ArabicIndic, OpCodeValues.LIST_STYLE_TYPE_ARABIC_INDIC},
+            { CssStrings.LowerArmenian, OpCodeValues.LIST_STYLE_TYPE_LOWER_ARMENIAN},
+            { CssStrings.UpperArmenian, OpCodeValues.LIST_STYLE_TYPE_UPPER_ARMENIAN},
+            { CssStrings.Bengali, OpCodeValues.LIST_STYLE_TYPE_BENGALI},
+            { CssStrings.Cambodian, OpCodeValues.LIST_STYLE_TYPE_CAMBODIAN},
+            { CssStrings.Khmer, OpCodeValues.LIST_STYLE_TYPE_KHMER},
+            { CssStrings.CjkDecimal, OpCodeValues.LIST_STYLE_TYPE_CJK_DECIMAL},
+            { CssStrings.Devanagari, OpCodeValues.LIST_STYLE_TYPE_DEVANAGARI},
+            { CssStrings.Gujarati, OpCodeValues.LIST_STYLE_TYPE_GUJARATI},
+            { CssStrings.Gurmukhi, OpCodeValues.LIST_STYLE_TYPE_GURMUKHI},
+            { CssStrings.Hebrew, OpCodeValues.LIST_STYLE_TYPE_HEBREW},
+            { CssStrings.Kannada, OpCodeValues.LIST_STYLE_TYPE_KANNADA},
+            { CssStrings.Lao, OpCodeValues.LIST_STYLE_TYPE_LAO},
+            { CssStrings.Malayalam, OpCodeValues.LIST_STYLE_TYPE_MALAYALAM},
+            { CssStrings.Mongolian, OpCodeValues.LIST_STYLE_TYPE_MONGOLIAN},
+            { CssStrings.Myanmar, OpCodeValues.LIST_STYLE_TYPE_MYANMAR},
+            { CssStrings.Oriya, OpCodeValues.LIST_STYLE_TYPE_ORIYA},
+            { CssStrings.Persian, OpCodeValues.LIST_STYLE_TYPE_PERSIAN},
+            { CssStrings.Tamil, OpCodeValues.LIST_STYLE_TYPE_TAMIL},
+            { CssStrings.Telugu, OpCodeValues.LIST_STYLE_TYPE_TELUGU},
+            { CssStrings.Thai, OpCodeValues.LIST_STYLE_TYPE_THAI},
+            { CssStrings.Tibetan, OpCodeValues.LIST_STYLE_TYPE_TIBETAN},
+            { CssStrings.CjkEarthlyBranch, OpCodeValues.LIST_STYLE_TYPE_CJK_EARTHLY_BRANCH},
+            { CssStrings.CjkHeavenlyStem, OpCodeValues.LIST_STYLE_TYPE_CJK_HEAVENLY_STEM},
+            { CssStrings.Hiragana, OpCodeValues.LIST_STYLE_TYPE_HIAGANA},
+            { CssStrings.HiraganaIroha, OpCodeValues.LIST_STYLE_TYPE_HIAGANA_IROHA},
+            { CssStrings.Katakana, OpCodeValues.LIST_STYLE_TYPE_KATAKANA},
+            { CssStrings.KatakanaIroha, OpCodeValues.LIST_STYLE_TYPE_KATAKANA_IROHA},
+            { CssStrings.JapaneseInformal, OpCodeValues.LIST_STYLE_TYPE_JAPANESE_INFORMAL},
+            { CssStrings.JapaneseFormal, OpCodeValues.LIST_STYLE_TYPE_JAPANESE_FORMAL},
+            { CssStrings.KoreanHangulFormal, OpCodeValues.LIST_STYLE_TYPE_KOREAN_HANGUL_FORMAL},
+            { CssStrings.KoreanHanjaInformal, OpCodeValues.LIST_STYLE_TYPE_KOREAN_HANJA_INFORMAL},
+            { CssStrings.KoreanHanjaFormal, OpCodeValues.LIST_STYLE_TYPE_KOREAN_HANJA_FORMAL}
+        };
+
+        // utils.c:31
+        // Parse list-style-type value
+        CssStatus Parse_list_style_type_value(CssToken ident, out ushort value)
+        {
+            /* IDENT (disc, circle, square, decimal, decimal-leading-zero,
+	         *	  lower-roman, upper-roman, lower-greek, lower-latin,
+	         *	  upper-latin, armenian, georgian, lower-alpha, upper-alpha,
+	         *	  none)
+	         */
+
+
+            if (!ListTypeMapping.ContainsKey(ident.iData))
+            {
+                value = 0;
+                return CssStatus.CSS_INVALID;
+            }
+
+            value = (ushort)ListTypeMapping[ident.iData]; // FIXME: Should be caseless comparison
+            return CssStatus.CSS_OK;
+        }
+
+        // list_style_type.c:33
+        public CssStatus Parse_list_style_type(List<CssToken> tokens, ref int index, CssStyle style)
+        {
+            int orig_ctx = index;
+            CssStatus error = CssStatus.CSS_OK;
+            //const css_token* ident;
+            byte flags = 0;
+            ushort value = 0;
+            //bool match;
+
+            /* IDENT (disc, circle, square, decimal, decimal-leading-zero,
+             *	  lower-roman, upper-roman, lower-greek, lower-latin,
+             *	  upper-latin, armenian, georgian, lower-alpha, upper-alpha,
+             *	  none, inherit)
+             */
+            if (index >= tokens.Count) return CssStatus.CSS_INVALID;
+            var ident = tokens[index++];
+            if (ident.Type != CssTokenType.CSS_TOKEN_IDENT)
+            {
+                index = orig_ctx;
+                return CssStatus.CSS_INVALID;
+            }
+
+            if (string.Equals(ident.iData, CssStrings.Inherit, StringComparison.OrdinalIgnoreCase))
+            {
+                flags |= (byte)OpCodeFlag.FLAG_INHERIT;
+            }
+            else
+            {
+                error = Parse_list_style_type_value(ident, out value);
+                if (error != CssStatus.CSS_OK)
+                {
+                    index = orig_ctx;
+                    return error;
+                }
+            }
+
+            style.AppendStyle(
+                new OpCode(
+                    (ushort)CssPropertiesEnum.CSS_PROP_LIST_STYLE_TYPE,
+                    flags,
+                    value)
+            );
+
+            return error;
+        }
+
+        static void SIDE_APPEND(CssStyle style, ushort op, int num, uint[] side_val, Fixed[] side_length, uint[] side_unit)
+        {
+            style.AppendStyle(new OpCode(op, 0, (ushort)side_val[(num)]));
+
+            if (side_val[num] == (int)OpCodeValues.MARGIN_SET)
+            {
+                style.AppendStyle(new OpCode((uint)side_length[num].RawValue));
+                style.AppendStyle(new OpCode(side_unit[num]));
+            }
+        }
+
+        // margin.c:33
+        public CssStatus Parse_margin(List<CssToken> tokens, ref int index, CssStyle style)
+        {
+            CssStatus error = CssStatus.CSS_OK;
+            uint [] side_val = new uint[4];
+            Fixed [] side_length = new Fixed[4];
+            uint [] side_unit = new uint[4];
+            uint side_count = 0;
+            int origIndex = index;
+            int prevIndex;
+
+            // Firstly, handle inherit
+            var token = tokens[index];
+
+            if (token.IsCssInherit())
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_TOP,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_RIGHT,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_BOTTOM,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_LEFT,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+
+                //parserutils_vector_iterate(vector, ctx);
+                if (index < tokens.Count) index++;
+
+                return error;
+            }
+
+            // Attempt to parse up to 4 widths
+            do
+            {
+                //prev_ctx = *ctx;
+                prevIndex = index;
+
+                if (/*(token != null) &&*/ token.IsCssInherit())
+                {
+                    //*ctx = orig_ctx;
+                    index = origIndex;
+                    return CssStatus.CSS_INVALID;
+                }
+
+                if ((token.Type == CssTokenType.CSS_TOKEN_IDENT) &&
+                    string.Equals(token.iData, CssStrings.Auto, StringComparison.OrdinalIgnoreCase))
+                {
+                    side_val[side_count] = (uint)OpCodeValues.MARGIN_AUTO;
+                    //parserutils_vector_iterate(vector, ctx);
+                    index++;
+                    error = CssStatus.CSS_OK;
+                }
+                else
+                {
+                    side_val[side_count] = (uint)OpCodeValues.MARGIN_SET;
+
+                    error = ParseProperty_UnitSpecifier(
+                                tokens, ref index,
+                                OpcodeUnit.PX,
+                                out side_length[side_count],
+                                out side_unit[side_count]);
+                    if (error == CssStatus.CSS_OK)
+                    {
+                        if (((side_unit[side_count] & (uint)OpcodeUnit.ANGLE) != 0) ||
+                            ((side_unit[side_count] & (uint)OpcodeUnit.TIME) != 0) ||
+                            ((side_unit[side_count] & (uint)OpcodeUnit.FREQ) != 0))
+                        {
+                            //*ctx = orig_ctx;
+                            index = origIndex;
+                            return CssStatus.CSS_INVALID;
+                        }
+                    }
+                }
+
+                if (error == CssStatus.CSS_OK)
+                {
+                    side_count++;
+
+                    ConsumeWhitespace(tokens, ref index);
+
+                    //token = parserutils_vector_peek(vector, *ctx);
+                    if (index >= tokens.Count) break;
+                    token = tokens[index];
+                }
+                else
+                {
+                    /* Forcibly cause loop to exit */
+                    //token = NULL;
+                    break;
+                }
+            } while ((index != prevIndex) && (side_count < 4));
+
+            switch (side_count)
+            {
+                case 1:
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_TOP, 0, side_val, side_length, side_unit);
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_RIGHT, 0, side_val, side_length, side_unit);
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_BOTTOM, 0, side_val, side_length, side_unit);
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_LEFT, 0, side_val, side_length, side_unit);
+                    break;
+                case 2:
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_TOP, 0, side_val, side_length, side_unit);
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_RIGHT, 1, side_val, side_length, side_unit);
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_BOTTOM, 0, side_val, side_length, side_unit);
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_LEFT, 1, side_val, side_length, side_unit);
+                    break;
+                case 3:
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_TOP, 0, side_val, side_length, side_unit);
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_RIGHT, 1, side_val, side_length, side_unit);
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_BOTTOM, 2, side_val, side_length, side_unit);
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_LEFT, 1, side_val, side_length, side_unit);
+                    break;
+                case 4:
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_TOP, 0, side_val, side_length, side_unit);
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_RIGHT, 1, side_val, side_length, side_unit);
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_BOTTOM, 2, side_val, side_length, side_unit);
+                    SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_LEFT, 3, side_val, side_length, side_unit);
+                    break;
+                default:
+                    error = CssStatus.CSS_INVALID;
+                    break;
+            }
+
+            if (error != CssStatus.CSS_OK)
+                index = origIndex;
+
+            return error;
+        }
+
+        // font_family.c:33
+        public CssStatus Parse_font_family(List<CssToken> tokens, ref int index, CssStyle style)
+        {
+            int origIndex = index;
+            CssStatus error = CssStatus.CSS_OK;
+
+            /* [ IDENT+ | STRING ] [ ',' [ IDENT+ | STRING ] ]* | IDENT(inherit)
+             *
+             * In the case of IDENT+, any whitespace between tokens is collapsed to
+             * a single space
+             *
+             * \todo Mozilla makes the comma optional.
+             * Perhaps this is a quirk we should inherit?
+             */
+
+            if (index >= tokens.Count) return CssStatus.CSS_INVALID;
+            var token = tokens[index++];
+
+            if (token.Type != CssTokenType.CSS_TOKEN_IDENT &&
+                token.Type != CssTokenType.CSS_TOKEN_STRING)
+            {
+                index = origIndex;
+                return CssStatus.CSS_INVALID;
+            }
+
+            if (token.Type == CssTokenType.CSS_TOKEN_IDENT &&
+                string.Equals(token.iData, CssStrings.Inherit, StringComparison.OrdinalIgnoreCase))
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_FONT_FAMILY,
+                        0,
+                        0));
+            }
+            else
+            {
+                index = origIndex;
+
+                error = CommaListToStyle(tokens, ref index, true, style);
+                if (error != CssStatus.CSS_OK)
+                {
+                    index = origIndex;
+                    return error;
+                }
+
+                style.AppendStyle(new OpCode((uint)OpCodeValues.FONT_FAMILY_END));
+            }
+
+            if (error != CssStatus.CSS_OK)
+            {
+                index = origIndex;
+                return error;
+            }
+
+            return CssStatus.CSS_OK;
+        }
+
+        // font_family.c:24
+        // Determine if a given font-family ident is reserved
+        static bool IsFontFamilyReserved(CssToken ident)
+        {
+            return
+                string.Equals(ident.iData, CssStrings.Serif, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(ident.iData, CssStrings.SansSerif, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(ident.iData, CssStrings.Cursive, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(ident.iData, CssStrings.Fantasy, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(ident.iData, CssStrings.Monospace, StringComparison.OrdinalIgnoreCase);
+        }
+
+        static OpCode GetFontFamilyValue(CssToken token, bool first)
+        {
+            OpCodeValues value;
+
+            if (token.Type == CssTokenType.CSS_TOKEN_IDENT)
+            {
+                if (string.Equals(token.iData, CssStrings.Serif, StringComparison.OrdinalIgnoreCase))
+                    value = OpCodeValues.FONT_FAMILY_SERIF;
+                else if (string.Equals(token.iData, CssStrings.SansSerif, StringComparison.OrdinalIgnoreCase))
+                    value = OpCodeValues.FONT_FAMILY_SANS_SERIF;
+                else if (string.Equals(token.iData, CssStrings.Cursive, StringComparison.OrdinalIgnoreCase))
+                    value = OpCodeValues.FONT_FAMILY_CURSIVE;
+                else if (string.Equals(token.iData, CssStrings.Fantasy, StringComparison.OrdinalIgnoreCase))
+                    value = OpCodeValues.FONT_FAMILY_FANTASY;
+                else if (string.Equals(token.iData, CssStrings.Monospace, StringComparison.OrdinalIgnoreCase))
+                    value = OpCodeValues.FONT_FAMILY_MONOSPACE;
+                else
+                    value = OpCodeValues.FONT_FAMILY_IDENT_LIST;
+            }
+            else
+            {
+                value = OpCodeValues.FONT_FAMILY_STRING;
+            }
+
+            OpCode opcode;
+            if (first)
+                opcode = new OpCode((ushort)CssPropertiesEnum.CSS_PROP_FONT_FAMILY, 0, (ushort)value);
+            else
+                opcode = new OpCode((uint)value);
+
+            return opcode;
+        }
+
+        // utils.c:1236
+        /**
+         * Parse a comma separated list, converting to bytecode
+         * Post condition: index is updated with the next token to process
+         *                 If the input is invalid, then index remains unchanged.
+         */
+        CssStatus CommaListToStyle(List<CssToken> tokens, ref int index,
+                                   //CssLanguage c,
+                                   bool fontfamily, // either font family or voicefamily
+                                   CssStyle result) 
+                                   //bool (* reserved) (css_language* c, const css_token* ident),
+                                   //css_code_t (*get_value)(css_language* c, const css_token* token, bool first))
+        {
+            int origIndex = index;
+            int prevIndex = origIndex;
+            //const css_token* token;
+            bool first = true;
+            CssStatus error = CssStatus.CSS_OK;
+
+            if (index >= tokens.Count) return CssStatus.CSS_INVALID;
+            var token = tokens[index++];
+
+            if (fontfamily == false)
+                Console.WriteLine("UNIMPLEMENTED voice-family support");
+
+            while (true)
+            {
+                if (token.Type == CssTokenType.CSS_TOKEN_IDENT)
+                {
+                    var value = GetFontFamilyValue(token, first);
+
+                    if (!IsFontFamilyReserved(token))
+                    {
+                        string str = null;
+                        uint snumber = 0;
+
+
+                        index = prevIndex;
+                        /*
+                        error = css__ident_list_to_string(c, vector, ctx, reserved, &str);
+                        if (error != CssStatus.CSS_OK)
+                            goto cleanup;
+
+                        error = css__stylesheet_string_add(c->sheet, str, &snumber);
+                        if (error != CssStatus.CSS_OK)
+                            goto cleanup;*/
+                        Log.Unimplemented();
+
+                        result.AppendStyle(value);
+                        result.AppendStyle(new OpCode(snumber));
+                    }
+                    else
+                    {
+                        result.AppendStyle(value);
+                    }
+                }
+                else if (token.Type == CssTokenType.CSS_TOKEN_STRING)
+                {
+                    var value = GetFontFamilyValue(token, first);
+                    uint snumber = 0;
+
+                    /*error = css__stylesheet_string_add(c->sheet, lwc_string_ref(token->idata), &snumber);
+                    if (error != CssStatus.CSS_OK)
+                        goto cleanup;*/
+                    Log.Unimplemented();
+
+                    result.AppendStyle(value);
+                    result.AppendStyle(new OpCode(snumber));
+                }
+                else
+                {
+                    error = CssStatus.CSS_INVALID;
+                    goto cleanup;
+                }
+
+                ConsumeWhitespace(tokens, ref index);
+
+                if (index >= tokens.Count) break;
+                token = tokens[index];
+                if (token.IsChar(','))
+                {
+                    index++;
+
+                    ConsumeWhitespace(tokens, ref index);
+
+                    if (index >= tokens.Count)
+                    {
+                        error = CssStatus.CSS_INVALID;
+                        goto cleanup;
+                    }
+                    token = tokens[index];
+
+                    if ((token.Type != CssTokenType.CSS_TOKEN_IDENT &&
+                         token.Type != CssTokenType.CSS_TOKEN_STRING))
+                    {
+                        error = CssStatus.CSS_INVALID;
+                        goto cleanup;
+                    }
+                }
+
+                first = false;
+                prevIndex = index;
+
+                if (index >= tokens.Count) break;
+                token = tokens[index++];
+            }
+
+            cleanup:
+            if (error != CssStatus.CSS_OK)
+                index = origIndex;
+
+            return error;
+        }
+
+
+        // font_weight.c:33
+        public CssStatus Parse_font_weight(List<CssToken> tokens, ref int index, CssStyle style)
+        {
+            CssStatus error = CssStatus.CSS_OK;
+            byte flags = 0;
+            OpCodeValues value = 0;
+
+            //int orig_ctx = *ctx;
+            int origIndex = index;
+
+            /* NUMBER (100, 200, 300, 400, 500, 600, 700, 800, 900) |
+             * IDENT (normal, bold, bolder, lighter, inherit) */
+            //token = parserutils_vector_iterate(vector, ctx);
+            var token = tokens[index++];
+
+            if (index > tokens.Count || (token.Type != CssTokenType.CSS_TOKEN_IDENT && token.Type != CssTokenType.CSS_TOKEN_NUMBER))
+            {
+                //*ctx = orig_ctx;
+                index = origIndex;
+                return CssStatus.CSS_INVALID;
+            }
+
+            if (string.Equals(token.iData, CssStrings.Inherit, StringComparison.OrdinalIgnoreCase))
+            {
+                flags |= (byte)OpCodeFlag.FLAG_INHERIT;
+            }
+            else if (token.Type == CssTokenType.CSS_TOKEN_NUMBER)
+            {
+                int consumed = 0;
+                var num = CssStylesheet.NumberFromString(token.iData, true, out consumed);
+                // Invalid if there are trailing characters
+                if (consumed != token.iData.Length)
+                {
+                    //*ctx = orig_ctx;
+                    index = origIndex;
+                    return CssStatus.CSS_INVALID;
+                }
+
+                switch (num.ToInt())
+                {
+                    case 100: value = OpCodeValues.FONT_WEIGHT_100; break;
+                    case 200: value = OpCodeValues.FONT_WEIGHT_200; break;
+                    case 300: value = OpCodeValues.FONT_WEIGHT_300; break;
+                    case 400: value = OpCodeValues.FONT_WEIGHT_400; break;
+                    case 500: value = OpCodeValues.FONT_WEIGHT_500; break;
+                    case 600: value = OpCodeValues.FONT_WEIGHT_600; break;
+                    case 700: value = OpCodeValues.FONT_WEIGHT_700; break;
+                    case 800: value = OpCodeValues.FONT_WEIGHT_800; break;
+                    case 900: value = OpCodeValues.FONT_WEIGHT_900; break;
+                    default:
+                        index = origIndex;
+                        return CssStatus.CSS_INVALID;
+                }
+            }
+            else if (string.Equals(token.iData, CssStrings.Normal, StringComparison.OrdinalIgnoreCase))
+            {
+                value = OpCodeValues.FONT_WEIGHT_NORMAL;
+            }
+            else if (string.Equals(token.iData, CssStrings.Bold, StringComparison.OrdinalIgnoreCase))
+            {
+                value = OpCodeValues.FONT_WEIGHT_BOLD;
+            }
+            else if (string.Equals(token.iData, CssStrings.Bolder, StringComparison.OrdinalIgnoreCase))
+            {
+                value = OpCodeValues.FONT_WEIGHT_BOLDER;
+            }
+            else if (string.Equals(token.iData, CssStrings.Lighter, StringComparison.OrdinalIgnoreCase))
+            {
+                value = OpCodeValues.FONT_WEIGHT_LIGHTER;
+            }
+            else
+            {
+                //*ctx = orig_ctx;
+                index = origIndex;
+                return CssStatus.CSS_INVALID;
+            }
+
+            style.AppendStyle(
+                new OpCode(
+                    (ushort)CssPropertiesEnum.CSS_PROP_FONT_WEIGHT,
+                    flags,
+                    (ushort)value)
+            );
+
+            return error;
+        }
+
+        // text_decoration.c:33
+        public CssStatus Parse_text_decoration(List<CssToken> tokens, ref int index, CssStyle style)
+        {
+            int origIndex = index;
+            CssStatus error = CssStatus.CSS_INVALID;
+
+            /* IDENT([ underline || overline || line-through || blink ])
+             * | IDENT (none, inherit) */
+            if (index >= tokens.Count) return CssStatus.CSS_INVALID;
+            var token = tokens[index++];
+
+            if (token.Type != CssTokenType.CSS_TOKEN_IDENT)
+            {
+                index = origIndex;
+                return CssStatus.CSS_INVALID;
+            }
+
+            if (string.Equals(token.iData, CssStrings.Inherit, StringComparison.OrdinalIgnoreCase))
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_TEXT_DECORATION,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+            }
+            else if (string.Equals(token.iData, CssStrings.None, StringComparison.OrdinalIgnoreCase))
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_TEXT_DECORATION,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        (ushort)OpCodeValues.TEXT_DECORATION_NONE)
+                );
+            }
+            else
+            {
+                ushort value = 0;
+                while (true)
+                {
+                    if (string.Equals(token.iData, CssStrings.Underline, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if ((value & (ushort)OpCodeValues.TEXT_DECORATION_UNDERLINE) == 0)
+                            value |= (ushort)OpCodeValues.TEXT_DECORATION_UNDERLINE;
+                        else
+                        {
+                            index = origIndex;
+                            return CssStatus.CSS_INVALID;
+                        }
+                    }
+                    else if (string.Equals(token.iData, CssStrings.Overline, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if ((value & (ushort)OpCodeValues.TEXT_DECORATION_OVERLINE) == 0)
+                            value |= (ushort)OpCodeValues.TEXT_DECORATION_OVERLINE;
+                        else
+                        {
+                            index = origIndex;
+                            return CssStatus.CSS_INVALID;
+                        }
+                    }
+                    else if (string.Equals(token.iData, CssStrings.LineThrough, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if ((value & (ushort)OpCodeValues.TEXT_DECORATION_LINE_THROUGH) == 0)
+                            value |= (ushort)OpCodeValues.TEXT_DECORATION_LINE_THROUGH;
+                        else
+                        {
+                            index = origIndex;
+                            return CssStatus.CSS_INVALID;
+                        }
+                    }
+                    else if (string.Equals(token.iData, CssStrings.Blink, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if ((value & (ushort)OpCodeValues.TEXT_DECORATION_BLINK) == 0)
+                            value |= (ushort)OpCodeValues.TEXT_DECORATION_BLINK;
+                        else
+                        {
+                            index = origIndex;
+                            return CssStatus.CSS_INVALID;
+                        }
+                    }
+                    else
+                    {
+                        index = origIndex;
+                        return CssStatus.CSS_INVALID;
+                    }
+
+                    ConsumeWhitespace(tokens, ref index);
+
+                    if (index >= tokens.Count) break;
+                    token = tokens[index];
+
+                    if (token.Type != CssTokenType.CSS_TOKEN_IDENT)
+                        break;
+
+                    //parserutils_vector_iterate(vector, ctx);
+                    token = tokens[index++];
+                }
+
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_TEXT_DECORATION,
+                        0,
+                        value)
+                );
+
+            }
+
+            if (error != CssStatus.CSS_OK)
+                index = origIndex;
+
+            return error;
+        }
+        #endregion
     }
 
     // select.c:39

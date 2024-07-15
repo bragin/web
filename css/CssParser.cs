@@ -84,18 +84,21 @@ namespace SkiaSharpOpenGLBenchmark.css
     internal class CssParser
     {
         CssLexer Lex;
-        Stack<ParserState> States;
+        Stack<ParserState> States; // Stack of states
         Parser[] ParseFunc;
 
         //MemoryStream Stream;
         TextSource Source;
 
-        public List<CssToken> Tokens;
-
-        bool ParseError;
-        bool LastWasWs;
+        public List<CssToken> Tokens; // Vector of pending tokens
 
         CssToken? Pushback;	// Push back buffer
+
+        bool ParseError; // A parse error occured
+        Stack<string> OpenItems; // Stack of open brackets (FIXME: maybe should be char instead of a string)
+
+        bool LastWasWs; // Last token was whitespace
+
 
         // Debug flags
         bool DebugStack = true;
@@ -984,6 +987,11 @@ namespace SkiaSharpOpenGLBenchmark.css
                         var to = new ParserState(ParserStateValue.sAny, 0);
                         var subsequent = new ParserState(ParserStateValue.sAny0, 1);
                         var token = GetToken(out status);
+                        if (status != CssStatus.CSS_OK)
+                        {
+                            Console.WriteLine($"GetToken() error: {status.ToString()}");
+                            return status;
+                        }
                         PushBack(token);
 
                         if (token.Type == CssTokenType.CSS_TOKEN_EOF)
@@ -1170,10 +1178,8 @@ namespace SkiaSharpOpenGLBenchmark.css
                                 token.iData.Length == 1 &&
                                 (token.iData[0] == '(' || token.iData[0] == '['))
                     {
-                        Log.Unimplemented("idata");
-                        /*parserutils_stack_push(parser->open_items,
-                                &(lwc_string_data(
-                                token->idata)[0] == '(' ? ")" : "]")[0]);*/
+                        var c = (token.iData[0] == '(') ? ")" : "]";
+                        OpenItems.Push(c);
                         state.Substate = 1; // WS;
 
                     }
@@ -1211,13 +1217,12 @@ namespace SkiaSharpOpenGLBenchmark.css
                         return CssStatus.CSS_OK;
                     }
 
-                    /* Match correct close bracket (grammar ambiguity) */
+                    // Match correct close bracket (grammar ambiguity)
                     if (token.Type == CssTokenType.CSS_TOKEN_CHAR &&
-                            token.iData.Length == 1 /*&&
-                            token.iData[0] == ((uint8_t*)parserutils_stack_get_current(parser->open_items))[0]*/)
+                            token.iData.Length == 1 &&
+                            token.iData[0] == OpenItems.Peek()[0])
                     {
-                        Log.Unimplemented("idata 2");
-                        //parserutils_stack_pop(parser->open_items, NULL);
+                        OpenItems.Pop();
                         state.Substate = 3; //WS2;
                         goto ws2;
                     }
@@ -1440,6 +1445,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             //Stream = new MemoryStream(1024); // FIXME: Arbitrary input capacity used
             Lex = new CssLexer();
             States = new Stack<ParserState>();
+            OpenItems = new Stack<string>();
             Tokens = new List<CssToken>();
 
             // Push initial state to the stack

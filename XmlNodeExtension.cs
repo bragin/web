@@ -28,5 +28,35 @@ namespace SkiaSharpOpenGLBenchmark
         }
 
         //TODO: Implement a method to remove data if necessary
+
+        public static bool HasClass(this XmlNode node, string name)
+        {
+            var classes = node.Attributes["class"];
+            if (classes == null) return false;
+
+            var classesArray = classes.Value.Split(' ');
+
+            foreach (var c in classesArray)
+            {
+                if (c == name) return true;
+            }
+
+            return false;
+        }
+
+        public static bool HasId(this XmlNode node, string name)
+        {
+            var classes = node.Attributes["id"];
+            if (classes == null) return false;
+
+            var classesArray = classes.Value.Split(' ');
+
+            foreach (var c in classesArray)
+            {
+                if (c == name) return true;
+            }
+
+            return false;
+        }
     }
 }

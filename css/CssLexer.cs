@@ -27,10 +27,10 @@ namespace SkiaSharpOpenGLBenchmark.css
     {
         public CssTokenType Type;
 
-        public int DataIndex; // struct data
-        public int DataLen;  // struct data
+        public int DataIndex; // struct data, pointer to where data begins in the source stream
+        public int DataLen;  // struct data, length of data in source stream
 
-        public string iData; // interned data
+        public string iData; // copy of token data
 
         public int Col;
         public int Line;
@@ -88,6 +88,12 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             return result;
         }
+        public bool IsCssInherit()
+        {
+            return ((Type == CssTokenType.CSS_TOKEN_IDENT) &&
+                    string.Equals(iData, CssStrings.Inherit, StringComparison.OrdinalIgnoreCase));
+        }
+
     }
 
     /** \todo Optimisation -- we're currently revisiting a bunch of input
@@ -124,23 +130,25 @@ namespace SkiaSharpOpenGLBenchmark.css
     internal class CssLexer
     {
         //MemoryStream Stream;
-        TextSource Source;
-        int BytesReadForToken;
-        CssToken Token;
+        TextSource Source; // Inputstream containing CSS
+        int BytesReadForToken; // Total bytes read from the inputstream for the current token
+        CssToken Token; // Current token
+        bool EscapeSeen;    // Whether an escape sequence has been seen while processing the input for the current token
 
         CssLexerState State;
         int Substate;
 
         // Context
         char First;         // First character read for token
-        int OrigBytes;   // < Storage of current number of bytes read, for rewinding
+        int OrigBytes;      // Storage of current number of bytes read, for rewinding
         bool LastWasStar;   // Whether the previous character was an asterisk
         bool LastWasCR;     // Whether the previous character was CR
+        int HexCount;       // Counter for reading hex digits
+
+        bool EmitComments; // Whether to emit token comments
+
         int CurrentCol;     // Current column in source
         int CurrentLine;    // Current line in source
-        bool EscapeSeen;
-
-        bool EmitComments;
 
         // libcss/src/lex.c:174
         public CssLexer()
@@ -154,6 +162,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             First = (char)0;
             LastWasStar = false;
             LastWasCR = false;
+            HexCount = 0;
             CurrentCol = 1;
             CurrentLine = 1;
             EscapeSeen = false;
@@ -275,6 +284,8 @@ namespace SkiaSharpOpenGLBenchmark.css
             var t = new CssToken(Token);
             t.Type = type;
 
+            // Calculate token data start pointer. We have to do this here as
+            // the inputstream's buffer may have moved under us.
             if (EscapeSeen)
             {
                 Log.Unimplemented("EscapeSeen");
@@ -375,13 +386,12 @@ namespace SkiaSharpOpenGLBenchmark.css
                     t.DataLen -= SLEN("U+");*/
                     break;
                 case CssTokenType.CSS_TOKEN_COMMENT:
-                    Log.Unimplemented();
                     // Strip the leading '/' and '*'
-                    //t.DataIndex += SLEN("/*");
-                    //t.DataLen -= SLEN("/*");
+                    t.DataIndex += 2; // SLEN("/*");
+                    t.DataLen -= 2; // SLEN("/*");
 
                     // Strip the trailing '*' and '/'
-                    //t.DataLen -= SLEN("*/");
+                    t.DataLen -= 2; //SLEN("*/");
                     break;
                 case CssTokenType.CSS_TOKEN_FUNCTION:
                     // Strip the trailing '('
@@ -409,7 +419,7 @@ start:
                 //parserutils_inputstream_advance(
                 //      lexer->input, lexer->bytesReadForToken);
                 //Console.WriteLine("lexer:384 Advance not implemented!");
-                Source.Index += BytesReadForToken;
+                Source.Advance(BytesReadForToken);
                 BytesReadForToken = 0;
             }
 
@@ -425,8 +435,10 @@ start:
             //if (lexer->unescapedTokenData != NULL)
             //  lexer->unescapedTokenData->length = 0;
 
+            var c = Source.Peek(0);
+
             // Check for EOF in the stream
-            if (Source.Index >= Source.Length)
+            if (c == Symbols.EndOfFile)
             {
                 if (emitEOF)
                 {
@@ -441,8 +453,6 @@ start:
                 }
             }
 
-            // Peek one character from the stream
-            var c = Source[Source.Index];
             AppendToTokenData(c, 1);
             BytesReadForToken++;
             CurrentCol++;
@@ -604,6 +614,7 @@ start:
                 case '>':
                     // Check for >=
                     Log.Unimplemented();
+                    c = Source.Peek(BytesReadForToken);
                     /*
                     perror = parserutils_inputstream_peek(lexer->input,
                             lexer->bytesReadForToken, &cptr, &clen);
@@ -652,9 +663,55 @@ start:
         // lex.c:1321
         CssStatus URIOrUnicodeRangeOrIdentOrFunction(out CssToken token)
         {
-            Log.Unimplemented();
-            token = new CssToken(1);
-            return CssStatus.CSS_OK;
+            //const uint8_t* cptr;
+            //uint8_t c;
+            //size_t clen;
+            //parserutils_error perror;
+
+            /* URI = "url(" w (string | urlchar*) w ')'
+             * UNICODE-RANGE = [Uu] '+' [0-9a-fA-F?]{1,6}(-[0-9a-fA-F]{1,6})?
+             * IDENT = ident = [-]? nmstart nmchar*
+             * FUNCTION = ident '(' = [-]? nmstart nmchar* '('
+             *
+             * The 'u' (or 'U') has been consumed.
+             */
+
+            var c = Source.Peek(0);
+
+            // Check for EOF in the stream
+            if (c == Symbols.EndOfFile)
+            {
+                // IDENT, rather than CHAR
+                token = EmitToken(CssTokenType.CSS_TOKEN_IDENT);
+                return CssStatus.CSS_OK;
+            }
+
+            if (c == 'r' || c == 'R')
+            {
+                AppendToTokenData(c, 1);
+                BytesReadForToken++;
+                CurrentCol++;
+
+                State = CssLexerState.sURL;
+                Substate = 0;
+                return URI(out token);
+            }
+            else if (c == '+')
+            {
+                AppendToTokenData(c, 1);
+                BytesReadForToken++;
+                CurrentCol++;
+
+                State = CssLexerState.sUCR;
+                Substate = 0;
+                HexCount = 0;
+                return UnicodeRange(out token);
+            }
+
+            // Can only be IDENT or FUNCTION. Reprocess current character
+            State = CssLexerState.sIDENT;
+            Substate = 0;
+            return IdentOrFunction(out token);
         }
 
         // lex.c:870
@@ -700,8 +757,10 @@ start:
                 case Dot:
                     Substate = Dot;
 
+                    c = Source.Peek(BytesReadForToken);
+
                     // Check for EOF
-                    if (Source.Length <= Source.Index + BytesReadForToken)
+                    if (c == Symbols.EndOfFile)
                     {
                         if (Token.DataLen == 1 && (First == '.' || First == '+'))
                             token = EmitToken(CssTokenType.CSS_TOKEN_CHAR);
@@ -710,8 +769,6 @@ start:
 
                         return CssStatus.CSS_OK;
                     }
-
-                    c = Source[Source.Index + BytesReadForToken];
 
                     // Bail if we've not got a '.' or we've seen one already
                     if (c != '.' || First == '.')
@@ -747,8 +804,10 @@ start:
                     suffix:
                     Substate = Suffix;
 
+                    c = Source.Peek(BytesReadForToken);
+
                     // Check for EOF
-                    if (Source.Length <= Source.Index + BytesReadForToken)
+                    if (c == Symbols.EndOfFile)
                     {
                         if (Token.DataLen == 1 && (First == '.' || First == '+'))
                             token = EmitToken(CssTokenType.CSS_TOKEN_CHAR);
@@ -757,8 +816,6 @@ start:
 
                         return CssStatus.CSS_OK;
                     }
-
-                    c = Source[Source.Index + BytesReadForToken];
 
                     // A solitary '.' or '+' is a CHAR, not numeric
                     if (Token.DataLen == 1 && (First == '.' || First == '+'))
@@ -851,8 +908,82 @@ start:
         // lex.c:772
         CssStatus Comment(out CssToken token)
         {
-            Log.Unimplemented();
-            token = new CssToken(1);
+            //const uint8_t* cptr;
+            //uint8_t c;
+            //size_t clen;
+            //parserutils_error perror;
+            char c;
+
+            const int Initial = 0, InComment = 1;
+
+            /* COMMENT = '/' '*' [^*]* '*'+ ([^/] [^*]* '*'+)* '/'
+             *
+             * The '/' has been consumed.
+             */
+            switch (Substate)
+            {
+                case Initial:
+                    c = Source.Peek(BytesReadForToken);
+                    if (c == Symbols.EndOfFile)
+                    {
+                        token = EmitToken(CssTokenType.CSS_TOKEN_CHAR);
+                        return CssStatus.CSS_OK;
+                    }
+
+                    if (c != '*')
+                    {
+                        token = EmitToken(CssTokenType.CSS_TOKEN_CHAR);
+                        return CssStatus.CSS_OK;
+                    }
+
+                    //APPEND(lexer, cptr, clen);
+                    AppendToTokenData(c, 1);
+                    BytesReadForToken++;
+                    CurrentCol++;
+
+                    goto case InComment;
+
+                // Fall through
+                case InComment:
+                    Substate = InComment;
+
+                    while (true)
+                    {
+                        c = Source.Peek(BytesReadForToken);
+                        if (c == Symbols.EndOfFile)
+                        {
+                            // As per unterminated strings, we ignore unterminated comments.
+                            token = EmitToken(CssTokenType.CSS_TOKEN_EOF);
+                            return CssStatus.CSS_OK;
+                        }
+
+                        //APPEND(lexer, cptr, clen);
+                        AppendToTokenData(c, 1);
+                        BytesReadForToken++;
+                        CurrentCol++;
+
+                        if (LastWasStar && c == '/')
+                            break;
+
+                        LastWasStar = (c == '*');
+
+                        if (c == '\n' || c == '\f')
+                        {
+                            CurrentCol = 1;
+                            CurrentLine++;
+                        }
+
+                        if (LastWasCR && c != '\n')
+                        {
+                            CurrentCol = 1;
+                            CurrentLine++;
+                        }
+                        LastWasCR = (c == '\r');
+                    }
+                    break;
+            }
+
+            token = EmitToken(CssTokenType.CSS_TOKEN_COMMENT);
             return CssStatus.CSS_OK;
         }
 
@@ -893,15 +1024,15 @@ start:
                 case 1: //Bracket:
                     Substate = 1;
 
+                    var c = Source.Peek(BytesReadForToken);
+
                     // Check for EOF
-                    if (Source.Length <= Source.Index + BytesReadForToken)
+                    if (c == Symbols.EndOfFile)
                     {
                         // IDENT, rather than CHAR
                         token = EmitToken(CssTokenType.CSS_TOKEN_IDENT);
                         return CssStatus.CSS_OK;
                     }
-
-                    var c = Source[Source.Index + BytesReadForToken];
 
                     if (c == '(')
                     {
@@ -964,11 +1095,8 @@ start:
             char c;
             do
             {
-                // Check for EOF
-                if (Source.Length <= Source.Index + BytesReadForToken)
-                    return;
-
-                c = Source[Source.Index + BytesReadForToken];
+                c = Source.Peek(BytesReadForToken);
+                if (c == Symbols.EndOfFile) return;
 
                 if (StartNMChar(c) && c != '\\')
                 {
@@ -1010,17 +1138,14 @@ start:
         void ConsumeDigits()
         {
             char c;
-            int clen;
 
             /* digit = [0-9] */
 
             // Consume all digits
             do
             {
-                // Check for EOF
-                if (Source.Length <= Source.Index + BytesReadForToken)
-                    return;
-                c = Source[Source.Index + BytesReadForToken];
+                c = Source.Peek(BytesReadForToken);
+                if (c == Symbols.EndOfFile) return;
 
                 if (IsDigit(c))
                 {
@@ -1041,23 +1166,8 @@ start:
 
             do
             {
-                /*
-                perror = parserutils_inputstream_peek(lexer->input,
-                        lexer->bytesReadForToken, &cptr, &clen);
-                if (perror != PARSERUTILS_OK && perror != PARSERUTILS_EOF)
-                    return css_error_from_parserutils_error(perror);
-
-                if (perror == PARSERUTILS_EOF)
-                    return CSS_OK;
-
-                c = *cptr;*/
-
-                // Check for EOF
-                if (Source.Length <= Source.Index + BytesReadForToken)
-                    return;
-
-                c = Source[Source.Index + BytesReadForToken];
-
+                c = Source.Peek(BytesReadForToken);
+                if (c == Symbols.EndOfFile) return;
 
                 if (IsSpace(c))
                 {

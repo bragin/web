@@ -419,7 +419,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         CSS_MIN_HEIGHT_AUTO = 0x2
     }
 
-    public enum css_min_width_e : byte
+    public enum CssMinWidthEnum : byte
     {
         CSS_MIN_WIDTH_INHERIT = 0x0,
         CSS_MIN_WIDTH_SET = 0x1,
@@ -4083,19 +4083,26 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispSFH_text_transform(CssHint hint, ComputedStyle style)
         {
-            Log.Unimplemented();
+            style.SetTextTransform((CssTextTransformEnum)hint.Status);
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispInitial_text_transform(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetTextTransform(CssTextTransformEnum.CSS_TEXT_TRANSFORM_NONE);
+
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispCompose_text_transform(ComputedStyle parent, ComputedStyle child, ComputedStyle result)
         {
-            Log.Unimplemented();
+            var type = child.GetTextTransform();
+
+            if (type == CssTextTransformEnum.CSS_TEXT_TRANSFORM_INHERIT)
+                type = parent.GetTextTransform();
+
+            result.SetTextTransform(type);
+
             return CssStatus.CSS_OK;
         }
         #endregion
@@ -4265,19 +4272,27 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispSFH_white_space(CssHint hint, ComputedStyle style)
         {
-            Log.Unimplemented();
+            style.SetWhitespace((CssWhiteSpaceEnum)hint.Status);
+
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispInitial_white_space(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetWhitespace(CssWhiteSpaceEnum.CSS_WHITE_SPACE_NORMAL);
+
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispCompose_white_space(ComputedStyle parent, ComputedStyle child, ComputedStyle result)
         {
-            Log.Unimplemented();
+            var type = child.GetWhitespace();
+
+            if (type == CssWhiteSpaceEnum.CSS_WHITE_SPACE_INHERIT)
+                type = parent.GetWhitespace();
+
+            result.SetWhitespace(type);
+
             return CssStatus.CSS_OK;
         }
         #endregion
