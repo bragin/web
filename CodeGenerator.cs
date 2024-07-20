@@ -195,7 +195,37 @@ namespace SkiaSharpOpenGLBenchmark
             sw.WriteLine("            int origIndex = index;");
             sw.WriteLine("            CssStatus error = CssStatus.CSS_OK;");
             sw.WriteLine(); ;
-            sw.WriteLine("            if (index >= tokens.Count)\r\n            {\r\n                Console.WriteLine(\"ERROR: Invalid CSS 659\");\r\n                return CssStatus.CSS_INVALID;\r\n            }\r\n\r\n            var token = tokens[index++];\r\n");
+            sw.WriteLine("            if (index >= tokens.Count)\r\n            {\r\n                Console.WriteLine(\"ERROR: Invalid CSS 659\");\r\n                return CssStatus.CSS_INVALID;\r\n            }\r\n\r\n");
+            sw.WriteLine("            var token = tokens[index++];\r\n");
+
+            if (doTokenCheck)
+            {
+                bool prev = false; // there was a previous check - add &&
+
+                sw.Write("            if (");
+                if (IDENT.Count > 0)
+                {
+                    sw.Write("(token.Type != CssTokenType.CSS_TOKEN_IDENT)");
+                    prev = true;
+                }
+                if (URI.Count > 0)
+                {
+                    if (prev) sw.Write(" && ");
+                    sw.Write("(token.Type != CssTokenType.CSS_TOKEN_URI)");
+                    prev = true;
+                }
+                if (NUMBER.Count > 0)
+                {
+                    if (prev) sw.Write(" && ");
+                    sw.Write("(token.Type != CssTokenType.CSS_TOKEN_NUMBER)");
+                    prev = true;
+                }
+
+                sw.WriteLine(")\r\n            {");
+                sw.WriteLine("                index = origIndex;");
+                sw.WriteLine("                return CssStatus.CSS_INVALID;");
+                sw.WriteLine("            }\r\n");
+            }
         }
 
         static void OutputFooter(StreamWriter sw)
@@ -208,6 +238,8 @@ namespace SkiaSharpOpenGLBenchmark
             sw.WriteLine("}");
             sw.WriteLine("");*/
 
+            sw.WriteLine("        if (error != CssStatus.CSS_OK)");
+            sw.WriteLine("            index = origIndex;");
             sw.WriteLine("        return error;\r\n    }\r\n    }\r\n}");
 
         }
@@ -320,7 +352,11 @@ namespace SkiaSharpOpenGLBenchmark
 
             var enumPrefix = (parseId.Value == "op") ? "" : "CssPropertiesEnum.";
 
-            sw.WriteLine("                CssStylesheet.ParseProperty_ColourSpecifier(tokens, ref index, out value, out color);\r\n");
+            sw.WriteLine("                error = CssStylesheet.ParseProperty_ColourSpecifier(tokens, ref index, out value, out color);\r\n");
+            sw.WriteLine("                if (error != CssStatus.CSS_OK) {");
+            sw.WriteLine("                    index = origIndex;");
+            sw.WriteLine("                    return error;");
+            sw.WriteLine("                }\n");
             sw.WriteLine($"                style.AppendStyle(new OpCode((ushort){enumPrefix}{parseId.Value}, 0, value));\r\n");
             sw.WriteLine("                if (value == (ushort)OpColor.COLOR_SET)");
             sw.WriteLine($"                    style.AppendStyle(new OpCode(color));");

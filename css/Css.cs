@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using System.Drawing;
 using System.IO;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -43,7 +48,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             "CUE_BEFORE",           "CURSOR",               "DIRECTION",            "DISPLAY",              // 56
             "ELEVATION",            "EMPTY_CELLS",          "FLEX",                 "FLEX_BASIS",           // 60
             "FLEX_DIRECTION",       "FLEX_FLOW",            "FLEX_GROW",            "FLEX_SHRINK",          // 64
-            "FLEX_WRAP",            "LIBCSS_FLOAT",         "FONT",                 "FONT_FAMILY",          // 68
+            "FLEX_WRAP",            "FLOAT",                "FONT",                 "FONT_FAMILY",          // 68
             "FONT_SIZE",            "FONT_STYLE",           "FONT_VARIANT",         "FONT_WEIGHT",          // 72
             "HEIGHT",               "JUSTIFY_CONTENT",      "LEFT",                 "LETTER_SPACING",       // 76
             "LINE_HEIGHT",          "LIST_STYLE",           "LIST_STYLE_IMAGE",     "LIST_STYLE_POSITION",  // 80
@@ -62,17 +67,68 @@ namespace SkiaSharpOpenGLBenchmark.css
             "TEXT_TRANSFORM",       "TOP",                  "UNICODE_BIDI",         "VERTICAL_ALIGN",       // 132
             "VISIBILITY",           "VOICE_FAMILY",         "VOLUME",               "WHITE_SPACE",          // 136
             "WIDOWS",               "WIDTH",                "WORD_SPACING",         "WRITING_MODE",         // 140
-            "Z_INDEX"                                                                                       // 141
+            "Z_INDEX"                                                                                       // 144
         };
 
         // FIXME: Maybe unnecessary, or could be converted to an array
         public const string Auto = "auto";
-        public const string Inherit = "inherit";
-        public const string Important = "important";
-        public const string None = "none";
-        public const string Transparent = "transparent";
         public const string CurrentColor = "currentColor";
         public const string Normal = "normal";
+
+        public const string FirstChild = "first-child"; // :59
+        public const string Link = "link";
+        public const string Visited = "visited";
+        public const string Hover = "hover";
+        public const string Active = "active";
+        public const string Focus = "focus";
+        public const string Lang = "lang";
+        public const string First = "first";
+        public const string Root = "root";
+        public const string NthChild = "nth-child";
+        public const string NthLastChild = "nth-last-child";
+        public const string NthOfType = "nth-of-type";
+        public const string NthLastOfType = "nth-last-of-type";
+        public const string LastChild = "last-child";
+        public const string FirstOfType = "first-of-type";
+        public const string LastOfType = "last-of-type";
+        public const string OnlyChild = "only-child";
+        public const string OnlyOfType = "only-of-type";
+        public const string Empty = "empty";
+        public const string Target = "target";
+        public const string Enabled = "enabled";
+        public const string Disabled = "disabled";
+        public const string Checked = "checked";
+        public const string Not = "not";
+
+        public const string FirstLine = "first-line";
+        public const string FirstLetter = "first-letter";
+        public const string Before = "before";
+        public const string After = "after"; //:87
+
+        public const string Left = "left"; //:167
+
+        public const string Right = "right"; //:210
+
+        public const string Inherit = "inherit"; //:235
+        public const string Important = "important";
+        public const string None = "none";
+        public const string Both = "both";
+        public const string Fixed = "fixed";
+        public const string Scroll = "scroll";
+        public const string Transparent = "transparent";
+        public const string NoRepeat = "no-repeat";
+        public const string RepeatX = "repeat-x";
+        public const string RepeatY = "repeat-y";
+        public const string Repeat = "repeat";
+        public const string Hidden = "hidden";
+        public const string Dotted = "dotted";
+        public const string Dashed = "dashed";
+        public const string Solid = "solid";
+        public const string LibcssDouble = "double";
+        public const string Groove = "groove";
+        public const string Ridge = "ridge";
+        public const string Inset = "inset";
+        public const string Outset = "outset"; //:254
 
         public const string Bold = "bold"; // :297
         public const string Bolder = "bolder";
@@ -129,7 +185,17 @@ namespace SkiaSharpOpenGLBenchmark.css
         public const string JapaneseFormal = "japanese-formal";
         public const string KoreanHangulFormal = "korean-hangul-formal";
         public const string KoreanHanjaInformal = "korean-hanja-informal";
-        public const string KoreanHanjaFormal = "korean-hanja-formal"; // :352
+        public const string KoreanHanjaFormal = "korean-hanja-formal";
+        public const string Invert = "invert";
+        public const string Visible = "visible"; // :354
+
+        public const string OpenQuote = "open-quote"; // :407
+        public const string CloseQuote = "close-quote";
+        public const string NoOpenQuote = "no-open-quote";
+        public const string NoCloseQuote = "no-close-quote";
+        public const string Attr = "attr";
+        public const string Counter = "counter";
+        public const string Counters = "counters"; // :413
 
         public const string Underline = "underline"; // :439
         public const string Overline = "overline";
@@ -400,24 +466,24 @@ namespace SkiaSharpOpenGLBenchmark.css
             Selectors = new CssSelectorHash();
 
             // Fill in property parse handlers table (CodeGenerator.GenerateCodeStubs2())
-            ParseHandlers = new ParseProperty[CssStrings.Props.Length - 1];
+            ParseHandlers = new ParseProperty[CssStrings.Props.Length];
             ParseHandlers[0] = CssPropertyParser.Parse_align_content;
             ParseHandlers[1] = CssPropertyParser.Parse_align_items;
             ParseHandlers[2] = CssPropertyParser.Parse_align_self;
             //ParseHandlers[3] = CssPropertyParser.Parse_azimuth;
-            //ParseHandlers[4] = CssPropertyParser.Parse_background;
+            ParseHandlers[4] = Parse_background;
             ParseHandlers[5] = CssPropertyParser.Parse_background_attachment;
             ParseHandlers[6] = CssPropertyParser.Parse_background_color;
             ParseHandlers[7] = CssPropertyParser.Parse_background_image;
             //ParseHandlers[8] = CssPropertyParser.Parse_background_position;
             ParseHandlers[9] = CssPropertyParser.Parse_background_repeat;
-            //ParseHandlers[10] = CssPropertyParser.Parse_border;
+            ParseHandlers[10] = Parse_border;
             ParseHandlers[11] = CssPropertyParser.Parse_border_bottom;
             ParseHandlers[12] = CssPropertyParser.Parse_border_bottom_color;
             ParseHandlers[13] = CssPropertyParser.Parse_border_bottom_style;
             ParseHandlers[14] = CssPropertyParser.Parse_border_bottom_width;
             ParseHandlers[15] = CssPropertyParser.Parse_border_collapse;
-            //ParseHandlers[16] = CssPropertyParser.Parse_border_color;
+            ParseHandlers[16] = Parse_border_color;
             ParseHandlers[17] = CssPropertyParser.Parse_border_left;
             ParseHandlers[18] = CssPropertyParser.Parse_border_left_color;
             ParseHandlers[19] = CssPropertyParser.Parse_border_left_style;
@@ -426,8 +492,8 @@ namespace SkiaSharpOpenGLBenchmark.css
             ParseHandlers[22] = CssPropertyParser.Parse_border_right_color;
             ParseHandlers[23] = CssPropertyParser.Parse_border_right_style;
             ParseHandlers[24] = CssPropertyParser.Parse_border_right_width;
-            //ParseHandlers[25] = CssPropertyParser.Parse_border_spacing;
-            //ParseHandlers[26] = CssPropertyParser.Parse_border_style;
+            ParseHandlers[25] = Parse_border_spacing;
+            ParseHandlers[26] = Parse_border_style;
             ParseHandlers[27] = CssPropertyParser.Parse_border_top;
             ParseHandlers[28] = CssPropertyParser.Parse_border_top_color;
             ParseHandlers[29] = CssPropertyParser.Parse_border_top_style;
@@ -452,7 +518,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             ParseHandlers[48] = CssPropertyParser.Parse_column_rule_width;
             ParseHandlers[49] = CssPropertyParser.Parse_column_span;
             ParseHandlers[50] = CssPropertyParser.Parse_column_width;
-            //ParseHandlers[51] = CssPropertyParser.Parse_content;
+            ParseHandlers[51] = Parse_content;
             ParseHandlers[52] = CssPropertyParser.Parse_counter_increment;
             ParseHandlers[53] = CssPropertyParser.Parse_counter_reset;
             //ParseHandlers[54] = CssPropertyParser.Parse_cue;
@@ -470,7 +536,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             ParseHandlers[66] = CssPropertyParser.Parse_flex_grow;
             ParseHandlers[67] = CssPropertyParser.Parse_flex_shrink;
             ParseHandlers[68] = CssPropertyParser.Parse_flex_wrap;
-            //ParseHandlers[69] = CssPropertyParser.Parse_libcss_float;
+            ParseHandlers[69] = CssPropertyParser.Parse_float;
             //ParseHandlers[70] = CssPropertyParser.Parse_font;
             ParseHandlers[71] = Parse_font_family;
             ParseHandlers[72] = CssPropertyParser.Parse_font_size;
@@ -502,10 +568,10 @@ namespace SkiaSharpOpenGLBenchmark.css
             ParseHandlers[98] = CssPropertyParser.Parse_outline_color;
             ParseHandlers[99] = CssPropertyParser.Parse_outline_style;
             ParseHandlers[100] = CssPropertyParser.Parse_outline_width;
-            //ParseHandlers[101] = CssPropertyParser.Parse_overflow;
+            ParseHandlers[101] = Parse_overflow;
             ParseHandlers[102] = CssPropertyParser.Parse_overflow_x;
             ParseHandlers[103] = CssPropertyParser.Parse_overflow_y;
-            //ParseHandlers[104] = CssPropertyParser.Parse_padding;
+            ParseHandlers[104] = Parse_padding;
             ParseHandlers[105] = CssPropertyParser.Parse_padding_bottom;
             ParseHandlers[106] = CssPropertyParser.Parse_padding_left;
             ParseHandlers[107] = CssPropertyParser.Parse_padding_right;
@@ -528,24 +594,24 @@ namespace SkiaSharpOpenGLBenchmark.css
             //ParseHandlers[124] = css__parse_speak_punctuation;
             //ParseHandlers[125] = css__parse_speak;
             //ParseHandlers[126] = css__parse_speech_rate;
-            //ParseHandlers[127] = css__parse_stress;
-            //ParseHandlers[128] = css__parse_table_layout;
-            //ParseHandlers[129] = css__parse_text_align;
+            ParseHandlers[127] = CssPropertyParser.Parse_stress;
+            ParseHandlers[128] = CssPropertyParser.Parse_table_layout;
+            ParseHandlers[129] = CssPropertyParser.Parse_text_align;
             ParseHandlers[130] = Parse_text_decoration;
-            //ParseHandlers[131] = css__parse_text_indent;
-            //ParseHandlers[132] = css__parse_text_transform;
-            //ParseHandlers[133] = css__parse_top;
-            //ParseHandlers[134] = css__parse_unicode_bidi;
+            ParseHandlers[131] = CssPropertyParser.Parse_text_indent;
+            ParseHandlers[132] = CssPropertyParser.Parse_text_transform;
+            ParseHandlers[133] = CssPropertyParser.Parse_top;
+            ParseHandlers[134] = CssPropertyParser.Parse_unicode_bidi;
             ParseHandlers[135] = CssPropertyParser.Parse_vertical_align;
-            //ParseHandlers[136] = css__parse_visibility;
+            ParseHandlers[136] = CssPropertyParser.Parse_visibility;
             //ParseHandlers[137] = css__parse_voice_family;
-            //ParseHandlers[138] = css__parse_volume;
+            ParseHandlers[138] = CssPropertyParser.Parse_volume;
             ParseHandlers[139] = CssPropertyParser.Parse_white_space;
-            //ParseHandlers[140] = css__parse_widows;
-            //ParseHandlers[141] = css__parse_width;
-            //ParseHandlers[142] = css__parse_word_spacing;
-            //ParseHandlers[143] = css__parse_writing_mode;
-            //ParseHandlers[144] = css__parse_z_index;
+            ParseHandlers[140] = CssPropertyParser.Parse_widows;
+            ParseHandlers[141] = CssPropertyParser.Parse_width;
+            ParseHandlers[142] = CssPropertyParser.Parse_word_spacing;
+            ParseHandlers[143] = CssPropertyParser.Parse_writing_mode;
+            ParseHandlers[144] = CssPropertyParser.Parse_z_index;
 
         }
 
@@ -1041,6 +1107,196 @@ namespace SkiaSharpOpenGLBenchmark.css
             return CssStatus.CSS_OK;
         }
 
+        // language.c: 1288
+        static Dictionary<string, CssSelectorType> PseudoLut = new Dictionary<string, CssSelectorType>()
+        {
+            { CssStrings.FirstChild, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.Link, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.Visited, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.Hover, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.Active, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.Focus, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.Lang, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.Left, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.Right, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.First, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.Root, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.NthChild, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.NthLastChild, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.NthOfType, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.NthLastOfType, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.LastChild, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.FirstOfType, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.LastOfType, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.OnlyChild, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.OnlyOfType, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.Empty, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.Target, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.Enabled, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.Disabled, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.Checked, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+            { CssStrings.Not, CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS },
+
+            { CssStrings.FirstLine, CssSelectorType.CSS_SELECTOR_PSEUDO_ELEMENT },
+            { CssStrings.FirstLetter, CssSelectorType.CSS_SELECTOR_PSEUDO_ELEMENT },
+            { CssStrings.Before, CssSelectorType.CSS_SELECTOR_PSEUDO_ELEMENT },
+            { CssStrings.After, CssSelectorType.CSS_SELECTOR_PSEUDO_ELEMENT }
+        };
+
+        // language.c:1283
+        CssStatus ParsePseudo(List<CssToken> tokens, ref int index, bool inNot, out CssSelectorDetail specific)
+        {
+            CssQname qname = new CssQname();
+            CssSelectorDetailValue detail_value = new CssSelectorDetailValue();
+            CssSelectorDetailValueType value_type = CssSelectorDetailValueType.CSS_SELECTOR_DETAIL_VALUE_STRING;
+            CssSelectorType type = CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS;
+            bool require_element = false, negate = false;
+            specific = new CssSelectorDetail(); // just a placeholder
+
+            /* pseudo    -> ':' ':'? [ IDENT | FUNCTION ws any1 ws ')' ] */
+            if (index >= tokens.Count)
+                return CssStatus.CSS_INVALID;
+
+            var token = tokens[index++];
+
+            if (token.IsChar(':') == false)
+                return CssStatus.CSS_INVALID;
+
+
+            // Optional second colon before pseudo element names
+            if (index >= tokens.Count)
+                return CssStatus.CSS_INVALID;
+            token = tokens[index++];
+
+            if (token.IsChar(':'))
+            {
+                // If present, we require a pseudo element
+                require_element = true;
+
+                // Consume subsequent token
+                if (index >= tokens.Count)
+                    return CssStatus.CSS_INVALID;
+                token = tokens[index++];
+            }
+
+            // Expect IDENT or FUNCTION
+            if ((token.Type != CssTokenType.CSS_TOKEN_IDENT &&
+                token.Type != CssTokenType.CSS_TOKEN_FUNCTION))
+            {
+                return CssStatus.CSS_INVALID;
+            }
+
+            qname.Namespace = null;
+            qname.Name = token.iData;
+
+            // Search lut for selector type
+            if (!PseudoLut.ContainsKey(qname.Name))
+                return CssStatus.CSS_INVALID; // Not found: invalid
+
+            type = PseudoLut[qname.Name];
+
+            // Required a pseudo element, but didn't find one: invalid
+            if (require_element && type != CssSelectorType.CSS_SELECTOR_PSEUDO_ELEMENT)
+                return CssStatus.CSS_INVALID;
+            // :not() and pseudo elements are not permitted in :not()
+            if (inNot && (type == CssSelectorType.CSS_SELECTOR_PSEUDO_ELEMENT ||
+                    /*pseudo_lut[lut_idx].index == NOT*/qname.Name == CssStrings.Not))
+                return CssStatus.CSS_INVALID;
+
+            if (token.Type == CssTokenType.CSS_TOKEN_FUNCTION)
+            {
+                Log.Unimplemented("ParsePseudoList 1180");
+                /*
+                int fun_type = pseudo_lut[lut_idx].index;
+
+                consumeWhitespace(vector, ctx);
+
+                if (fun_type == LANG)
+                {
+                    // IDENT
+                    token = parserutils_vector_iterate(vector, ctx);
+                    if (token == NULL || token->type != CSS_TOKEN_IDENT)
+                        return CSS_INVALID;
+
+                    detail_value.string = token->idata;
+                    value_type = CSS_SELECTOR_DETAIL_VALUE_STRING;
+
+                    consumeWhitespace(vector, ctx);
+                }
+                else if (fun_type == NTH_CHILD ||
+                        fun_type == NTH_LAST_CHILD ||
+                        fun_type == NTH_OF_TYPE ||
+                        fun_type == NTH_LAST_OF_TYPE)
+                {
+                    // an + b
+                    error = parseNth(c, vector, ctx, &detail_value);
+                    if (error != CSS_OK)
+                        return error;
+
+                    value_type = CSS_SELECTOR_DETAIL_VALUE_NTH;
+                }
+                else if (fun_type == NOT)
+                {
+                    // type_selector | specific
+                    token = parserutils_vector_peek(vector, *ctx);
+                    if (token == NULL)
+                        return CSS_INVALID;
+
+                    if (token->type == CSS_TOKEN_IDENT ||
+                            tokenIsChar(token, '*') ||
+                            tokenIsChar(token, '|'))
+                    {
+                        // Have type selector
+                        error = parseTypeSelector(c, vector, ctx,
+                                &qname);
+                        if (error != CSS_OK)
+                            return error;
+
+                        type = CSS_SELECTOR_ELEMENT;
+
+                        // Ensure lwc insensitive string is available
+                        // for element names
+                        if (qname.name->insensitive == NULL &&
+                                lwc__intern_caseless_string(
+                                qname.name) != lwc_error_ok)
+                            return CSS_NOMEM;
+
+                        detail_value.string = NULL;
+                        value_type = CSS_SELECTOR_DETAIL_VALUE_STRING;
+                    }
+                    else
+                    {
+                        // specific
+                        css_selector_detail det;
+
+                        error = parseSpecific(c, vector, ctx, true,
+                                &det);
+                        if (error != CSS_OK)
+                            return error;
+
+                        qname = det.qname;
+                        type = det.type;
+                        detail_value = det.value;
+                        value_type = det.value_type;
+                    }
+
+                    negate = true;
+
+                    consumeWhitespace(vector, ctx);
+                }
+
+                token = parserutils_vector_iterate(vector, ctx);
+                if (token == NULL || tokenIsChar(token, ')') == false)
+                    return CSS_INVALID;
+                */
+            }
+
+            specific = new CssSelectorDetail(type, ref qname, ref detail_value,
+                value_type, negate);
+
+            return CssStatus.CSS_OK;
+        }
+
         // language.c:1461
         void ParseSpecific(List<CssToken> tokens, ref int index, bool inNot, out CssSelectorDetail specific)
         {
@@ -1078,9 +1334,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
             else if (token.IsChar(':'))
             {
-                Log.Unimplemented();
-                specific = new CssSelectorDetail();
-                //error = parsePseudo(c, vector, ctx, in_not, specific);
+                ParsePseudo(tokens, ref index, inNot, out specific);
             }
             else
             {
@@ -1335,8 +1589,9 @@ namespace SkiaSharpOpenGLBenchmark.css
             if (index >= tokens.Count) return;
 
             CssToken token = tokens[index];
-            for (; index < tokens.Count; index++, token = tokens[index])
+            while (index < tokens.Count)
             {
+                token = tokens[index++];
                 if (!token.IsChar(','))
                 {
                     Console.WriteLine($"ERROR parsing CSS: following char is not ,");
@@ -1509,14 +1764,155 @@ namespace SkiaSharpOpenGLBenchmark.css
         }
 
         // parse/properties/utils.c:131
-        public static CssStatus Parse_border_side(List<CssToken> tokens, ref int index, CssStyle style, BorderSide side)
+        public static CssStatus Parse_border_side(List<CssToken> tokens, ref int index, CssStyle result, BorderSide side)
         {
-            Log.Unimplemented();
-            return CssStatus.CSS_OK;
+            int origIndex = index;
+            int prevIndex;
+            CssStatus error = CssStatus.CSS_OK;
+            bool color = true;
+            bool style = true;
+            bool width = true;
+            CssStyle color_style;
+            CssStyle style_style;
+            CssStyle width_style;
+
+            // Firstly, handle inherit
+            if (index >= tokens.Count)
+                return CssStatus.CSS_INVALID;
+
+            var token = tokens[index];
+
+            if (token.IsCssInherit())
+            {
+                result.AppendStyle(
+                    new OpCode(
+                        (ushort)((ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_COLOR + (byte)side),
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                result.AppendStyle(
+                    new OpCode(
+                        (ushort)((ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_STYLE + (byte)side),
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                result.AppendStyle(
+                    new OpCode(
+                        (ushort)((ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_WIDTH + (byte)side),
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+
+
+                if (index < tokens.Count) index++;
+
+                return CssStatus.CSS_OK;
+            }
+
+            // allocate styles
+            color_style = new CssStyle();
+            style_style = new CssStyle();
+            width_style = new CssStyle();
+
+            // Attempt to parse the various longhand properties
+            do
+            {
+                prevIndex = index;
+                error = CssStatus.CSS_OK;
+
+                // Ensure that we're not about to parse another inherit
+                if (index >= tokens.Count)
+                {
+                    index = origIndex;
+                    return CssStatus.CSS_INVALID;
+                }
+                token = tokens[index];
+                if (token.IsCssInherit())
+                {
+                    index = origIndex;
+                    return CssStatus.CSS_INVALID;
+                }
+
+                // Try each property parser in turn, but only if we
+                // haven't already got a value for this property.
+                if ((color) &&
+                    (error = CssPropertyParser.Parse_border_side_color(tokens, ref index, color_style,
+                        (CssPropertiesEnum)(((int)CssPropertiesEnum.CSS_PROP_BORDER_TOP_COLOR) + side))) == CssStatus.CSS_OK)
+                {
+                    color = false;
+                }
+                else if ((style) &&
+                       (error = CssPropertyParser.Parse_border_side_style(tokens, ref index, style_style,
+                        (CssPropertiesEnum)(((int)CssPropertiesEnum.CSS_PROP_BORDER_TOP_STYLE) + side))) == CssStatus.CSS_OK)
+                {
+                    style = false;
+                }
+                else if ((width) &&
+                       (error = CssPropertyParser.Parse_border_side_width(tokens, ref index, width_style,
+                        (CssPropertiesEnum)(((int)CssPropertiesEnum.CSS_PROP_BORDER_TOP_WIDTH) + side))) == CssStatus.CSS_OK)
+                {
+                    width = false;
+                }
+
+                if (error == CssStatus.CSS_OK)
+                {
+                    ConsumeWhitespace(tokens, ref index);
+
+                    //token = parserutils_vector_peek(vector, *ctx);
+                    if (index >= tokens.Count) break;
+                    token = tokens[index];
+                }
+                else
+                {
+                    // Forcibly cause loop to exit
+                    //token = NULL;
+                    break;
+                }
+            } while (index != prevIndex);
+
+            if (style)
+            {
+                style_style.AppendStyle(
+                    new OpCode(
+                        (ushort)((ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_STYLE + (byte)side),
+                        0,
+                        (ushort)OpCodeValues.BORDER_STYLE_NONE)
+                );
+            }
+
+            if (width)
+            {
+                width_style.AppendStyle(
+                    new OpCode(
+                        (ushort)((ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_WIDTH + (byte)side),
+                        0,
+                        (ushort)OpCodeValues.BORDER_WIDTH_MEDIUM)
+                );
+            }
+
+            if (color)
+            {
+                width_style.AppendStyle(
+                    new OpCode(
+                        (ushort)((ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_COLOR + (byte)side),
+                        0,
+                        (ushort)OpCodeValues.BORDER_COLOR_CURRENT_COLOR)
+                );
+            }
+
+
+            result.MergeStyle(color_style);
+            result.MergeStyle(style_style);
+            result.MergeStyle(width_style);
+
+            if (error != CssStatus.CSS_OK)
+                index = origIndex;
+
+            return error;
         }
 
         // parse/properties/utils.c:368
-        public static void ParseProperty_ColourSpecifier(List<CssToken> tokens, ref int index, out ushort value, out uint result)
+        public static CssStatus ParseProperty_ColourSpecifier(List<CssToken> tokens, ref int index, out ushort value, out uint result)
         {
             bool quirksAllowed = false, quirksUsed = false; // FIXME: quirks are hardcoded to be disallowed
 
@@ -1537,11 +1933,7 @@ namespace SkiaSharpOpenGLBenchmark.css
              * For quirks, NUMBER | DIMENSION | IDENT, too
              * I.E. "123456" -> NUMBER, "1234f0" -> DIMENSION, "f00000" -> IDENT
              */
-            if (index >= tokens.Count)
-            {
-                Console.WriteLine("Invalid CSS 677");
-                return;
-            }
+            if (index >= tokens.Count) return CssStatus.CSS_INVALID;
 
             var token = tokens[index++];
             if ((token.Type != CssTokenType.CSS_TOKEN_IDENT &&
@@ -1553,8 +1945,8 @@ namespace SkiaSharpOpenGLBenchmark.css
                     (token.Type != CssTokenType.CSS_TOKEN_NUMBER &&
                      token.Type != CssTokenType.CSS_TOKEN_DIMENSION))
                 {
-                    Console.WriteLine("Invalid CSS 691");
-                    return;
+                    index = origIndex;
+                    return CssStatus.CSS_INVALID;
                 }
             }
 
@@ -1564,13 +1956,13 @@ namespace SkiaSharpOpenGLBenchmark.css
                 {
                     value = (ushort)OpColor.COLOR_TRANSPARENT;
                     result = 0; // black transparent
-                    return;
+                    return CssStatus.CSS_OK;
                 }
                 else if (token.iData.Equals(CssStrings.CurrentColor, StringComparison.OrdinalIgnoreCase))
                 {
                     value = (ushort)OpColor.COLOR_CURRENT_COLOR;
                     result = 0;
-                    return;
+                    return CssStatus.CSS_OK;
                 }
 
                 error = ParseProperty_NamedColour(token.iData, ref result);
@@ -1583,8 +1975,8 @@ namespace SkiaSharpOpenGLBenchmark.css
 
                 if (error != CssStatus.CSS_OK)
                 {
-                    Console.WriteLine("Invalid CSS 764");
-                    return;
+                    index = origIndex;
+                    return error;
                 }
             }
             else if (token.Type == CssTokenType.CSS_TOKEN_HASH)
@@ -1593,8 +1985,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                 if (error != CssStatus.CSS_OK)
                 {
                     index = origIndex;
-                    return;
-                    //goto invalid;
+                    return error;
                 }
             }
             else if (quirksAllowed &&
@@ -1608,8 +1999,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                 else
                 {
                     index = origIndex;
-                    return;
-                    //goto invalid;
+                    return error;
                 }
             }
             else if (quirksAllowed &&
@@ -1623,8 +2013,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                 else
                 {
                     index = origIndex;
-                    return;
-                    //goto invalid;
+                    return error;
                 }
             }
             else if (token.Type == CssTokenType.CSS_TOKEN_FUNCTION)
@@ -1878,6 +2267,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
 
             value = (ushort)OpColor.COLOR_SET;
+            return CssStatus.CSS_OK;
         }
 
         /**
@@ -2274,6 +2664,1064 @@ namespace SkiaSharpOpenGLBenchmark.css
             return CssStatus.CSS_OK;
         }
 
+        // background.c:33
+        public CssStatus Parse_background(List<CssToken> tokens, ref int index, CssStyle style)
+        {
+            int origIndex = index;
+            int prevIndex;
+            CssStatus error = CssStatus.CSS_OK;
+            bool attachment = true;
+            bool color = true;
+            bool image = true;
+            bool position = true;
+            bool repeat = true;
+            CssStyle attachment_style;
+            CssStyle color_style;
+            CssStyle image_style;
+            CssStyle position_style;
+            CssStyle repeat_style;
+
+            // Firstly, handle inherit
+            if (index >= tokens.Count) return CssStatus.CSS_INVALID;
+            var token = tokens[index];
+
+            if (token.IsCssInherit())
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BACKGROUND_ATTACHMENT,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BACKGROUND_COLOR,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BACKGROUND_IMAGE,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BACKGROUND_POSITION,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BACKGROUND_REPEAT,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+
+
+                // parserutils_vector_iterate(vector, ctx);
+                if (index < tokens.Count) index++;
+
+                return CssStatus.CSS_OK;
+            }
+
+            // allocate styles
+            attachment_style = new CssStyle();
+            color_style = new CssStyle();
+            image_style = new CssStyle();
+            position_style = new CssStyle();
+            repeat_style = new CssStyle();
+
+            // Attempt to parse the various longhand properties
+            do
+            {
+                prevIndex = index;
+                error = CssStatus.CSS_OK;
+
+                if (token.IsCssInherit())
+                {
+                    index = origIndex;
+                    return CssStatus.CSS_INVALID;
+                }
+
+                /* Try each property parser in turn, but only if we
+                 * haven't already got a value for this property.
+                 */
+                if ((attachment) &&
+                    (error = CssPropertyParser.Parse_background_attachment(tokens, ref index,
+                                attachment_style)) == CssStatus.CSS_OK)
+                {
+                    attachment = false;
+                }
+                else if ((color) &&
+                       (error = CssPropertyParser.Parse_background_color(tokens, ref index,
+                                color_style)) == CssStatus.CSS_OK)
+                {
+                    color = false;
+                }
+                else if ((image) &&
+                       (error = CssPropertyParser.Parse_background_image(tokens, ref index,
+                                image_style)) == CssStatus.CSS_OK)
+                {
+                    image = false;
+                }
+                else if ((position) &&
+                       (error = Parse_background_position(tokens, ref index,
+                            position_style)) == CssStatus.CSS_OK)
+                {
+                    position = false;
+                }
+                else if ((repeat) &&
+                       (error = CssPropertyParser.Parse_background_repeat(tokens, ref index,
+                            repeat_style)) == CssStatus.CSS_OK)
+                {
+                    repeat = false;
+                }
+
+                if (error == CssStatus.CSS_OK)
+                {
+                    ConsumeWhitespace(tokens, ref index);
+
+                    //token = parserutils_vector_peek(vector, *ctx);
+                    if (index >= tokens.Count) break;
+                    token = tokens[index];
+                }
+                else
+                {
+                    // Forcibly cause loop to exit
+                    break;
+                }
+            } while (index != prevIndex);
+
+            if (attachment)
+            {
+                attachment_style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BACKGROUND_ATTACHMENT,
+                        0,
+                        (ushort)OpCodeValues.BACKGROUND_ATTACHMENT_SCROLL)
+                );
+            }
+
+            if (color)
+            {
+                color_style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BACKGROUND_COLOR,
+                        0,
+                        (ushort)OpCodeValues.BACKGROUND_COLOR_TRANSPARENT)
+                );
+            }
+
+            if (image)
+            {
+                image_style.AppendStyle(
+                                    new OpCode(
+                                        (ushort)CssPropertiesEnum.CSS_PROP_BACKGROUND_IMAGE,
+                                        0,
+                                        (ushort)OpCodeValues.BACKGROUND_IMAGE_NONE)
+                                );
+            }
+
+            if (position)
+            {
+                position_style.AppendStyle(
+                                    new OpCode(
+                                        (ushort)CssPropertiesEnum.CSS_PROP_BACKGROUND_POSITION,
+                                        0,
+                                        (ushort)OpCodeValues.BACKGROUND_POSITION_HORZ_LEFT |
+                                        (ushort)OpCodeValues.BACKGROUND_POSITION_VERT_TOP)
+                                );
+            }
+
+            if (repeat)
+            {
+                repeat_style.AppendStyle(
+                                    new OpCode(
+                                        (ushort)CssPropertiesEnum.CSS_PROP_BACKGROUND_REPEAT,
+                                        0,
+                                        (ushort)OpCodeValues.BACKGROUND_REPEAT_REPEAT)
+                                );
+            }
+
+            style.MergeStyle(attachment_style);
+            style.MergeStyle(color_style);
+            style.MergeStyle(image_style);
+            style.MergeStyle(position_style);
+            style.MergeStyle(repeat_style);
+
+            if (error != CssStatus.CSS_OK)
+                index = origIndex;
+
+            return error;
+        }
+
+        // background_position.c:33
+        public CssStatus Parse_background_position(List<CssToken> tokens, ref int index, CssStyle style)
+        {
+            Log.Unimplemented();
+            return CssStatus.CSS_INVALID;
+        }
+
+        // Parse border shorthand
+        // border.c:33
+        public CssStatus Parse_border(List<CssToken> tokens, ref int index, CssStyle style)
+        {
+            int origIndex = index;
+            CssStatus error = CssStatus.CSS_OK;
+
+            error = Parse_border_side(tokens, ref index, style, BorderSide.BORDER_SIDE_TOP);
+            if (error != CssStatus.CSS_OK)
+            {
+                index = origIndex;
+                return error;
+            }
+
+            index = origIndex;
+            error = Parse_border_side(tokens, ref index, style, BorderSide.BORDER_SIDE_RIGHT);
+            if (error != CssStatus.CSS_OK)
+            {
+                index = origIndex;
+                return error;
+            }
+
+            index = origIndex;
+            error = Parse_border_side(tokens, ref index, style, BorderSide.BORDER_SIDE_BOTTOM);
+            if (error != CssStatus.CSS_OK)
+            {
+                index = origIndex;
+                return error;
+            }
+
+            index = origIndex;
+            error = Parse_border_side(tokens, ref index, style, BorderSide.BORDER_SIDE_LEFT);
+            if (error != CssStatus.CSS_OK)
+                index = origIndex;
+
+            return error;
+        }
+
+        // border_style.c:33
+        public CssStatus Parse_border_style(List<CssToken> tokens, ref int index, CssStyle style)
+        {
+            int origIndex = index;
+            int prevIndex;
+            ushort[] side_val = new ushort[4];
+            uint side_count = 0;
+            CssStatus error = CssStatus.CSS_OK;
+
+            // Firstly, handle inherit
+            if (index >= tokens.Count) return CssStatus.CSS_INVALID;
+            var token = tokens[index];
+
+            if (token.IsCssInherit())
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_STYLE,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BORDER_RIGHT_STYLE,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BORDER_BOTTOM_STYLE,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BORDER_LEFT_STYLE,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+
+                //parserutils_vector_iterate(vector, ctx);
+                if (index < tokens.Count) index++;
+
+                return CssStatus.CSS_OK;
+            }
+
+            // Attempt to parse up to 4 styles
+            do
+            {
+                prevIndex = index;
+
+                if (/*(token != null) &&*/ token.IsCssInherit())
+                {
+                    index = origIndex;
+                    return CssStatus.CSS_INVALID;
+                }
+
+                if (token.Type != CssTokenType.CSS_TOKEN_IDENT) break;
+
+                if (string.Equals(token.iData, CssStrings.None, StringComparison.OrdinalIgnoreCase))
+                {
+                    side_val[side_count] = (ushort)OpCodeValues.BORDER_STYLE_NONE;
+                }
+                else if (string.Equals(token.iData, CssStrings.Hidden, StringComparison.OrdinalIgnoreCase))
+                {
+                    side_val[side_count] = (ushort)OpCodeValues.BORDER_STYLE_HIDDEN;
+                }
+                else if (string.Equals(token.iData, CssStrings.Dotted, StringComparison.OrdinalIgnoreCase))
+                {
+                    side_val[side_count] = (ushort)OpCodeValues.BORDER_STYLE_DOTTED;
+                }
+                else if (string.Equals(token.iData, CssStrings.Dashed, StringComparison.OrdinalIgnoreCase))
+                {
+                    side_val[side_count] = (ushort)OpCodeValues.BORDER_STYLE_DASHED;
+                }
+                else if (string.Equals(token.iData, CssStrings.Solid, StringComparison.OrdinalIgnoreCase))
+                {
+                    side_val[side_count] = (ushort)OpCodeValues.BORDER_STYLE_SOLID;
+                }
+                else if (string.Equals(token.iData, CssStrings.LibcssDouble, StringComparison.OrdinalIgnoreCase))
+                {
+                    side_val[side_count] = (ushort)OpCodeValues.BORDER_STYLE_DOUBLE;
+                }
+                else if (string.Equals(token.iData, CssStrings.Groove, StringComparison.OrdinalIgnoreCase))
+                {
+                    side_val[side_count] = (ushort)OpCodeValues.BORDER_STYLE_GROOVE;
+                }
+                else if (string.Equals(token.iData, CssStrings.Ridge, StringComparison.OrdinalIgnoreCase))
+                {
+                    side_val[side_count] = (ushort)OpCodeValues.BORDER_STYLE_RIDGE;
+                }
+                else if (string.Equals(token.iData, CssStrings.Inset, StringComparison.OrdinalIgnoreCase))
+                {
+                    side_val[side_count] = (ushort)OpCodeValues.BORDER_STYLE_INSET;
+                }
+                else if (string.Equals(token.iData, CssStrings.Outset, StringComparison.OrdinalIgnoreCase))
+                {
+                    side_val[side_count] = (ushort)OpCodeValues.BORDER_STYLE_OUTSET;
+                }
+                else
+                {
+                    break;
+                }
+
+                side_count++;
+
+                index++;
+
+                ConsumeWhitespace(tokens, ref index);
+
+                //token = parserutils_vector_peek(vector, *ctx);
+                if (index >= tokens.Count) break;
+                token = tokens[index];
+            } while ((index != prevIndex) && (side_count < 4));
+
+            switch (side_count)
+            {
+                case 1:
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_STYLE, 0, side_val[0]));
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_RIGHT_STYLE, 0, side_val[0]));
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_BOTTOM_STYLE, 0, side_val[0]));
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_LEFT_STYLE, 0, side_val[0]));
+                    break;
+                case 2:
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_STYLE, 0, side_val[0]));
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_RIGHT_STYLE, 0, side_val[1]));
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_BOTTOM_STYLE, 0, side_val[0]));
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_LEFT_STYLE, 0, side_val[1]));
+                    break;
+                case 3:
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_STYLE, 0, side_val[0]));
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_RIGHT_STYLE, 0, side_val[1]));
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_BOTTOM_STYLE, 0, side_val[2]));
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_LEFT_STYLE, 0, side_val[1]));
+                    break;
+                case 4:
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_STYLE, 0, side_val[0]));
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_RIGHT_STYLE, 0, side_val[1]));
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_BOTTOM_STYLE, 0, side_val[2]));
+                    style.AppendStyle(new OpCode((ushort)CssPropertiesEnum.CSS_PROP_BORDER_LEFT_STYLE, 0, side_val[3]));
+                    break;
+                default:
+                    error = CssStatus.CSS_INVALID;
+                    break;
+            }
+
+            if (error != CssStatus.CSS_OK)
+                index = origIndex;
+
+            return error;
+        }
+
+        // border_color.c:33
+        public CssStatus Parse_border_color(List<CssToken> tokens, ref int index, CssStyle style)
+        {
+            int origIndex = index;
+            int prevIndex;
+            ushort[] side_val = new ushort[4];
+            uint[] side_color = new uint[4];
+            uint side_count = 0;
+            CssStatus error;
+
+            // Firstly, handle inherit
+            if (index >= tokens.Count) return CssStatus.CSS_INVALID;
+            var token = tokens[index];
+
+            if (token.IsCssInherit())
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_COLOR,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BORDER_RIGHT_COLOR,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BORDER_BOTTOM_COLOR,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BORDER_LEFT_COLOR,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+
+                //parserutils_vector_iterate(vector, ctx);
+                if (index < tokens.Count) index++;
+
+                return CssStatus.CSS_OK;
+            }
+
+            // Attempt to parse up to 4 colors
+            do
+            {
+                prevIndex = index;
+
+                if (/*(token != null) &&*/ token.IsCssInherit())
+                {
+                    index = origIndex;
+                    return CssStatus.CSS_INVALID;
+                }
+
+                ParseProperty_ColourSpecifier(tokens, ref index, out side_val[side_count], out side_color[side_count]);
+                error = CssStatus.CSS_OK;// because function above doesn't return status
+
+                if (error == CssStatus.CSS_OK)
+                {
+                    side_count++;
+
+                    ConsumeWhitespace(tokens, ref index);
+
+                    //token = parserutils_vector_peek(vector, *ctx);
+                    if (index >= tokens.Count) break;
+                    token = tokens[index];
+                }
+                else
+                {
+                    // Forcibly cause loop to exit
+                    //token = NULL;
+                    break;
+                }
+            } while ((index != prevIndex) && (side_count < 4));
+
+            switch (side_count)
+            {
+                case 1:
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_COLOR, 0, side_val, side_color);
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_RIGHT_COLOR, 0, side_val, side_color);
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_BOTTOM_COLOR, 0, side_val, side_color);
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_LEFT_COLOR, 0, side_val, side_color);
+                    break;
+                case 2:
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_COLOR, 0, side_val, side_color);
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_RIGHT_COLOR, 1, side_val, side_color);
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_BOTTOM_COLOR, 0, side_val, side_color);
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_LEFT_COLOR, 1, side_val, side_color);
+                    break;
+                case 3:
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_COLOR, 0, side_val, side_color);
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_RIGHT_COLOR, 1, side_val, side_color);
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_BOTTOM_COLOR, 2, side_val, side_color);
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_LEFT_COLOR, 1, side_val, side_color);
+                    break;
+                case 4:
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_TOP_COLOR, 0, side_val, side_color);
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_RIGHT_COLOR, 1, side_val, side_color);
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_BOTTOM_COLOR, 2, side_val, side_color);
+                    SIDE_APPEND_border_color(style, (ushort)CssPropertiesEnum.CSS_PROP_BORDER_LEFT_COLOR, 3, side_val, side_color);
+                    break;
+                default:
+                    error = CssStatus.CSS_INVALID;
+                    break;
+            }
+
+            if (error != CssStatus.CSS_OK)
+                index = origIndex;
+
+            return error;
+        }
+
+        // Parse border-spacing
+        // border_spacing.c:33
+        public CssStatus Parse_border_spacing(List<CssToken> tokens, ref int index, CssStyle style)
+        {
+            int origIndex = index;
+            CssStatus error = CssStatus.CSS_OK;
+            Fixed[] length = new Fixed[2];
+            uint[] unit = new uint[2];
+
+            /* length length? | IDENT(inherit) */
+
+            if (index >= tokens.Count) return CssStatus.CSS_INVALID;
+
+            var token = tokens[index];
+
+            if (token.Type == CssTokenType.CSS_TOKEN_IDENT &&
+                string.Equals(token.iData, CssStrings.Inherit, StringComparison.OrdinalIgnoreCase))
+            {
+                index++;
+
+                // inherit
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BORDER_SPACING,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0));
+            }
+            else
+            {
+                int num_lengths = 0;
+
+                error = ParseProperty_UnitSpecifier(
+                            tokens, ref index,
+                            OpcodeUnit.PX,
+                            out length[0],
+                            out unit[0]);
+                if (error != CssStatus.CSS_OK)
+                {
+                    index = origIndex;
+                    return error;
+                }
+
+                if (((unit[0] & (uint)OpcodeUnit.ANGLE) != 0) ||
+                    ((unit[0] & (uint)OpcodeUnit.TIME) != 0) ||
+                    ((unit[0] & (uint)OpcodeUnit.FREQ) != 0) ||
+                    ((unit[0] & (uint)OpcodeUnit.PCT) != 0))
+                {
+                    index = origIndex;
+                    return CssStatus.CSS_INVALID;
+                }
+
+                num_lengths = 1;
+
+                ConsumeWhitespace(tokens, ref index);
+
+                if (index < tokens.Count)
+                {
+                    token = tokens[index];
+                    /* Attempt second length, ignoring errors.
+                     * The core !important parser will ensure
+                     * any remaining junk is thrown out.
+                     * Ctx will be preserved on error, as usual
+                     */
+                    error = ParseProperty_UnitSpecifier(
+                                tokens, ref index,
+                                OpcodeUnit.PX,
+                                out length[1],
+                                out unit[1]);
+
+                    if (error == CssStatus.CSS_OK)
+                    {
+                        if (((unit[1] & (uint)OpcodeUnit.ANGLE) != 0) ||
+                            ((unit[1] & (uint)OpcodeUnit.TIME) != 0) ||
+                            ((unit[1] & (uint)OpcodeUnit.FREQ) != 0) ||
+                            ((unit[1] & (uint)OpcodeUnit.PCT) != 0))
+                        {
+                            index = origIndex;
+                            return CssStatus.CSS_INVALID;
+                        }
+
+                        num_lengths = 2;
+                    }
+                }
+
+                if (num_lengths == 1)
+                {
+                    // Only one length specified. Use for both axes.
+                    length[1] = length[0];
+                    unit[1] = unit[0];
+                }
+
+                /* Lengths must not be negative */
+                if (length[0] < 0 || length[1] < 0)
+                {
+                    index = origIndex;
+                    return CssStatus.CSS_INVALID;
+                }
+
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_BORDER_SPACING,
+                        0,
+                        (ushort)OpCodeValues.BORDER_SPACING_SET));
+
+                style.AppendStyle(new OpCode((uint)length[0].RawValue));
+                style.AppendStyle(new OpCode(unit[0]));
+                style.AppendStyle(new OpCode((uint)length[1].RawValue));
+                style.AppendStyle(new OpCode(unit[1]));
+            }
+
+            return CssStatus.CSS_OK;
+        }
+
+        // content.c:33
+        public CssStatus Parse_content(List<CssToken> tokens, ref int index, CssStyle style)
+        {
+            int origIndex = index;
+            CssStatus error = CssStatus.CSS_OK;
+
+            // IDENT(normal, none, inherit) | [ ... ]+
+            if (index >= tokens.Count) return CssStatus.CSS_INVALID;
+
+            var token = tokens[index++];
+
+            if (token.Type == CssTokenType.CSS_TOKEN_IDENT &&
+                string.Equals(token.iData, CssStrings.Inherit, StringComparison.OrdinalIgnoreCase))
+            {
+                style.Inherit((ushort)CssPropertiesEnum.CSS_PROP_CONTENT);
+            }
+            else if (token.Type == CssTokenType.CSS_TOKEN_IDENT &&
+                string.Equals(token.iData, CssStrings.Normal, StringComparison.OrdinalIgnoreCase))
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_CONTENT,
+                        0,
+                        (ushort)OpCodeValues.CONTENT_NORMAL)
+                );
+            }
+            else if (token.Type == CssTokenType.CSS_TOKEN_IDENT &&
+                string.Equals(token.iData, CssStrings.None, StringComparison.OrdinalIgnoreCase))
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_CONTENT,
+                        0,
+                        (ushort)OpCodeValues.CONTENT_NONE)
+                );
+            }
+            else
+            {
+                bool first = true;
+                int prevIndex = origIndex;
+
+                /* [
+                 *   IDENT(open-quote, close-quote, no-open-quote,
+                 *         no-close-quote) |
+                 *   STRING |
+                 *   URI |
+                 *   FUNCTION(attr) IDENT ')' |
+                 *   FUNCTION(counter) IDENT IDENT? ')' |
+                 *   FUNCTION(counters) IDENT STRING IDENT? ')'
+                 * ]+
+                 */
+
+                while (true)
+                {
+                    if (token.Type == CssTokenType.CSS_TOKEN_IDENT &&
+                        string.Equals(token.iData, CssStrings.OpenQuote, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // #define CSS_APPEND(CSSVAL) css__stylesheet_style_append(result, first?buildOPV(CSS_PROP_CONTENT, 0, CSSVAL):CSSVAL)
+                        //error = CSS_APPEND(CONTENT_OPEN_QUOTE);
+                        Log.Unimplemented();
+                    }
+                    else if (token.Type == CssTokenType.CSS_TOKEN_IDENT &&
+                            string.Equals(token.iData, CssStrings.CloseQuote, StringComparison.OrdinalIgnoreCase))
+                    {
+                        //error = CSS_APPEND(CONTENT_CLOSE_QUOTE);
+                        Log.Unimplemented();
+                    }
+                    else if (token.Type == CssTokenType.CSS_TOKEN_IDENT &&
+                             string.Equals(token.iData, CssStrings.NoOpenQuote, StringComparison.OrdinalIgnoreCase))
+                    {
+                        //error = CSS_APPEND(CONTENT_NO_OPEN_QUOTE);
+                        Log.Unimplemented();
+                    }
+                    else if (token.Type == CssTokenType.CSS_TOKEN_IDENT &&
+                            string.Equals(token.iData, CssStrings.NoCloseQuote, StringComparison.OrdinalIgnoreCase))
+                    {
+                        //error = CSS_APPEND(CONTENT_NO_CLOSE_QUOTE);
+                        Log.Unimplemented();
+                    }
+                    else if (token.Type == CssTokenType.CSS_TOKEN_STRING)
+                    {
+                        uint snumber;
+                        AddString(token.iData, out snumber);
+
+                        style.AppendStyle(first ?
+                            new OpCode((ushort)CssPropertiesEnum.CSS_PROP_CONTENT, 0, (ushort)OpCodeValues.CONTENT_STRING) :
+                            new OpCode((uint)OpCodeValues.CONTENT_STRING));
+
+                        style.AppendStyle(new OpCode(snumber));
+
+                        error = CssStatus.CSS_OK;
+                    }
+                    else if (token.Type == CssTokenType.CSS_TOKEN_URI)
+                    {
+                        Log.Unimplemented();
+                        /*
+                        lwc_string* uri;
+                        uint32_t uri_snumber;
+
+                        error = c->sheet->resolve(c->sheet->resolve_pw,
+                                      c->sheet->url,
+                                      token->idata,
+                                      &uri);
+                        if (error != CSS_OK)
+                        {
+                            *ctx = orig_ctx;
+                            return error;
+                        }
+
+                        error = css__stylesheet_string_add(c->sheet,
+                                          uri,
+                                          &uri_snumber);
+                        if (error != CSS_OK)
+                        {
+                            *ctx = orig_ctx;
+                            return error;
+                        }
+
+                        error = CSS_APPEND(CONTENT_URI);
+                        if (error != CSS_OK)
+                        {
+                            *ctx = orig_ctx;
+                            return error;
+                        }
+
+                        error = css__stylesheet_style_append(result, uri_snumber);*/
+                    }
+                    else if (token.Type == CssTokenType.CSS_TOKEN_FUNCTION &&
+                        string.Equals(token.iData, CssStrings.Attr, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Log.Unimplemented();
+                        /*
+                        uint32_t snumber;
+
+                        consumeWhitespace(vector, ctx);
+
+                        // Expect IDENT
+                        token = parserutils_vector_iterate(vector, ctx);
+                        if (token == NULL || token->type != CSS_TOKEN_IDENT)
+                        {
+                            *ctx = orig_ctx;
+                            return CSS_INVALID;
+                        }
+
+                        error = css__stylesheet_string_add(c->sheet, lwc_string_ref(token->idata), &snumber);
+                        if (error != CSS_OK)
+                        {
+                            *ctx = orig_ctx;
+                            return error;
+                        }
+
+                        error = CSS_APPEND(CONTENT_ATTR);
+                        if (error != CSS_OK)
+                        {
+                            *ctx = orig_ctx;
+                            return error;
+                        }
+
+                        error = css__stylesheet_style_append(result, snumber);
+
+                        consumeWhitespace(vector, ctx);
+
+                        // Expect ')'
+                        token = parserutils_vector_iterate(vector, ctx);
+                        if (token == NULL || tokenIsChar(token, ')') == false)
+                        {
+                            *ctx = orig_ctx;
+                            return CSS_INVALID;
+                        }*/
+                    }
+                    else if (token.Type == CssTokenType.CSS_TOKEN_FUNCTION &&
+                        string.Equals(token.iData, CssStrings.Counter, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Log.Unimplemented();
+                        /*
+                        lwc_string* name;
+                        uint32_t snumber;
+                        uint32_t opv;
+
+                        opv = CONTENT_COUNTER;
+
+                        consumeWhitespace(vector, ctx);
+
+                        // Expect IDENT
+                        token = parserutils_vector_iterate(vector, ctx);
+                        if (token == NULL || token->type != CSS_TOKEN_IDENT)
+                        {
+                            *ctx = orig_ctx;
+                            return CSS_INVALID;
+                        }
+
+                        name = token->idata;
+
+                        consumeWhitespace(vector, ctx);
+
+                        // Possible ','
+                        token = parserutils_vector_peek(vector, *ctx);
+                        if (token == NULL ||
+                            (tokenIsChar(token, ',') == false &&
+                             tokenIsChar(token, ')') == false))
+                        {
+                            *ctx = orig_ctx;
+                            return CSS_INVALID;
+                        }
+
+                        if (tokenIsChar(token, ','))
+                        {
+                            uint16_t v;
+
+                            parserutils_vector_iterate(vector, ctx);
+
+                            consumeWhitespace(vector, ctx);
+
+                            // Expect IDENT
+                            token = parserutils_vector_peek(vector, *ctx);
+                            if (token == NULL || token->type !=
+                                CSS_TOKEN_IDENT)
+                            {
+                                *ctx = orig_ctx;
+                                return CSS_INVALID;
+                            }
+
+                            error = css__parse_list_style_type_value(c, token, &v);
+                            if (error != CSS_OK)
+                            {
+                                *ctx = orig_ctx;
+                                return error;
+                            }
+
+                            opv |= v << CONTENT_COUNTER_STYLE_SHIFT;
+
+                            parserutils_vector_iterate(vector, ctx);
+
+                            consumeWhitespace(vector, ctx);
+                        }
+                        else
+                        {
+                            opv |= LIST_STYLE_TYPE_DECIMAL <<
+                                CONTENT_COUNTER_STYLE_SHIFT;
+                        }
+
+                        // Expect ')'
+                        token = parserutils_vector_iterate(vector, ctx);
+                        if (token == NULL || tokenIsChar(token, ')') == false)
+                        {
+                            *ctx = orig_ctx;
+                            return CSS_INVALID;
+                        }
+
+                        error = css__stylesheet_string_add(c->sheet, lwc_string_ref(name), &snumber);
+                        if (error != CSS_OK)
+                        {
+                            *ctx = orig_ctx;
+                            return error;
+                        }
+
+                        error = CSS_APPEND(opv);
+                        if (error != CSS_OK)
+                        {
+                            *ctx = orig_ctx;
+                            return error;
+                        }
+
+                        error = css__stylesheet_style_append(result, snumber);*/
+                    }
+                    else if (token.Type == CssTokenType.CSS_TOKEN_FUNCTION &&
+                        string.Equals(token.iData, CssStrings.Counters, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Log.Unimplemented();
+                        /*
+                        lwc_string* name;
+                        lwc_string* sep;
+                        uint32_t name_snumber;
+                        uint32_t sep_snumber;
+                        uint32_t opv;
+
+                        opv = CONTENT_COUNTERS;
+
+                        consumeWhitespace(vector, ctx);
+
+                        // Expect IDENT
+                        token = parserutils_vector_iterate(vector, ctx);
+                        if (token == NULL || token->type != CSS_TOKEN_IDENT)
+                        {
+                            *ctx = orig_ctx;
+                            return CSS_INVALID;
+                        }
+
+                        name = token->idata;
+
+                        consumeWhitespace(vector, ctx);
+
+                        // Expect ','
+                        token = parserutils_vector_iterate(vector, ctx);
+                        if (token == NULL || tokenIsChar(token, ',') == false)
+                        {
+                            *ctx = orig_ctx;
+                            return CSS_INVALID;
+                        }
+
+                        consumeWhitespace(vector, ctx);
+
+                        // Expect STRING
+                        token = parserutils_vector_iterate(vector, ctx);
+                        if (token == NULL || token->type != CSS_TOKEN_STRING)
+                        {
+                            *ctx = orig_ctx;
+                            return CSS_INVALID;
+                        }
+
+                        sep = token->idata;
+
+                        consumeWhitespace(vector, ctx);
+
+                        // Possible ','
+                        token = parserutils_vector_peek(vector, *ctx);
+                        if (token == NULL ||
+                            (tokenIsChar(token, ',') == false &&
+                             tokenIsChar(token, ')') == false))
+                        {
+                            *ctx = orig_ctx;
+                            return CSS_INVALID;
+                        }
+
+                        if (tokenIsChar(token, ','))
+                        {
+                            uint16_t v;
+
+                            parserutils_vector_iterate(vector, ctx);
+
+                            consumeWhitespace(vector, ctx);
+
+                            // Expect IDENT
+                            token = parserutils_vector_peek(vector, *ctx);
+                            if (token == NULL || token->type !=
+                                CSS_TOKEN_IDENT)
+                            {
+                                *ctx = orig_ctx;
+                                return CSS_INVALID;
+                            }
+
+                            error = css__parse_list_style_type_value(c,
+                                                token, &v);
+                            if (error != CSS_OK)
+                            {
+                                *ctx = orig_ctx;
+                                return error;
+                            }
+
+                            opv |= v << CONTENT_COUNTERS_STYLE_SHIFT;
+
+                            parserutils_vector_iterate(vector, ctx);
+
+                            consumeWhitespace(vector, ctx);
+                        }
+                        else
+                        {
+                            opv |= LIST_STYLE_TYPE_DECIMAL <<
+                                CONTENT_COUNTERS_STYLE_SHIFT;
+                        }
+
+                        // Expect ')'
+                        token = parserutils_vector_iterate(vector, ctx);
+                        if (token == NULL || tokenIsChar(token, ')') == false)
+                        {
+                            *ctx = orig_ctx;
+                            return CSS_INVALID;
+                        }
+
+
+                        error = css__stylesheet_string_add(c->sheet, lwc_string_ref(name), &name_snumber);
+                        if (error != CSS_OK)
+                        {
+                            *ctx = orig_ctx;
+                            return error;
+                        }
+
+                        error = css__stylesheet_string_add(c->sheet, lwc_string_ref(sep), &sep_snumber);
+                        if (error != CSS_OK)
+                        {
+                            *ctx = orig_ctx;
+                            return error;
+                        }
+
+                        error = CSS_APPEND(opv);
+                        if (error != CSS_OK)
+                        {
+                            *ctx = orig_ctx;
+                            return error;
+                        }
+
+                        error = css__stylesheet_style_append(result, name_snumber);
+                        if (error != CSS_OK)
+                        {
+                            *ctx = orig_ctx;
+                            return error;
+                        }
+
+                        error = css__stylesheet_style_append(result, sep_snumber);*/
+                    }
+                    else if (first)
+                    {
+                        // Invalid if this is the first iteration
+                        error = CssStatus.CSS_INVALID;
+                    }
+                    else
+                    {
+                        // Give up, ensuring current token is reprocessed
+                        index = prevIndex;
+                        error = CssStatus.CSS_OK;
+                        break;
+                    }
+
+                    // if there was an error bail
+                    if (error != CssStatus.CSS_OK)
+                    {
+                        index = origIndex;
+                        return error;
+                    }
+
+                    first = false;
+
+                    ConsumeWhitespace(tokens, ref index);
+
+                    prevIndex = index;
+                    //token = parserutils_vector_iterate(vector, ctx);
+                    if (index >= tokens.Count) break;
+                    token = tokens[index++];
+                } // while
+
+                // Write list terminator
+                style.AppendStyle(new OpCode((uint)OpCodeValues.CONTENT_NORMAL));
+            }
+
+            if (error != CssStatus.CSS_OK)
+                index = origIndex;
+
+            return error;
+        }
+
         static Dictionary<string, OpCodeValues> ListTypeMapping = new Dictionary<string, OpCodeValues>()
         {
             { CssStrings.Disc, OpCodeValues.LIST_STYLE_TYPE_DISC},
@@ -2398,6 +3846,16 @@ namespace SkiaSharpOpenGLBenchmark.css
             return error;
         }
 
+        static void SIDE_APPEND_border_color(CssStyle style, ushort op, int num, ushort[] side_val, uint[] side_color)
+        {
+            style.AppendStyle(new OpCode(op, 0, side_val[(num)]));
+
+            if (side_val[num] == (int)OpCodeValues.BORDER_COLOR_SET)
+            {
+                style.AppendStyle(new OpCode(side_color[num]));
+            }
+        }
+
         static void SIDE_APPEND(CssStyle style, ushort op, int num, uint[] side_val, Fixed[] side_length, uint[] side_unit)
         {
             style.AppendStyle(new OpCode(op, 0, (ushort)side_val[(num)]));
@@ -2407,6 +3865,13 @@ namespace SkiaSharpOpenGLBenchmark.css
                 style.AppendStyle(new OpCode((uint)side_length[num].RawValue));
                 style.AppendStyle(new OpCode(side_unit[num]));
             }
+        }
+
+        static void SIDE_APPEND_padding(CssStyle style, ushort op, int num, Fixed[] side_length, uint[] side_unit)
+        {
+            style.AppendStyle(new OpCode(op, 0, (ushort)OpCodeValues.PADDING_SET));
+            style.AppendStyle(new OpCode((uint)side_length[num].RawValue));
+            style.AppendStyle(new OpCode(side_unit[num]));
         }
 
         // margin.c:33
@@ -2542,6 +4007,242 @@ namespace SkiaSharpOpenGLBenchmark.css
                     SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_RIGHT, 1, side_val, side_length, side_unit);
                     SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_BOTTOM, 2, side_val, side_length, side_unit);
                     SIDE_APPEND(style, (ushort)CssPropertiesEnum.CSS_PROP_MARGIN_LEFT, 3, side_val, side_length, side_unit);
+                    break;
+                default:
+                    error = CssStatus.CSS_INVALID;
+                    break;
+            }
+
+            if (error != CssStatus.CSS_OK)
+                index = origIndex;
+
+            return error;
+        }
+
+        // overflow.c:33
+        public CssStatus Parse_overflow(List<CssToken> tokens, ref int index, CssStyle style)
+        {
+            CssStatus error1 = CssStatus.CSS_OK, error2 = CssStatus.CSS_OK;
+            int origIndex = index;
+
+            if (index >= tokens.Count) return CssStatus.CSS_INVALID;
+            var token = tokens[index++];
+
+            if (token.Type != CssTokenType.CSS_TOKEN_IDENT)
+            {
+                index = origIndex;
+                return CssStatus.CSS_INVALID;
+            }
+
+
+            if (string.Equals(token.iData, CssStrings.Inherit, StringComparison.OrdinalIgnoreCase))
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_OVERFLOW_X,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_OVERFLOW_Y,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+            }
+            else if (string.Equals(token.iData, CssStrings.Visible, StringComparison.OrdinalIgnoreCase))
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_OVERFLOW_X,
+                        0,
+                        (ushort)OpCodeValues.OVERFLOW_VISIBLE)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_OVERFLOW_Y,
+                        0,
+                        (ushort)OpCodeValues.OVERFLOW_VISIBLE)
+                );
+
+            }
+            else if (string.Equals(token.iData, CssStrings.Hidden, StringComparison.OrdinalIgnoreCase))
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_OVERFLOW_X,
+                        0,
+                        (ushort)OpCodeValues.OVERFLOW_HIDDEN)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_OVERFLOW_Y,
+                        0,
+                        (ushort)OpCodeValues.OVERFLOW_HIDDEN)
+                );
+            }
+            else if (string.Equals(token.iData, CssStrings.Scroll, StringComparison.OrdinalIgnoreCase))
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_OVERFLOW_X,
+                        0,
+                        (ushort)OpCodeValues.OVERFLOW_SCROLL)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_OVERFLOW_Y,
+                        0,
+                        (ushort)OpCodeValues.OVERFLOW_SCROLL)
+                );
+            }
+            else if (string.Equals(token.iData, CssStrings.Auto, StringComparison.OrdinalIgnoreCase))
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_OVERFLOW_X,
+                        0,
+                        (ushort)OpCodeValues.OVERFLOW_AUTO)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_OVERFLOW_Y,
+                        0,
+                        (ushort)OpCodeValues.OVERFLOW_AUTO)
+                );
+            }
+            else
+            {
+                error1 = CssStatus.CSS_INVALID;
+            }
+
+            if (error2 != CssStatus.CSS_OK)
+                error1 = error2;
+
+            if (error1 != CssStatus.CSS_OK)
+                index = origIndex;
+
+            return error1;
+        }
+
+        // padding.c:33
+        public CssStatus Parse_padding(List<CssToken> tokens, ref int index, CssStyle style)
+        {
+            CssStatus error = CssStatus.CSS_OK;
+            Fixed[] side_length = new Fixed[4];
+            uint[] side_unit = new uint[4];
+            uint side_count = 0;
+            int origIndex = index;
+            int prevIndex;
+
+            // Firstly, handle inherit
+            if (index >= tokens.Count) return CssStatus.CSS_INVALID;
+            var token = tokens[index];
+
+            if (token.IsCssInherit())
+            {
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_PADDING_TOP,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_PADDING_RIGHT,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_PADDING_BOTTOM,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+                style.AppendStyle(
+                    new OpCode(
+                        (ushort)CssPropertiesEnum.CSS_PROP_PADDING_LEFT,
+                        (byte)OpCodeFlag.FLAG_INHERIT,
+                        0)
+                );
+
+                if (index < tokens.Count) index++;
+
+                return error;
+            }
+
+            // Attempt to parse up to 4 widths
+            do
+            {
+                prevIndex = index;
+
+                if (/*(token != null) &&*/ token.IsCssInherit())
+                {
+                    index = origIndex;
+                    return CssStatus.CSS_INVALID;
+                }
+
+                error = ParseProperty_UnitSpecifier(
+                    tokens, ref index,
+                    OpcodeUnit.PX,
+                    out side_length[side_count],
+                    out side_unit[side_count]);
+                if (error == CssStatus.CSS_OK)
+                {
+                    if (((side_unit[side_count] & (uint)OpcodeUnit.ANGLE) != 0) ||
+                        ((side_unit[side_count] & (uint)OpcodeUnit.TIME) != 0) ||
+                        ((side_unit[side_count] & (uint)OpcodeUnit.FREQ) != 0))
+                    {
+                        index = origIndex;
+                        return CssStatus.CSS_INVALID;
+                    }
+
+                    if (side_length[side_count] < 0)
+                    {
+                        index = origIndex;
+                        return CssStatus.CSS_INVALID;
+                    }
+
+                    side_count++;
+
+                    ConsumeWhitespace(tokens, ref index);
+
+                    if (index >= tokens.Count) break;
+                    token = tokens[index];
+                }
+                else
+                {
+                    /* Forcibly cause loop to exit */
+                    //token = NULL;
+                    break;
+                }
+            } while ((index != prevIndex) && (side_count < 4));
+
+            switch (side_count)
+            {
+                case 1:
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_TOP, 0, side_length, side_unit);
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_RIGHT, 0, side_length, side_unit);
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_BOTTOM, 0, side_length, side_unit);
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_LEFT, 0, side_length, side_unit);
+                    break;
+                case 2:
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_TOP, 0, side_length, side_unit);
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_RIGHT, 1, side_length, side_unit);
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_BOTTOM, 0, side_length, side_unit);
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_LEFT, 1, side_length, side_unit);
+                    break;
+                case 3:
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_TOP, 0, side_length, side_unit);
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_RIGHT, 1, side_length, side_unit);
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_BOTTOM, 2, side_length, side_unit);
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_LEFT, 1, side_length, side_unit);
+                    break;
+                case 4:
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_TOP, 0, side_length, side_unit);
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_RIGHT, 1, side_length, side_unit);
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_BOTTOM, 2, side_length, side_unit);
+                    SIDE_APPEND_padding(style, (ushort)CssPropertiesEnum.CSS_PROP_PADDING_LEFT, 3, side_length, side_unit);
                     break;
                 default:
                     error = CssStatus.CSS_INVALID;

@@ -13,7 +13,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         public OpCode[] Bytecode; // Pointer to bytecode
         public int Used; // number of code entries used
         int Allocated; // number of allocated code entries
-        CssStylesheet Sheet; // Reference to containing sheet
+        CssStylesheet? Sheet; // Reference to containing sheet
 
         /* Note, CSS_STYLE_DEFAULT_SIZE must be a power of 2 */
         /* With a test set of NetSurf's homepage, BBC news, wikipedia, CNN, Ars, Google and El-Reg,
@@ -32,6 +32,17 @@ namespace SkiaSharpOpenGLBenchmark.css
             Allocated = CSS_STYLE_DEFAULT_SIZE;
             Used = 0;
         }
+
+        // FIXME: It's not the right way, but for now let's try with no sheet
+        public CssStyle()
+        {
+            // FIXME: Sheet CachedStyle is not supported
+
+            Bytecode = new OpCode[CSS_STYLE_DEFAULT_SIZE];
+            Allocated = CSS_STYLE_DEFAULT_SIZE;
+            Used = 0;
+        }
+
 
         // stylesheet.c:723
         public void AppendStyle(OpCode opcode)
@@ -62,6 +73,11 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             Array.Copy(style.Bytecode, 0, Bytecode, Used, style.Used);
             Used += style.Used;
+        }
+
+        public void Inherit(ushort op)
+        {
+            AppendStyle(new OpCode(op, (byte)OpCodeFlag.FLAG_INHERIT, 0));
         }
     }
 }

@@ -32,6 +32,10 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         public string iData; // copy of token data
 
+        // FIXME: This should be done somehow differently...
+        public string EscapeData; // copy of escaped data
+
+
         public int Col;
         public int Line;
 
@@ -43,6 +47,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             DataIndex = 0;
             DataLen = 0;
             iData = "";
+            EscapeData = "";
             Col = 0;
             Line = 0;
 
@@ -55,6 +60,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             DataIndex = 0;
             DataLen = 0;
             iData = "";
+            EscapeData = "";
             Col = 0;
             Line = 0;
 
@@ -67,6 +73,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             DataIndex = t.DataIndex;
             DataLen = t.DataLen;
             iData = t.iData;
+            EscapeData = t.EscapeData;
             Col = t.Col;
             Line = t.Line;
             Error = t.Error;
@@ -134,6 +141,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         int BytesReadForToken; // Total bytes read from the inputstream for the current token
         CssToken Token; // Current token
         bool EscapeSeen;    // Whether an escape sequence has been seen while processing the input for the current token
+        string UnescapedTokenData; // Buffer containing unescaped token data (used iff escapeSeen == true)
 
         CssLexerState State;
         int Substate;
@@ -262,7 +270,10 @@ namespace SkiaSharpOpenGLBenchmark.css
                     if (error != CSS_OK)
                         return error;
                 */
-                Log.Unimplemented("EscapeSeen");
+                Token.EscapeData += (char)data;
+                Token.DataLen += len;
+                //Log.Unimplemented("EscapeSeen");
+                //Token.DataIndex = -1;
             }
 
             Token.DataLen += len;
@@ -314,9 +325,14 @@ namespace SkiaSharpOpenGLBenchmark.css
                     // Strip the leading quote
                     t.DataIndex += 1;
                     t.DataLen -= 1;
+                    t.EscapeData = t.EscapeData.Substring(1);
 
                     // Strip the trailing quote, iff it exists (may have hit EOF)
-                    Log.Unimplemented();
+                    //Log.Unimplemented();
+                    if (t.EscapeData[t.EscapeData.Length - 1] == '"')
+                    {
+                        t.EscapeData = t.EscapeData.Substring(0, t.EscapeData.Length - 1);
+                    }
                     /*
                     if (t->data.len > 0 && (t->data.data[t->data.len - 1] == '"' ||
                             t->data.data[t->data.len - 1] == '\''))
@@ -434,6 +450,7 @@ start:
             EscapeSeen = false;
             //if (lexer->unescapedTokenData != NULL)
             //  lexer->unescapedTokenData->length = 0;
+            UnescapedTokenData = "";
 
             var c = Source.Peek(0);
 
@@ -656,8 +673,24 @@ start:
         // lex.c:1301
         CssStatus String(out CssToken token)
         {
-            Log.Unimplemented();
-            token = new CssToken(1);
+            CssStatus status = CssStatus.CSS_OK;
+
+            /* STRING = string
+             *
+             * The open quote has been consumed.
+             */
+
+            status = ConsumeString();
+            if (status != CssStatus.CSS_OK && status != CssStatus.CSS_EOF && status != CssStatus.CSS_INVALID)
+            {
+                token = new CssToken();
+                return status;
+            }
+
+            /* EOF will be reprocessed in Start() */
+            token = EmitToken(status == CssStatus.CSS_INVALID ?
+                CssTokenType.CSS_TOKEN_INVALID_STRING : CssTokenType.CSS_TOKEN_STRING);
+
             return CssStatus.CSS_OK;
         }
         // lex.c:1321
@@ -1157,6 +1190,373 @@ start:
             } while (IsDigit(c));
         }
 
+        // lex.c:1704
+        CssStatus ConsumeEscape(bool nl)
+        {
+            char c, sdata;
+            CssStatus error;
+
+            /* escape = unicode | '\' [^\n\r\f0-9a-fA-F]
+             *
+             * The '\' has been consumed.
+             */
+
+            c = Source.Peek(BytesReadForToken);
+            if (c == Symbols.EndOfFile) return CssStatus.CSS_EOF;
+
+            if (!nl && (c == '\n' || c == '\r' || c == '\f'))
+            {
+                // These are not permitted
+                return CssStatus.CSS_INVALID;
+            }
+
+            // Create unescaped buffer, if it doesn't already exist
+            /*if (UnescapedTokenData == NULL)
+            {
+                perror = parserutils_buffer_create(&lexer->unescapedTokenData);
+                if (perror != PARSERUTILS_OK)
+                    return css_error_from_parserutils_error(perror);
+            }*/
+
+            /* If this is the first escaped character we've seen for this token,
+             * we must copy the characters we've read to the unescaped buffer */
+            if (!EscapeSeen)
+            {
+                if (BytesReadForToken > 1)
+                {
+                    //sdata = Source.Peek(0);
+
+                    //assert(perror == PARSERUTILS_OK);
+
+                    // -1 to skip '\\'
+                    /*
+                    perror = parserutils_buffer_append(
+                            lexer->unescapedTokenData,
+                            sdata, lexer->bytesReadForToken - 1);
+                    if (perror != PARSERUTILS_OK)
+                        return css_error_from_parserutils_error(perror);
+                    */
+                    for (int i = 0; i < BytesReadForToken - 1; i++)
+                        UnescapedTokenData += Source.Peek(i);
+                }
+
+                Token.DataLen = BytesReadForToken - 1;
+                Token.EscapeData = UnescapedTokenData;
+                EscapeSeen = true;
+            }
+
+            if (IsHex(c))
+            {
+                BytesReadForToken++;
+
+                error = ConsumeUnicode(CharToHex(c));
+                if (error != CssStatus.CSS_OK)
+                {
+                    // Rewind for next time
+                    BytesReadForToken--;
+                }
+
+                return error;
+            }
+
+            // If we're handling escaped newlines, convert CR(LF)? to LF
+            if (nl && c == '\r')
+            {
+                c = Source.Peek(BytesReadForToken + 1);
+
+                if (c == Symbols.EndOfFile)
+                {
+                    c = '\n';
+                    //APPEND(lexer, &c, 1);
+                    AppendToTokenData(c, 1);
+                    BytesReadForToken++;
+                    CurrentCol++;
+
+                    CurrentCol = 1;
+                    CurrentLine++;
+
+                    return CssStatus.CSS_OK;
+                }
+
+                if (c == '\n')
+                {
+                    //APPEND(lexer, &c, 1);
+                    AppendToTokenData(c, 1);
+                    BytesReadForToken++;
+                    CurrentCol++;
+
+                    // And skip the '\r' in the input
+                    BytesReadForToken++;
+
+                    CurrentCol = 1;
+                    CurrentLine++;
+
+                    return CssStatus.CSS_OK;
+                }
+            }
+            else if (nl && (c == '\n' || c == '\f'))
+            {
+                // APPEND will increment this appropriately
+                CurrentCol = 0;
+                CurrentLine++;
+            }
+            else if (c != '\n' && c != '\r' && c != '\f')
+            {
+                CurrentCol++;
+            }
+
+            // Append the unescaped character
+            //APPEND(lexer, cptr, clen);
+            AppendToTokenData(c, 1);
+            BytesReadForToken++;
+            CurrentCol++;
+
+            return CssStatus.CSS_OK;
+        }
+
+        // lex.c:1866
+        CssStatus ConsumeString()
+        {
+            CssStatus status;
+            char c;
+            char quote = First;
+            char permittedquote = (quote == '"') ? '\'' : '"';
+
+            /* string = '"' (stringchar | "'")* '"' | "'" (stringchar | '"')* "'"
+             *
+             * The open quote has been consumed.
+             */
+
+            do
+            {
+                c = Source.Peek(BytesReadForToken);
+                if (c == Symbols.EndOfFile) return CssStatus.CSS_EOF;
+
+                if (c == permittedquote)
+                {
+                    //APPEND(lexer, cptr, clen);
+                    AppendToTokenData(c, 1);
+                    BytesReadForToken++;
+                    CurrentCol++;
+                } else if (StartStringChar(c))
+                {
+                    status = ConsumeStringChars();
+                    if (status != CssStatus.CSS_OK)
+                        return status;
+                }
+                else if (c != quote)
+                {
+                    // Invalid character in string
+                    return CssStatus.CSS_INVALID;
+                }
+            } while (c != quote);
+
+            // Append closing quote to token data
+            //APPEND(lexer, cptr, clen);
+            AppendToTokenData(c, 1);
+            BytesReadForToken++;
+            CurrentCol++;
+
+            return CssStatus.CSS_OK;
+        }
+
+        // lex.c:1910
+        CssStatus ConsumeStringChars()
+        {
+            char c;
+            CssStatus error;
+
+            /* stringchar = urlchar | ' ' | ')' | '\' nl */
+
+            do
+            {
+                c = Source.Peek(BytesReadForToken);
+                if (c == Symbols.EndOfFile) return CssStatus.CSS_OK;
+
+                if (StartStringChar(c) && c != '\\')
+                {
+                    //APPEND(lexer, cptr, clen);
+                    AppendToTokenData(c, 1);
+                    BytesReadForToken++;
+                    CurrentCol++;
+                }
+
+                if (c == '\\')
+                {
+                    BytesReadForToken++;
+
+                    error = ConsumeEscape(true);
+                    if (error != CssStatus.CSS_OK)
+                    {
+                        /* Rewind '\\', so we do the
+                         * right thing next time. */
+                        BytesReadForToken--;
+
+                        /* Convert EOF to OK. This causes the caller
+                         * to believe that all StringChars have been
+                         * processed. Eventually, the '\\' will be
+                         * output as a CHAR. */
+                        if (error == CssStatus.CSS_EOF)
+                            return CssStatus.CSS_OK;
+
+                        return error;
+                    }
+                }
+            } while (StartStringChar(c));
+
+            return CssStatus.CSS_OK;
+        }
+
+        // lex.c:1960
+        CssStatus ConsumeUnicode(uint ucs)
+        {
+            //const uint8_t* cptr;
+            char c;
+            //size_t clen;
+            //uint8_t utf8[6];
+            //uint8_t* utf8data = utf8;
+            //size_t utf8len = sizeof(utf8);
+            int bytesReadInit = BytesReadForToken;
+            int count;
+            CssStatus error;
+
+            /* unicode = '\' [0-9a-fA-F]{1,6} wc?
+             *
+             * The '\' and the first digit have been consumed.
+             */
+
+            // Attempt to consume a further five hex digits
+            for (count = 0; count < 5; count++)
+            {
+                c = Source.Peek(BytesReadForToken);
+                if (c == Symbols.EndOfFile)
+                    break;
+
+                if (IsHex(c))
+                {
+                    BytesReadForToken++;
+
+                    ucs = (ucs << 4) | CharToHex(c);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            // Sanitise UCS4 character
+            if (ucs > 0x10FFFF || ucs <= 0x0008 || ucs == 0x000B ||
+                    (0x000E <= ucs && ucs <= 0x001F) ||
+                    (0x007F <= ucs && ucs <= 0x009F) ||
+                    (0xD800 <= ucs && ucs <= 0xDFFF) ||
+                    (0xFDD0 <= ucs && ucs <= 0xFDEF) ||
+                    (ucs & 0xFFFE) == 0xFFFE)
+            {
+                ucs = 0xFFFD;
+            }
+            else if (ucs == 0x000D)
+            {
+                ucs = 0x000A;
+            }
+
+            // Convert our UCS4 character to UTF-8
+            // FIXME: Not needed at all because I convert using .NET below
+            char[] utf8 = new char[6];
+            int utf8len = utf8.Length;
+            UTF8_FROM_UCS4(ucs, utf8, out utf8len);
+            //perror = parserutils_charset_utf8_from_ucs4(ucs, &utf8data, &utf8len);
+            //assert(perror == PARSERUTILS_OK);
+
+            /* Attempt to read a trailing whitespace character */
+            c = Source.Peek(BytesReadForToken);
+            if (c != Symbols.EndOfFile && c == '\r')
+            {
+                // Potential CRLF
+                /*
+                const uint8_t* pCR = cptr;
+
+                perror = parserutils_inputstream_peek(lexer->input,
+                        lexer->bytesReadForToken + 1, &cptr, &clen);
+                if (perror != PARSERUTILS_OK && perror != PARSERUTILS_EOF)
+                {
+                    // Rewind what we've read
+                    lexer->bytesReadForToken = bytesReadInit;
+                    return css_error_from_parserutils_error(perror);
+                }
+
+                if (perror == PARSERUTILS_OK && *cptr == '\n')
+                {
+                    // CRLF -- account for CR
+                    lexer->bytesReadForToken += 1;
+                }
+                else
+                {
+                    // Stray CR -- restore for later
+                    cptr = pCR;
+                    clen = 1;
+                    perror = PARSERUTILS_OK;
+                }*/
+                Log.Unimplemented();
+            }
+
+            /* Append char. to the token data (unescaped buffer already set up) */
+            /* We can't use the APPEND() macro here as we want to rewind correctly
+             * on error. Additionally, BytesReadForToken has already been
+             * advanced */
+            /*error = appendToTokenData(lexer, (const uint8_t*) utf8, sizeof(utf8) - utf8len);
+            if (error != CssStatus.CSS_OK)
+            {
+                // Rewind what we've read
+                BytesReadForToken = bytesReadInit;
+                return error;
+            }*/
+            // FIXME: I implement it directly here instead of calling AppendToTokenData
+            if (EscapeSeen)
+            {
+                Encoding unicode = Encoding.UTF8;
+                Encoding unicode32 = Encoding.UTF32;
+
+                byte[] src = new byte[4];
+                src[0] = (byte)(ucs & 0xff);
+                src[1] = (byte)((ucs & 0xff00) >> 8);
+                src[2] = (byte)((ucs & 0xff0000) >> 16);
+                src[3] = (byte)((ucs & 0xff000000) >> 24);
+
+                byte[] dst = Encoding.Convert(unicode32, unicode, src);
+                char[] asciiChars = new char[unicode.GetCharCount(dst, 0, dst.Length)];
+                unicode.GetChars(dst, 0, dst.Length, asciiChars, 0);
+
+                string result = new string(asciiChars);
+                UnescapedTokenData += result;
+
+                Token.DataLen += result.Length;
+                Token.EscapeData += result;
+            }
+
+            // Deal with the whitespace character
+            if (c == Symbols.EndOfFile)
+                return CssStatus.CSS_OK;
+
+            if (IsSpace(c))
+            {
+                BytesReadForToken++;
+            }
+
+            // Fixup cursor position
+            if (c == '\r' || c == '\n' || c == '\f')
+            {
+                CurrentCol = 1;
+                CurrentLine++;
+            }
+            else
+            {
+                // +2 for '\' and first digit
+                CurrentCol += BytesReadForToken - bytesReadInit + 2;
+            }
+
+            return CssStatus.CSS_OK;
+        }
+
         // lex.c:2133
         void ConsumeWChars()
         {
@@ -1212,7 +1612,15 @@ start:
             return c == '_' || ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') ||
                 c >= 0x80 || c == '\\';
         }
-
+        static bool StartStringChar(char c)
+        {
+            return StartURLChar(c) || c == ' ' || c == ')';
+        }
+        static bool StartURLChar(char c)
+        {
+            return c == '\t' || c == '!' || ('#' <= c && c <= '&') || c == '(' ||
+                ('*' <= c && c <= '~') || c >= 0x80 || c == '\\';
+        }
         static bool IsSpace(char c)
         {
             return c == ' ' || c == '\r' || c == '\n' || c == '\f' || c == '\t';
@@ -1220,6 +1628,99 @@ start:
         static bool IsDigit(char c)
         {
             return ('0' <= c) && (c <= '9');
+        }
+        static bool IsHex(char c)
+        {
+            return IsDigit(c) || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
+        }
+        static uint CharToHex(char c)
+        {
+            uint res = (uint)c;
+
+            res -= '0';
+
+            if (res > 9)
+                res -= 'A' - '9' - 1;
+
+            if (res > 15)
+                res -= 'a' - 'A';
+
+            return res;
+        }
+
+        // utf8impl.h
+        /**
+         * Convert a single UCS-4 character into a UTF-8 multibyte sequence
+         *
+         * Encoding of UCS values outside the UTF-16 plane has been removed from
+         * RFC3629. This macro conforms to RFC2279, however.
+         *
+         * \param ucs4   The character to process (0 <= c <= 0x7FFFFFFF) (host endian)
+         * \param s      Pointer to pointer to output buffer, updated on exit
+         * \param len    Pointer to length, in bytes, of output buffer, updated on exit
+         * \param error  Location to receive error code
+         */
+        void UTF8_FROM_UCS4(uint ucs4, char[] buf, out int l)
+        {
+            l = 0;
+            //error = PARSERUTILS_OK;
+            //if (s == NULL || *s == NULL || len == NULL) {
+            //    error = PARSERUTILS_BADPARM;
+            //    break;
+            //}
+            if (ucs4 < 0x80)
+            {
+                l = 1;
+            }
+            else if (ucs4 < 0x800)
+            {
+                l = 2;
+            }
+            else if (ucs4 < 0x10000)
+            {
+                l = 3;
+            }
+            else if (ucs4 < 0x200000)
+            {
+                l = 4;
+            }
+            else if (ucs4 < 0x4000000)
+            {
+                l = 5;
+            }
+            else if (ucs4 <= 0x7FFFFFFF)
+            {
+                l = 6;
+            }
+            else
+            {
+                //error = PARSERUTILS_INVALID;
+                return;
+            }
+            if (l > buf.Length)
+            {
+                //error = PARSERUTILS_NOMEM;				\
+                return;
+            }
+
+            //buf = *s;
+
+            if (l == 1)
+            {
+                buf[0] = (char)ucs4;
+            }
+            else
+            {
+                int i;
+                for (i = l; i > 1; i--)
+                {
+                    buf[i - 1] = (char)(0x80 | (ucs4 & 0x3F));
+                    ucs4 >>= 6;
+                }
+                buf[0] = (char)(~((1 << (8 - l)) - 1) | ucs4);
+            }
+            //*s += l;
+            //len -= l;
         }
 
     }
