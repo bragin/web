@@ -2,29 +2,17 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace SkiaSharpOpenGLBenchmark
 {
-    // computed.c:49
-    public enum CssComputedContentType : byte
-    {
-        CSS_COMPUTED_CONTENT_NONE = 0,
-        CSS_COMPUTED_CONTENT_STRING = 1,
-        CSS_COMPUTED_CONTENT_URI = 2,
-        CSS_COMPUTED_CONTENT_COUNTER = 3,
-        CSS_COMPUTED_CONTENT_COUNTERS = 4,
-        CSS_COMPUTED_CONTENT_ATTR = 5,
-        CSS_COMPUTED_CONTENT_OPEN_QUOTE = 6,
-        CSS_COMPUTED_CONTENT_CLOSE_QUOTE = 7,
-        CSS_COMPUTED_CONTENT_NO_OPEN_QUOTE = 8,
-        CSS_COMPUTED_CONTENT_NO_CLOSE_QUOTE = 9
-    };
-
     public struct Color : IEquatable<Color>
     {
         uint rawValue;
@@ -69,9 +57,49 @@ namespace SkiaSharpOpenGLBenchmark
         {
             rawValue = nv;
         }
-
-
     }
+
+    // computed.h:27
+    public struct CssComputedCounter
+    {
+        string Name;
+        Fixed Value;
+    }
+
+    // computed.h:32
+    public struct CssComputedClipRect
+    {
+        public Fixed Top;
+        public Fixed Right;
+        public Fixed Bottom;
+        public Fixed Left;
+
+        public CssUnit Tunit;
+        public CssUnit Runit;
+        public CssUnit Bunit;
+        public CssUnit Lunit;
+
+        public bool TopAuto;
+        public bool RightAuto;
+        public bool BottomAuto;
+        public bool LeftAuto;
+    }
+
+    // computed.h:49
+    public enum CssComputedContentType : byte
+    {
+        CSS_COMPUTED_CONTENT_NONE = 0,
+        CSS_COMPUTED_CONTENT_STRING = 1,
+        CSS_COMPUTED_CONTENT_URI = 2,
+        CSS_COMPUTED_CONTENT_COUNTER = 3,
+        CSS_COMPUTED_CONTENT_COUNTERS = 4,
+        CSS_COMPUTED_CONTENT_ATTR = 5,
+        CSS_COMPUTED_CONTENT_OPEN_QUOTE = 6,
+        CSS_COMPUTED_CONTENT_CLOSE_QUOTE = 7,
+        CSS_COMPUTED_CONTENT_NO_OPEN_QUOTE = 8,
+        CSS_COMPUTED_CONTENT_NO_CLOSE_QUOTE = 9
+    };
+
 
     public enum CssPseudoElement : int
     {
@@ -302,7 +330,7 @@ namespace SkiaSharpOpenGLBenchmark
         public Fixed clip_c;
         public Fixed clip_d;
         public Color color;
-        int column_count;
+        public int column_count;
         public Fixed column_gap;
         public Color column_rule_color;
         public Fixed column_rule_width;
@@ -412,18 +440,23 @@ namespace SkiaSharpOpenGLBenchmark
     // computed.h:62
     public struct CssComputedContentItem
     {
-        CssComputedContentType Type;
+        public CssComputedContentType Type;
 
-        string Name; // aka attr, string, uri
-        string Sep;
-        byte Style;
+        public string Name; // aka attr, string, uri
+        public string Sep;
+        public byte Style;
     }
 
     public class ComputedStyle
     {
         public ComputedStyleI i;
 
-        CssComputedContentItem Content;
+        CssComputedContentItem[] Content;
+        CssComputedCounter[] CounterIncrement;
+        CssComputedCounter[] CounterReset;
+        string[] Cursor;
+        string[] FontFamily;
+        string[] Quotes;
 
         int count;
         uint bin;
@@ -432,12 +465,21 @@ namespace SkiaSharpOpenGLBenchmark
         {
             bin = UInt32.MaxValue;
             i = new ComputedStyleI();
+            Content = new CssComputedContentItem[1];
+            CounterIncrement = new CssComputedCounter[1];
+            CounterReset = new CssComputedCounter[1];
+            Cursor = new string[1];
+            FontFamily = new string[1];
+            Quotes = new string[1];
         }
 
         // css_computed_style_compose
-        // select.c:253
+        // computed.c:253
         public ComputedStyle(ComputedStyle parent, ComputedStyle child, CssUnitCtx unitCtx)
         {
+            CssStatus error;
+            //ComputedStyle composed = new ComputedStyle();
+
             /* TODO:
              *   Make this function take a composition context, to allow us
              *   to avoid the churn of unnecesaraly allocating and freeing
@@ -450,40 +492,371 @@ namespace SkiaSharpOpenGLBenchmark
             for (int i = 0; i < (int)CssPropertiesEnum.CSS_N_PROPERTIES; i++)
             {
                 // Compose the property
-                //error = prop_dispatch[i].compose(parent, child, composed);
-                //if (error != CSS_OK)
-                  //  break;
+                error = CssProps.Dispatch[i].Compose(parent, child, this);
+                if (error != CssStatus.CSS_OK)
+                    break;
             }
 
-            Log.Unimplemented();
-
             // Finally, compute absolute values for everything
-            //css__compute_absolute_values(parent, composed, unit_ctx);
+            ComputeAbsoluteValues(parent, unitCtx);
 
             //*result = composed;
             //return css__arena_intern_style(result);
         }
 
         // Property access indices and masks
+        // 0  bbbbbbbboooooooorrrrrrrrdddddddd
+        // border_left_width; border_top_width; border_bottom_width; border_right_width
+        const uint BORDER_RIGHT_WIDTH_INDEX = 0;
+        const byte BORDER_RIGHT_WIDTH_SHIFT = 0;
+        const uint BORDER_RIGHT_WIDTH_MASK = 0xff;
+
+        const uint BORDER_BOTTOM_WIDTH_INDEX = 0;
+        const byte BORDER_BOTTOM_WIDTH_SHIFT = 8;
+        const uint BORDER_BOTTOM_WIDTH_MASK = 0xff00;
+
+        const uint BORDER_TOP_WIDTH_INDEX = 0;
+        const byte BORDER_TOP_WIDTH_SHIFT = 16;
+        const uint BORDER_TOP_WIDTH_MASK = 0xff0000;
+
+        const uint BORDER_LEFT_WIDTH_INDEX = 0;
+        const byte BORDER_LEFT_WIDTH_SHIFT = 24;
+        const uint BORDER_LEFT_WIDTH_MASK = 0xff000000;
+
+        // 1  vvvvvvvvvooooooooccccccccmmmmmmm
+        // vertical_align; outline_width; column_rule_width; margin_top
         const uint MARGIN_TOP_INDEX = 1;
         const byte MARGIN_TOP_SHIFT = 0;
         const uint MARGIN_TOP_MASK = 0x7f;
+
+        const uint COLUMN_RULE_WIDTH_INDEX = 1;
+        const byte COLUMN_RULE_WIDTH_SHIFT = 7;
+        const uint COLUMN_RULE_WIDTH_MASK = 0x7f80;
+
+        const uint OUTLINE_WIDTH_INDEX = 1;
+        const byte OUTLINE_WIDTH_SHIFT = 15;
+        const uint OUTLINE_WIDTH_MASK = 0x7f8000;
+
+        const uint VERTICAL_ALIGN_INDEX = 1;
+        const byte VERTICAL_ALIGN_SHIFT = 23;
+        const uint VERTICAL_ALIGN_MASK = 0xff800000;
+
+        // 2  ccccccccccccccccccccccccccpppppp
+        // clip; padding_left
+        const uint PADDING_LEFT_INDEX = 2;
+        const byte PADDING_LEFT_SHIFT = 0;
+        const uint PADDING_LEFT_MASK = 0x3f;
+
+        const uint CLIP_INDEX = 2;
+        const byte CLIP_SHIFT = 6;
+        const uint CLIP_MASK = 0xffffffc0;
+
+        // 3 mmmmmmmrrrrrrrwwwwwwwttttttddddd
+        // max_height; right; width; text_indent; display
+        const uint DISPLAY_INDEX = 3;
+        const byte DISPLAY_SHIFT = 0;
+        const uint DISPLAY_MASK = 0x1f;
+
+        const uint TEXT_INDENT_INDEX = 3;
+        const byte TEXT_INDENT_SHIFT = 5;
+        const uint TEXT_INDENT_MASK = 0x7e0;
+
+        const uint WIDTH_INDEX = 3;
+        const byte WIDTH_SHIFT = 11;
+        const uint WIDTH_MASK = 0x3f800;
+
+        const uint RIGHT_INDEX = 3;
+        const byte RIGHT_SHIFT = 18;
+        const uint RIGHT_MASK = 0x1fc0000;
+
+        const uint MAX_HEIGHT_INDEX = 3;
+        const byte MAX_HEIGHT_SHIFT = 25;
+        const uint MAX_HEIGHT_MASK = 0xfe000000;
+
+        // 4 fffffffmmmmmmmcccccccllllllltttt
+        // flex_basis; min_height; column_gap; left; text_align
+        const uint TEXT_ALIGN_INDEX = 4;
+        const byte TEXT_ALIGN_SHIFT = 0;
+        const uint TEXT_ALIGN_MASK = 0xf;
+
+        const uint LEFT_INDEX = 4;
+        const byte LEFT_SHIFT = 4;
+        const uint LEFT_MASK = 0x7f0;
+
+        const uint COLUMN_GAP_INDEX = 4;
+        const byte COLUMN_GAP_SHIFT = 11;
+        const uint COLUMN_GAP_MASK = 0x3f800;
+
+        const uint MIN_HEIGHT_INDEX = 4;
+        const byte MIN_HEIGHT_SHIFT = 18;
+        const uint MIN_HEIGHT_MASK = 0x1fc0000;
+
+        const uint FLEX_BASIS_INDEX = 4;
+        const byte FLEX_BASIS_SHIFT = 25;
+        const uint FLEX_BASIS_MASK = 0xfe000000;
+
+        // 5 cccccccmmmmmmmlllllllwwwwwwwbbbb
+        // column_width; margin_bottom; line_height; word_spacing; break_inside
+        const uint BREAK_INSIDE_INDEX = 5;
+        const byte BREAK_INSIDE_SHIFT = 0;
+        const uint BREAK_INSIDE_MASK = 0xf;
+
+        const uint WORD_SPACING_INDEX = 5;
+        const byte WORD_SPACING_SHIFT = 4;
+        const uint WORD_SPACING_MASK = 0x7f0;
+
+        const uint LINE_HEIGHT_INDEX = 5;
+        const byte LINE_HEIGHT_SHIFT = 11;
+        const uint LINE_HEIGHT_MASK = 0x3f800;
 
         const uint MARGIN_BOTTOM_INDEX = 5;
         const byte MARGIN_BOTTOM_SHIFT = 18;
         const uint MARGIN_BOTTOM_MASK = 0x1fc0000;
 
+        const uint COLUMN_WIDTH_INDEX = 5;
+        const byte COLUMN_WIDTH_SHIFT = 25;
+        const uint COLUMN_WIDTH_MASK = 0xfe000000;
+
+        // 6 hhhhhhhlllllllmmmmmmmaaaaaaabbbb
+        // height; letter_spacing; min_width; margin_right; border_bottom_style
+        const uint BORDER_BOTTOM_STYLE_INDEX = 6;
+        const byte BORDER_BOTTOM_STYLE_SHIFT = 0;
+        const uint BORDER_BOTTOM_STYLE_MASK = 0xf;
+
         const uint MARGIN_RIGHT_INDEX = 6;
         const byte MARGIN_RIGHT_SHIFT = 4;
         const uint MARGIN_RIGHT_MASK = 0x7f0;
+
+        const uint MIN_WIDTH_INDEX = 6;
+        const byte MIN_WIDTH_SHIFT = 11;
+        const uint MIN_WIDTH_MASK = 0x3f800;
+
+        const uint LETTER_SPACING_INDEX = 6;
+        const byte LETTER_SPACING_SHIFT = 18;
+        const uint LETTER_SPACING_MASK = 0x1fc0000;
+
+        const uint HEIGHT_INDEX = 6;
+        const byte HEIGHT_SHIFT = 25;
+        const uint HEIGHT_MASK = 0xfe000000;
+
+        // 7  tttttttmmmmmmmbbbbbbbaaaaaaaoooo
+        // top; margin_left; bottom; max_width; border_top_style
+        const uint BORDER_TOP_STYLE_INDEX = 7;
+        const byte BORDER_TOP_STYLE_SHIFT = 0;
+        const uint BORDER_TOP_STYLE_MASK = 0xf;
+
+        const uint MAX_WIDTH_INDEX = 7;
+        const byte MAX_WIDTH_SHIFT = 4;
+        const uint MAX_WIDTH_MASK = 0x7f0;
+
+        const uint BOTTOM_INDEX = 7;
+        const byte BOTTOM_SHIFT = 11;
+        const uint BOTTOM_MASK = 0x3f800;
 
         const uint MARGIN_LEFT_INDEX = 7;
         const byte MARGIN_LEFT_SHIFT = 18;
         const uint MARGIN_LEFT_MASK = 0x1fc0000;
 
+        const uint TOP_INDEX = 7;
+        const byte TOP_SHIFT = 25;
+        const uint TOP_MASK = 0xfe000000;
+        
+        // 8  llllllppppppaaaaaaddddddtttttggg
+        // list_style_type; padding_top; padding_right; padding_bottom;
+        // text_decoration; page_break_after
+        const uint PAGE_BREAK_AFTER_INDEX = 8;
+        const byte PAGE_BREAK_AFTER_SHIFT = 0;
+        const uint PAGE_BREAK_AFTER_MASK = 0x7;
+
+        const uint TEXT_DECORATION_INDEX = 8;
+        const byte TEXT_DECORATION_SHIFT = 3;
+        const uint TEXT_DECORATION_MASK = 0xf8;
+
+        const uint PADDING_BOTTOM_INDEX = 8;
+        const byte PADDING_BOTTOM_SHIFT = 8;
+        const uint PADDING_BOTTOM_MASK = 0x3f00;
+
+        const uint PADDING_RIGHT_INDEX = 8;
+        const byte PADDING_RIGHT_SHIFT = 14;
+        const uint PADDING_RIGHT_MASK = 0xfc000;
+
+        const uint PADDING_TOP_INDEX = 8;
+        const byte PADDING_TOP_SHIFT = 20;
+        const uint PADDING_TOP_MASK = 0x3f00000;
+
+        const uint LIST_STYLE_TYPE_INDEX = 8;
+        const byte LIST_STYLE_TYPE_SHIFT = 26;
+        const uint LIST_STYLE_TYPE_MASK = 0xfc000000;
+
+        // 9  cccccbbbbooooffffrrrruuuullllnnn
+        // cursor; break_before; border_left_style; font_weight; break_after;
+        // outline_style; column_rule_style; font_family
+        const uint FONT_FAMILY_INDEX = 9;
+        const byte FONT_FAMILY_SHIFT = 0;
+        const uint FONT_FAMILY_MASK = 0x7;
+
+        const uint COLUMN_RULE_STYLE_INDEX = 9;
+        const byte COLUMN_RULE_STYLE_SHIFT = 3;
+        const uint COLUMN_RULE_STYLE_MASK = 0x78;
+
+        const uint OUTLINE_STYLE_INDEX = 9;
+        const byte OUTLINE_STYLE_SHIFT = 7;
+        const uint OUTLINE_STYLE_MASK = 0x780;
+
+        const uint BREAK_AFTER_INDEX = 9;
+        const byte BREAK_AFTER_SHIFT = 11;
+        const uint BREAK_AFTER_MASK = 0x7800;
+
+        const uint FONT_WEIGHT_INDEX = 9;
+        const byte FONT_WEIGHT_SHIFT = 15;
+        const uint FONT_WEIGHT_MASK = 0x78000;
+
+        const uint BORDER_LEFT_STYLE_INDEX = 9;
+        const byte BORDER_LEFT_STYLE_SHIFT = 19;
+        const uint BORDER_LEFT_STYLE_MASK = 0x780000;
+
+        const uint BREAK_BEFORE_INDEX = 9;
+        const byte BREAK_BEFORE_SHIFT = 23;
+        const uint BREAK_BEFORE_MASK = 0x7800000;
+
+        const uint CURSOR_INDEX = 9;
+        const byte CURSOR_SHIFT = 27;
+        const uint CURSOR_MASK = 0xf8000000;
+
+        // 10 aaallliiipppbbccttoouuzzffeerrmm
+        // align_content; align_items; align_self; position; border_bottom_color;
+        // column_rule_color; table_layout; box_sizing; column_span; z_index;
+        // flex_wrap; empty_cells; border_left_color; column_count
+        const uint COLUMN_COUNT_INDEX = 10;
+        const byte COLUMN_COUNT_SHIFT = 0;
+        const uint COLUMN_COUNT_MASK = 0x3;
+
+        const uint BORDER_LEFT_COLOR_INDEX = 10;
+        const byte BORDER_LEFT_COLOR_SHIFT = 2;
+        const uint BORDER_LEFT_COLOR_MASK = 0xc;
+
+        const uint EMPTY_CELLS_INDEX = 10;
+        const byte EMPTY_CELLS_SHIFT = 4;
+        const uint EMPTY_CELLS_MASK = 0x30;
+
+        const uint FLEX_WRAP_INDEX = 10;
+        const byte FLEX_WRAP_SHIFT = 6;
+        const uint FLEX_WRAP_MASK = 0xc0;
+
+        const uint Z_INDEX_INDEX = 10;
+        const byte Z_INDEX_SHIFT = 8;
+        const uint Z_INDEX_MASK = 0x300;
+
+        const uint COLUMN_SPAN_INDEX = 10;
+        const byte COLUMN_SPAN_SHIFT = 10;
+        const uint COLUMN_SPAN_MASK = 0xc00;
+
+        const uint BOX_SIZING_INDEX = 10;
+        const byte BOX_SIZING_SHIFT = 12;
+        const uint BOX_SIZING_MASK = 0x3000;
+
+        const uint TABLE_LAYOUT_INDEX = 10;
+        const byte TABLE_LAYOUT_SHIFT = 14;
+        const uint TABLE_LAYOUT_MASK = 0xc000;
+
+        const uint COLUMN_RULE_COLOR_INDEX = 10;
+        const byte COLUMN_RULE_COLOR_SHIFT = 16;
+        const uint COLUMN_RULE_COLOR_MASK = 0x30000;
+
+        const uint BORDER_BOTTOM_COLOR_INDEX = 10;
+        const byte BORDER_BOTTOM_COLOR_SHIFT = 18;
+        const uint BORDER_BOTTOM_COLOR_MASK = 0xc0000;
+
+        const uint POSITION_INDEX = 10;
+        const byte POSITION_SHIFT = 20;
+        const uint POSITION_MASK = 0x700000;
+
+        const uint ALIGN_SELF_INDEX = 10;
+        const byte ALIGN_SELF_SHIFT = 23;
+        const uint ALIGN_SELF_MASK = 0x3800000;
+
+        const uint ALIGN_ITEMS_INDEX = 10;
+        const byte ALIGN_ITEMS_SHIFT = 26;
+        const uint ALIGN_ITEMS_MASK = 0x1c000000;
+
+        const uint ALIGN_CONTENT_INDEX = 10;
+        const byte ALIGN_CONTENT_SHIFT = 29;
+        const uint ALIGN_CONTENT_MASK = 0xe0000000;
+
+        // 11 ffoobbppaannccrrddeeuulliittUUvv
+        // float; font_variant; background_attachment; page_break_inside;
+        // background_color; font_style; content; border_top_color; border_collapse;
+        // border_right_color; outline_color; column_fill; list_style_position;
+        // caption_side; unicode_bidi; visibility
+        const uint VISIBILITY_INDEX = 11;
+        const byte VISIBILITY_SHIFT = 0;
+        const uint VISIBILITY_MASK = 0x3;
+
+        const uint UNICODE_BIDI_INDEX = 11;
+        const byte UNICODE_BIDI_SHIFT = 2;
+        const uint UNICODE_BIDI_MASK = 0xc;
+
+        const uint CAPTION_SIDE_INDEX = 11;
+        const byte CAPTION_SIDE_SHIFT = 4;
+        const uint CAPTION_SIDE_MASK = 0x30;
+
+        const uint LIST_STYLE_POSITION_INDEX = 11;
+        const byte LIST_STYLE_POSITION_SHIFT = 6;
+        const uint LIST_STYLE_POSITION_MASK = 0xc0;
+
+        const uint COLUMN_FILL_INDEX = 11;
+        const byte COLUMN_FILL_SHIFT = 8;
+        const uint COLUMN_FILL_MASK = 0x300;
+
+        const uint OUTLINE_COLOR_INDEX = 11;
+        const byte OUTLINE_COLOR_SHIFT = 10;
+        const uint OUTLINE_COLOR_MASK = 0xc00;
+
+        const uint BORDER_RIGHT_COLOR_INDEX = 11;
+        const byte BORDER_RIGHT_COLOR_SHIFT = 12;
+        const uint BORDER_RIGHT_COLOR_MASK = 0x3000;
+
+        const uint BORDER_COLLAPSE_INDEX = 11;
+        const byte BORDER_COLLAPSE_SHIFT = 14;
+        const uint BORDER_COLLAPSE_MASK = 0xc000;
+
+        const uint BORDER_TOP_COLOR_INDEX = 11;
+        const byte BORDER_TOP_COLOR_SHIFT = 16;
+        const uint BORDER_TOP_COLOR_MASK = 0x30000;
+
+        const uint CONTENT_INDEX = 11;
+        const byte CONTENT_SHIFT = 18;
+        const uint CONTENT_MASK = 0xc0000;
+
+        const uint FONT_STYLE_INDEX = 11;
+        const byte FONT_STYLE_SHIFT = 20;
+        const uint FONT_STYLE_MASK = 0x300000;
+
         const uint BACKGROUND_COLOR_INDEX = 11;
         const byte BACKGROUND_COLOR_SHIFT = 22;
         const uint BACKGROUND_COLOR_MASK = 0xc00000;
+
+        const uint PAGE_BREAK_INSIDE_INDEX = 11;
+        const byte PAGE_BREAK_INSIDE_SHIFT = 24;
+        const uint PAGE_BREAK_INSIDE_MASK = 0x3000000;
+
+        const uint BACKGROUND_ATTACHMENT_INDEX = 11;
+        const byte BACKGROUND_ATTACHMENT_SHIFT = 26;
+        const uint BACKGROUND_ATTACHMENT_MASK = 0x0c000000;
+
+        const uint FONT_VARIANT_INDEX = 11;
+        const byte FONT_VARIANT_SHIFT = 28;
+        const uint FONT_VARIANT_MASK = 0x30000000;
+
+        const uint FLOAT_INDEX = 11;
+        const byte FLOAT_SHIFT = 30;
+        const uint FLOAT_MASK = 0xc0000000;
+
+        // 12 bbbbbbbbbbbaaaaaaaaaaafffffffffl
+        // border_spacing; background_position; font_size; flex_grow
+        const uint FLEX_GROW_INDEX = 12;
+        const byte FLEX_GROW_SHIFT = 0;
+        const uint FLEX_GROW_MASK = 0x1;
 
         const uint FONT_SIZE_INDEX = 12;
         const byte FONT_SIZE_SHIFT = 1;
@@ -493,9 +866,41 @@ namespace SkiaSharpOpenGLBenchmark
         const byte BACKGROUND_POSITION_SHIFT = 10;
         const uint BACKGROUND_POSITION_MASK = 0x1ffc00;
 
+        const uint BORDER_SPACING_INDEX = 12;
+        const byte BORDER_SPACING_SHIFT = 21;
+        const uint BORDER_SPACING_MASK = 0xffe00000;
+
+        // 13 bbbboooaaawwwvvvtttcccpppjjjfffr
+        // border_right_style; overflow_y; background_repeat; white_space; overflow_x;
+        // text_transform; clear; page_break_before; justify_content; flex_direction;
+        // order
+        const uint ORDER_INDEX = 13;
+        const byte ORDER_SHIFT = 0;
+        const uint ORDER_MASK = 0x1;
+
+        const uint FLEX_DIRECTION_INDEX = 13;
+        const byte FLEX_DIRECTION_SHIFT = 1;
+        const uint FLEX_DIRECTION_MASK = 0xe;
+
+        const uint JUSTIFY_CONTENT_INDEX = 13;
+        const byte JUSTIFY_CONTENT_SHIFT = 4;
+        const uint JUSTIFY_CONTENT_MASK = 0x70;
+
+        const uint PAGE_BREAK_BEFORE_INDEX = 13;
+        const byte PAGE_BREAK_BEFORE_SHIFT = 7;
+        const uint PAGE_BREAK_BEFORE_MASK = 0x380;
+
+        const uint CLEAR_INDEX = 13;
+        const byte CLEAR_SHIFT = 10;
+        const uint CLEAR_MASK = 0x1c00;
+
         const uint TEXT_TRANSFORM_INDEX = 13;
         const byte TEXT_TRANSFORM_SHIFT = 13;
         const uint TEXT_TRANSFORM_MASK = 0xe000;
+
+        const uint OVERFLOW_X_INDEX = 13;
+        const byte OVERFLOW_X_SHIFT = 16;
+        const uint OVERFLOW_X_MASK = 0x70000;
 
         const uint WHITE_SPACE_INDEX = 13;
         const byte WHITE_SPACE_SHIFT = 19;
@@ -505,28 +910,150 @@ namespace SkiaSharpOpenGLBenchmark
         const byte BACKGROUND_REPEAT_SHIFT = 22;
         const uint BACKGROUND_REPEAT_MASK = 0x1c00000;
 
+        const uint OVERFLOW_Y_INDEX = 13;
+        const byte OVERFLOW_Y_SHIFT = 25;
+        const uint OVERFLOW_Y_MASK = 0xe000000;
+
+        const uint BORDER_RIGHT_STYLE_INDEX = 13;
+        const byte BORDER_RIGHT_STYLE_SHIFT = 28;
+        const uint BORDER_RIGHT_STYLE_MASK = 0xf0000000;
+
+        // 14 wwddlicobfqupr..................
+        // writing_mode; direction; list_style_image; widows; counter_reset; orphans;
+        // background_image; flex_shrink; quotes; counter_increment; opacity; color
         const uint COLOR_INDEX = 14;
         const byte COLOR_SHIFT = 18;
         const uint COLOR_MASK = 0x40000;
+
+        const uint OPACITY_INDEX = 14;
+        const byte OPACITY_SHIFT = 19;
+        const uint OPACITY_MASK = 0x80000;
+
+        const uint COUNTER_INCREMENT_INDEX = 14;
+        const byte COUNTER_INCREMENT_SHIFT = 20;
+        const uint COUNTER_INCREMENT_MASK = 0x100000;
+
+        const uint QUOTES_INDEX = 14;
+        const byte QUOTES_SHIFT = 21;
+        const uint QUOTES_MASK = 0x200000;
+
+        const uint FLEX_SHRINK_INDEX = 14;
+        const byte FLEX_SHRINK_SHIFT = 22;
+        const uint FLEX_SHRINK_MASK = 0x400000;
 
         const uint BACKGROUND_IMAGE_INDEX = 14;
         const byte BACKGROUND_IMAGE_SHIFT = 23;
         const uint BACKGROUND_IMAGE_MASK = 0x800000;
 
+        const uint ORPHANS_INDEX = 14;
+        const byte ORPHANS_SHIFT = 24;
+        const uint ORPHANS_MASK = 0x1000000;
+
+        const uint COUNTER_RESET_INDEX = 14;
+        const byte COUNTER_RESET_SHIFT = 25;
+        const uint COUNTER_RESET_MASK = 0x2000000;
+
+        const uint WIDOWS_INDEX = 14;
+        const byte WIDOWS_SHIFT = 26;
+        const uint WIDOWS_MASK = 0x4000000;
+
+        const uint LIST_STYLE_IMAGE_INDEX = 14;
+        const byte LIST_STYLE_IMAGE_SHIFT = 27;
+        const uint LIST_STYLE_IMAGE_MASK = 0x8000000;
+
+        const uint DIRECTION_INDEX = 14;
+        const byte DIRECTION_SHIFT = 28;
+        const uint DIRECTION_MASK = 0x30000000;
+
+        const uint WRITING_MODE_INDEX = 14;
+        const byte WRITING_MODE_SHIFT = 30;
+        const uint WRITING_MODE_MASK = 0xc0000000;
+
+
+
         private delegate byte GetForAbsLen(ComputedStyle style, out Fixed len1, out CssUnit unit1, out Fixed len2, out CssUnit unit2);
 
         private delegate void SetForAbsLen(ComputedStyle style, byte type, Fixed len1, CssUnit unit1, Fixed len2, CssUnit unit2);
 
-        public void SetFontSize(CssFontSizeEnum type, Fixed length, CssUnit unit)
+
+        // autogenerated_propget.h:13
+        public byte GetAlignContent()
         {
-            uint bits = i.bits[FONT_SIZE_INDEX];
+            uint bits = i.bits[ALIGN_CONTENT_INDEX];
+            bits &= ALIGN_CONTENT_MASK;
+            bits >>= ALIGN_CONTENT_SHIFT;
 
-            // 9bits: uuuuutttt : unit | type
-            i.bits[FONT_SIZE_INDEX] =
-                (bits & ~FONT_SIZE_MASK) | ((((uint)type & 0xf) | ((uint)unit << 4)) << FONT_SIZE_SHIFT);
+            /* 3bits: ttt : type */
 
-            i.font_size = length;
+            return (byte)(bits & 0x7);
         }
+        public void SetAlignContent(byte type)
+        {
+            uint bits = i.bits[ALIGN_CONTENT_INDEX];
+
+            /* 3bits: ttt : type */
+            i.bits[ALIGN_CONTENT_INDEX] = (bits & ~ALIGN_CONTENT_MASK) | (((uint)type & 0x7) << ALIGN_CONTENT_SHIFT);
+        }
+
+        // autogenerated_propget.h:30
+        public byte GetAlignItems()
+        {
+            uint bits = i.bits[ALIGN_ITEMS_INDEX];
+            bits &= ALIGN_ITEMS_MASK;
+            bits >>= ALIGN_ITEMS_SHIFT;
+
+            /* 3bits: ttt : type */
+
+            return (byte)(bits & 0x7);
+        }
+        public void SetAlignItems(byte type)
+        {
+            uint bits = i.bits[ALIGN_ITEMS_INDEX];
+
+            /* 3bits: ttt : type */
+            i.bits[ALIGN_ITEMS_INDEX] = (bits & ~ALIGN_ITEMS_MASK) | (((uint)type & 0x7) << ALIGN_ITEMS_SHIFT);
+        }
+
+        // autogenerated_propget.h:47
+        public byte GetAlignSelf()
+        {
+            uint bits = i.bits[ALIGN_SELF_INDEX];
+            bits &= ALIGN_SELF_MASK;
+            bits >>= ALIGN_SELF_SHIFT;
+
+            /* 3bits: ttt : type */
+
+            return (byte)(bits & 0x7);
+        }
+        public void SetAlignSelf(byte type)
+        {
+            uint bits = i.bits[ALIGN_SELF_INDEX];
+
+            /* 3bits: ttt : type */
+            i.bits[ALIGN_SELF_INDEX] = (bits & ~ALIGN_SELF_MASK) | (((uint)type & 0x7) << ALIGN_SELF_SHIFT);
+        }
+
+        // autogenerated_propget.h:64
+        public CssBackgroundAttachment GetBackgroundAttachment()
+        {
+            uint bits = i.bits[BACKGROUND_ATTACHMENT_INDEX];
+            bits &= BACKGROUND_ATTACHMENT_MASK;
+            bits >>= BACKGROUND_ATTACHMENT_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (CssBackgroundAttachment)(bits & 0x3);
+        }
+        public void SetBackgroundAttachment(CssBackgroundAttachment type)
+        {
+            uint bits = i.bits[BACKGROUND_ATTACHMENT_INDEX];
+
+            uint val = ((uint)type & 0x3) << BACKGROUND_ATTACHMENT_SHIFT;
+
+            // 2bits: tt : type
+            i.bits[BACKGROUND_ATTACHMENT_INDEX] = (bits & ~BACKGROUND_ATTACHMENT_MASK) | val;
+        }
+
 
         // autogenerated_propget.h:80
         public CssBackgroundColorEnum GetBackgroundColor(out Color color)
@@ -642,6 +1169,542 @@ namespace SkiaSharpOpenGLBenchmark
                 (((uint)type & 0x7) << BACKGROUND_REPEAT_SHIFT);
         }
 
+        public byte GetBorderBottomColor(ref Color color)
+        {
+            uint bits = i.bits[BORDER_BOTTOM_COLOR_INDEX];
+            bits &= BORDER_BOTTOM_COLOR_MASK;
+            bits >>= BORDER_BOTTOM_COLOR_SHIFT;
+
+            /* 2bits: tt : type */
+            color = i.border_bottom_color;
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetBorderBottomColor(byte type, Color color)
+        {
+            uint bits = i.bits[BORDER_BOTTOM_COLOR_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[BORDER_BOTTOM_COLOR_INDEX] =
+                (bits & ~BORDER_BOTTOM_COLOR_MASK) | (((uint)type & 0x3) << BORDER_BOTTOM_COLOR_SHIFT);
+
+            i.border_bottom_color = color;
+        }
+
+        public byte GetBorderBottomStyle()
+        {
+            uint bits = i.bits[BORDER_BOTTOM_STYLE_INDEX];
+            bits &= BORDER_BOTTOM_STYLE_MASK;
+            bits >>= BORDER_BOTTOM_STYLE_SHIFT;
+
+            /* 4bits: tttt : type */
+
+            return (byte)(bits & 0xf);
+        }
+        public void SetBorderBottomStyle(byte type)
+        {
+            uint bits = i.bits[BORDER_BOTTOM_STYLE_INDEX];
+
+            /* 4bits: tttt : type */
+            i.bits[BORDER_BOTTOM_STYLE_INDEX] = (bits & ~BORDER_BOTTOM_STYLE_MASK) | (((uint)type & 0xf)
+                    << BORDER_BOTTOM_STYLE_SHIFT);
+        }
+
+        public CssBorderWidthEnum GetBorderBottomWidth(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[BORDER_BOTTOM_WIDTH_INDEX];
+            bits &= BORDER_BOTTOM_WIDTH_MASK;
+            bits >>= BORDER_BOTTOM_WIDTH_SHIFT;
+
+            /* 8bits: uuuuuttt : unit | type */
+            CssBorderWidthEnum bw = (CssBorderWidthEnum)(bits & 0x7);
+            if (bw == CssBorderWidthEnum.CSS_BORDER_WIDTH_WIDTH)
+            {
+                length = i.border_bottom_width;
+                unit = (CssUnit)(bits >> 3);
+            }
+
+            return bw;
+        }
+        public void SetBorderBottomWidth(byte type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[BORDER_BOTTOM_WIDTH_INDEX];
+
+            /* 8bits: uuuuuttt : unit | type */
+            i.bits[BORDER_BOTTOM_WIDTH_INDEX] = (bits & ~BORDER_BOTTOM_WIDTH_MASK) | ((((uint)type & 0x7)
+                    | ((uint)unit << 3)) << BORDER_BOTTOM_WIDTH_SHIFT);
+
+            i.border_bottom_width = length;
+        }
+
+        public byte GetBorderCollapse()
+        {
+            uint bits = i.bits[BORDER_COLLAPSE_INDEX];
+            bits &= BORDER_COLLAPSE_MASK;
+            bits >>= BORDER_COLLAPSE_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetBorderCollapse(byte type)
+        {
+            uint bits = i.bits[BORDER_COLLAPSE_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[BORDER_COLLAPSE_INDEX] = (bits & ~BORDER_COLLAPSE_MASK) | (((uint)type & 0x3) <<
+                    BORDER_COLLAPSE_SHIFT);
+        }
+
+        public byte GetBorderLeftColor(ref Color color)
+        {
+            uint bits = i.bits[BORDER_LEFT_COLOR_INDEX];
+            bits &= BORDER_LEFT_COLOR_MASK;
+            bits >>= BORDER_LEFT_COLOR_SHIFT;
+
+            /* 2bits: tt : type */
+            color = i.border_left_color;
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetBorderLeftColor(byte type, Color color)
+        {
+            uint bits = i.bits[BORDER_LEFT_COLOR_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[BORDER_LEFT_COLOR_INDEX] = (bits & ~BORDER_LEFT_COLOR_MASK) | (((uint)type & 0x3) <<
+                    BORDER_LEFT_COLOR_SHIFT);
+
+            i.border_left_color = color;
+        }
+
+        public byte GetBorderLeftStyle()
+        {
+            uint bits = i.bits[BORDER_LEFT_STYLE_INDEX];
+            bits &= BORDER_LEFT_STYLE_MASK;
+            bits >>= BORDER_LEFT_STYLE_SHIFT;
+
+            /* 4bits: tttt : type */
+
+            return (byte)(bits & 0xf);
+        }
+        public void SetBorderLeftStyle(byte type)
+        {
+            uint bits = i.bits[BORDER_LEFT_STYLE_INDEX];
+
+            /* 4bits: tttt : type */
+            i.bits[BORDER_LEFT_STYLE_INDEX] = (bits & ~BORDER_LEFT_STYLE_MASK) | (((uint)type & 0xf) <<
+                    BORDER_LEFT_STYLE_SHIFT);
+        }
+
+        public CssBorderWidthEnum GetBorderLeftWidth(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[BORDER_LEFT_WIDTH_INDEX];
+            bits &= BORDER_LEFT_WIDTH_MASK;
+            bits >>= BORDER_LEFT_WIDTH_SHIFT;
+
+            /* 8bits: uuuuuttt : unit | type */
+            var bw = (CssBorderWidthEnum)(bits & 0x7);
+            if (bw == CssBorderWidthEnum.CSS_BORDER_WIDTH_WIDTH)
+            {
+                length = i.border_left_width;
+                unit = (CssUnit)(bits >> 3);
+            }
+
+            return bw;
+        }
+        public void SetBorderLeftWidth(byte type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[BORDER_LEFT_WIDTH_INDEX];
+
+            /* 8bits: uuuuuttt : unit | type */
+            i.bits[BORDER_LEFT_WIDTH_INDEX] = (bits & ~BORDER_LEFT_WIDTH_MASK) | ((((uint)type & 0x7) | (
+                    (uint)unit << 3)) << BORDER_LEFT_WIDTH_SHIFT);
+
+            i.border_left_width = length;
+        }
+
+        public byte GetBorderRightColor(ref Color color)
+        {
+            uint bits = i.bits[BORDER_RIGHT_COLOR_INDEX];
+            bits &= BORDER_RIGHT_COLOR_MASK;
+            bits >>= BORDER_RIGHT_COLOR_SHIFT;
+
+            /* 2bits: tt : type */
+            color = i.border_right_color;
+
+            return (byte)(bits & 0x3);
+
+        }
+        public void SetBorderRightColor(byte type, Color color)
+        {
+            uint bits = i.bits[BORDER_RIGHT_COLOR_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[BORDER_RIGHT_COLOR_INDEX] = (bits & ~BORDER_RIGHT_COLOR_MASK) |
+                (((uint)type & 0x3) << BORDER_RIGHT_COLOR_SHIFT);
+
+            i.border_right_color = color;
+        }
+
+        public byte GetBorderRightStyle()
+        {
+            uint bits = i.bits[BORDER_RIGHT_STYLE_INDEX];
+            bits &= BORDER_RIGHT_STYLE_MASK;
+            bits >>= BORDER_RIGHT_STYLE_SHIFT;
+
+            /* 4bits: tttt : type */
+
+            return (byte)(bits & 0xf);
+        }
+        public void SetBorderRightStyle(CssBorderWidthEnum type)
+        {
+            uint bits = i.bits[BORDER_RIGHT_STYLE_INDEX];
+
+            /* 4bits: tttt : type */
+            i.bits[BORDER_RIGHT_STYLE_INDEX] = (bits & ~BORDER_RIGHT_STYLE_MASK) |
+                (((uint)type & 0xf) << BORDER_RIGHT_STYLE_SHIFT);
+        }
+
+        public CssBorderWidthEnum GetBorderRightWidth(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[BORDER_RIGHT_WIDTH_INDEX];
+            bits &= BORDER_RIGHT_WIDTH_MASK;
+            bits >>= BORDER_RIGHT_WIDTH_SHIFT;
+
+            /* 8bits: uuuuuttt : unit | type */
+            var bw = (CssBorderWidthEnum)(bits & 0x7);
+            if (bw == CssBorderWidthEnum.CSS_BORDER_WIDTH_WIDTH)
+            {
+                length = i.border_right_width;
+                unit = (CssUnit)(bits >> 3);
+            }
+
+            return bw;
+        }
+        public void SetBorderRightWidth(byte type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[BORDER_RIGHT_WIDTH_INDEX];
+
+            /* 8bits: uuuuuttt : unit | type */
+            i.bits[BORDER_RIGHT_WIDTH_INDEX] = (bits & ~BORDER_RIGHT_WIDTH_MASK) |
+                ((((uint)type & 0x7) | ((uint)unit << 3)) << BORDER_RIGHT_WIDTH_SHIFT);
+
+            i.border_right_width = length;
+        }
+
+        public CssBorderSpacingEnum GetBorderSpacing(ref Fixed lengthA, ref CssUnit unitA, ref Fixed lengthB, ref CssUnit unitB)
+        {
+            uint bits = i.bits[BORDER_SPACING_INDEX];
+            bits &= BORDER_SPACING_MASK;
+            bits >>= BORDER_SPACING_SHIFT;
+
+            /* 11bits: aaaaabbbbbt : unit_a | unit_b | type */
+            var bs = (CssBorderSpacingEnum)(bits & 0x1);
+            if (bs == CssBorderSpacingEnum.CSS_BORDER_SPACING_SET)
+            {
+                lengthA = i.border_spacing_a;
+                lengthB = i.border_spacing_b;
+                unitA = (CssUnit)(bits >> 6);
+                unitB = (CssUnit)((bits & 0x3e) >> 1);
+            }
+
+            return bs;
+        }
+        public void SetBorderSpacing(CssBorderSpacingEnum type, Fixed lengthA, CssUnit unitA, Fixed lengthB, CssUnit unitB)
+        {
+            uint bits = i.bits[BORDER_SPACING_INDEX];
+
+            /* 11bits: aaaaabbbbbt : unit_a | unit_b | type */
+            i.bits[BORDER_SPACING_INDEX] = (bits & ~BORDER_SPACING_MASK) |
+                ((((uint)type & 0x1) | ((uint)unitB << 1) | ((uint)unitA << 6)) << BORDER_SPACING_SHIFT);
+
+            i.border_spacing_a = lengthA;
+
+            i.border_spacing_b = lengthB;
+        }
+
+        public byte GetBorderTopColor(ref Color color)
+        {
+            uint bits = i.bits[BORDER_TOP_COLOR_INDEX];
+            bits &= BORDER_TOP_COLOR_MASK;
+            bits >>= BORDER_TOP_COLOR_SHIFT;
+
+            /* 2bits: tt : type */
+            color = i.border_top_color;
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetBorderTopColor(byte type, Color color)
+        {
+            uint bits = i.bits[BORDER_TOP_COLOR_INDEX];
+            /* 2bits: tt : type */
+            i.bits[BORDER_TOP_COLOR_INDEX] = (bits & ~BORDER_TOP_COLOR_MASK) |
+                (((uint)type & 0x3) << BORDER_TOP_COLOR_SHIFT);
+
+            i.border_top_color = color;
+        }
+
+        public byte GetBorderTopStyle()
+        {
+            uint bits = i.bits[BORDER_TOP_STYLE_INDEX];
+            bits &= BORDER_TOP_STYLE_MASK;
+            bits >>= BORDER_TOP_STYLE_SHIFT;
+
+            /* 4bits: tttt : type */
+
+            return (byte)(bits & 0xf);
+        }
+        public void SetBorderTopStyle(byte type)
+        {
+            uint bits = i.bits[BORDER_TOP_STYLE_INDEX];
+
+            /* 4bits: tttt : type */
+            i.bits[BORDER_TOP_STYLE_INDEX] = (bits & ~BORDER_TOP_STYLE_MASK) | (((uint)type & 0xf) <<
+                    BORDER_TOP_STYLE_SHIFT);
+        }
+
+        public CssBorderWidthEnum GetBorderTopWidth(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[BORDER_TOP_WIDTH_INDEX];
+            bits &= BORDER_TOP_WIDTH_MASK;
+            bits >>= BORDER_TOP_WIDTH_SHIFT;
+
+            /* 8bits: uuuuuttt : unit | type */
+            var bw = (CssBorderWidthEnum)(bits & 0x7);
+            if (bw == CssBorderWidthEnum.CSS_BORDER_WIDTH_WIDTH)
+            {
+                length = i.border_right_width;
+                unit = (CssUnit)(bits >> 3);
+            }
+
+            return bw;
+        }
+        public void SetBorderTopWidth(CssBorderWidthEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[BORDER_TOP_WIDTH_INDEX];
+
+            /* 8bits: uuuuuttt : unit | type */
+            i.bits[BORDER_TOP_WIDTH_INDEX] = (bits & ~BORDER_TOP_WIDTH_MASK) |
+                ((((uint)type & 0x7) | ((uint)unit << 3)) << BORDER_TOP_WIDTH_SHIFT);
+
+            i.border_top_width = length;
+        }
+
+        public CssBottomEnum GetBottom(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[BOTTOM_INDEX];
+            bits &= BOTTOM_MASK;
+            bits >>= BOTTOM_SHIFT;
+
+            /* 7bits: uuuuutt : units | type */
+            var val = (CssBottomEnum)(bits & 0x3);
+            if (val == CssBottomEnum.CSS_BOTTOM_SET)
+            {
+                length = i.bottom;
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return val;
+
+        }
+        public void SetBottom(CssBottomEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[BOTTOM_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[BOTTOM_INDEX] = (bits & ~BOTTOM_MASK) | ((((uint)type & 0x3) |
+                ((uint)unit << 2)) << BOTTOM_SHIFT);
+
+            i.bottom = length;
+        }
+
+        public byte GetBottomBits()
+        {
+            uint bits = i.bits[BOTTOM_INDEX];
+            bits &= BOTTOM_MASK;
+            bits >>= BOTTOM_SHIFT;
+
+            /* 7bits: uuuuutt : units | type */
+            return (byte)bits;
+        }
+        public byte GetBoxSizing()
+        {
+            uint bits = i.bits[BOX_SIZING_INDEX];
+            bits &= BOX_SIZING_MASK;
+            bits >>= BOX_SIZING_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetBoxSizing(byte type)
+        {
+            uint bits = i.bits[BOX_SIZING_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[BOX_SIZING_INDEX] = (bits & ~BOX_SIZING_MASK) | (((uint)type & 0x3) <<
+                    BOX_SIZING_SHIFT);
+        }
+
+        public byte GetBreakAfter()
+        {
+            uint bits = i.bits[BREAK_AFTER_INDEX];
+            bits &= BREAK_AFTER_MASK;
+            bits >>= BREAK_AFTER_SHIFT;
+
+            /* 4bits: tttt : type */
+
+            return (byte)(bits & 0xf);
+        }
+        public void SetBreakAfter(byte type)
+        {
+            uint bits = i.bits[BREAK_AFTER_INDEX];
+
+            /* 4bits: tttt : type */
+            i.bits[BREAK_AFTER_INDEX] = (bits & ~BREAK_AFTER_MASK) | (((uint)type & 0xf) <<
+                    BREAK_AFTER_SHIFT);
+        }
+
+        public byte GetBreakBefore()
+        {
+            uint bits = i.bits[BREAK_BEFORE_INDEX];
+            bits &= BREAK_BEFORE_MASK;
+            bits >>= BREAK_BEFORE_SHIFT;
+
+            /* 4bits: tttt : type */
+
+            return (byte)(bits & 0xf);
+        }
+        public void SetBreakBefore(byte type)
+        {
+            uint bits = i.bits[BREAK_BEFORE_INDEX];
+
+            /* 4bits: tttt : type */
+            i.bits[BREAK_BEFORE_INDEX] = (bits & ~BREAK_BEFORE_MASK) | (((uint)type & 0xf) <<
+                    BREAK_BEFORE_SHIFT);
+        }
+
+        public byte GetBreakInside()
+        {
+            uint bits = i.bits[BREAK_INSIDE_INDEX];
+            bits &= BREAK_INSIDE_MASK;
+            bits >>= BREAK_INSIDE_SHIFT;
+
+            /* 4bits: tttt : type */
+
+            return (byte)(bits & 0xf);
+        }
+        public void SetBreakInside(byte type)
+        {
+            uint bits = i.bits[BREAK_INSIDE_INDEX];
+
+            /* 4bits: tttt : type */
+            i.bits[BREAK_INSIDE_INDEX] = (bits & ~BREAK_INSIDE_MASK) | (((uint)type & 0xf) <<
+                    BREAK_INSIDE_SHIFT);
+        }
+
+        public byte GetCaptionSide()
+        {
+            uint bits = i.bits[CAPTION_SIDE_INDEX];
+            bits &= CAPTION_SIDE_MASK;
+            bits >>= CAPTION_SIDE_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetCaptionSide(byte type)
+        {
+            uint bits = i.bits[CAPTION_SIDE_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[CAPTION_SIDE_INDEX] = (bits & ~CAPTION_SIDE_MASK) | (((uint)type & 0x3) <<
+                    CAPTION_SIDE_SHIFT);
+        }
+
+        public byte GetClear()
+        {
+            uint bits = i.bits[CLEAR_INDEX];
+            bits &= CLEAR_MASK;
+            bits >>= CLEAR_SHIFT;
+
+            /* 3bits: ttt : type */
+
+            return (byte)(bits & 0x7);
+        }
+        public void SetClear(byte type)
+        {
+            uint bits = i.bits[CLEAR_INDEX];
+
+            /* 3bits: ttt : type */
+            i.bits[CLEAR_INDEX] = (bits & ~CLEAR_MASK) | (((uint)type & 0x7) << CLEAR_SHIFT);
+        }
+
+        public CssClipEnum GetClip(ref CssComputedClipRect rect)
+        {
+            uint bits = i.bits[CLIP_INDEX];
+            bits &= CLIP_MASK;
+            bits >>= CLIP_SHIFT;
+
+            /*
+            26bits: tt tttr rrrr bbbb blll llTR BLyy:
+            units: top | right | bottom | left
+            opcodes: top | right | bottom | left | type
+            */
+            var val = (CssClipEnum)(bits & 0x3);
+            if (val == CssClipEnum.CSS_CLIP_RECT)
+            {
+                rect.LeftAuto = (bits & 0x4) != 0;
+                rect.BottomAuto = (bits & 0x8) != 0;
+                rect.RightAuto = (bits & 0x10) != 0;
+                rect.TopAuto = (bits & 0x20) != 0;
+
+                rect.Top = i.clip_a;
+                rect.Tunit = (CssUnit)(bits & 0x3e00000 >> 21);
+
+                rect.Right = i.clip_b;
+                rect.Runit = (CssUnit)(bits & 0x1f0000 >> 16);
+
+                rect.Bottom = i.clip_c;
+                rect.Bunit = (CssUnit)((bits & 0xf800) >> 11);
+
+                rect.Left = i.clip_d;
+                rect.Lunit = (CssUnit)((bits & 0x7c0) >> 6);
+            }
+
+            return val;
+        }
+        public void SetClip(CssClipEnum type, CssComputedClipRect rect)
+        {
+            uint bits = i.bits[CLIP_INDEX];
+
+            /*
+            26bits: tt tttr rrrr bbbb blll llTR BLyy:
+            units: top | right | bottom | left
+            opcodes: top | right | bottom | left | type
+            */
+            i.bits[CLIP_INDEX] = (bits & ~CLIP_MASK) | (((uint)type & 0x3) << CLIP_SHIFT);
+
+            if (type == CssClipEnum.CSS_CLIP_RECT)
+            {
+                i.bits[CLIP_INDEX] |= (uint)(((rect.TopAuto ? 0x20 : 0) |
+                        (rect.RightAuto ? 0x10 : 0) |
+                        (rect.BottomAuto ? 0x8 : 0) |
+                        (rect.LeftAuto ? 0x4 : 0)) << CLIP_SHIFT);
+
+                i.bits[CLIP_INDEX] |= ((((uint)rect.Tunit << 5) | (uint)rect.Runit)
+                        << (CLIP_SHIFT + 16));
+
+                i.bits[CLIP_INDEX] |= ((((uint)rect.Bunit << 5) | (uint)rect.Lunit)
+                        << (CLIP_SHIFT + 6));
+
+                i.clip_a = rect.Top;
+                i.clip_b = rect.Right;
+                i.clip_c = rect.Bottom;
+                i.clip_d = rect.Left;
+            }
+        }
 
         // autogenerated_propget.h:611
         public byte GetColor(out Color color)
@@ -667,24 +1730,314 @@ namespace SkiaSharpOpenGLBenchmark
             i.color = color;
         }
 
-        // autogenerated_propget.h:785
-        public byte GetContent(ref CssComputedContentItem contentItem)
+        public byte GetColumnCount(ref int val)
         {
-            const uint CONTENT_INDEX = 11;
-            const byte CONTENT_SHIFT = 18;
-            const uint CONTENT_MASK = 0xc0000;
+            uint bits = i.bits[COLUMN_COUNT_INDEX];
+            bits &= COLUMN_COUNT_MASK;
+            bits >>= COLUMN_COUNT_SHIFT;
 
+            /* 2bits: tt : type */
+            val = i.column_count;
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetColumnCount(byte type, int integer)
+        {
+            uint bits = i.bits[COLUMN_COUNT_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[COLUMN_COUNT_INDEX] = (bits & ~COLUMN_COUNT_MASK) | (((uint)type & 0x3) <<
+                    COLUMN_COUNT_SHIFT);
+
+            i.column_count = integer;
+        }
+
+        public byte GetColumnFill()
+        {
+            uint bits = i.bits[COLUMN_FILL_INDEX];
+            bits &= COLUMN_FILL_MASK;
+            bits >>= COLUMN_FILL_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetColumnFill(byte type)
+        {
+            uint bits = i.bits[COLUMN_FILL_INDEX];
+            /* 2bits: tt : type */
+            i.bits[COLUMN_FILL_INDEX] = (bits & ~COLUMN_FILL_MASK) | (((uint)type & 0x3) <<
+                    COLUMN_FILL_SHIFT);
+        }
+
+        public CssColumnGapEnum GetColumnGap(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[COLUMN_GAP_INDEX];
+            bits &= COLUMN_GAP_MASK;
+            bits >>= COLUMN_GAP_SHIFT;
+
+            /* 7bits: uuuuutt : unit | type */
+            var val = (CssColumnGapEnum)(bits & 0x3);
+            if (val == CssColumnGapEnum.CSS_COLUMN_GAP_SET)
+            {
+                length = i.column_gap;
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return val;
+        }
+        public void SetColumnGap(CssColumnGapEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[COLUMN_GAP_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[COLUMN_GAP_INDEX] = (bits & ~COLUMN_GAP_MASK) | ((((uint)type & 0x3) | ((uint)unit << 2)) << COLUMN_GAP_SHIFT);
+
+            i.column_gap = length;
+        }
+
+        public byte GetColumnRuleColor(ref Color color)
+        {
+            uint bits = i.bits[COLUMN_RULE_COLOR_INDEX];
+            bits &= COLUMN_RULE_COLOR_MASK;
+            bits >>= COLUMN_RULE_COLOR_SHIFT;
+
+            /* 2bits: tt : type */
+            color = i.column_rule_color;
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetColumnRuleColor(byte type, Color color)
+        {
+            uint bits = i.bits[COLUMN_RULE_COLOR_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[COLUMN_RULE_COLOR_INDEX] = (bits & ~COLUMN_RULE_COLOR_MASK) | (((uint)type & 0x3) <<
+                    COLUMN_RULE_COLOR_SHIFT);
+
+            i.column_rule_color = color;
+        }
+
+        public byte GetColumnRuleStyle()
+        {
+            uint bits = i.bits[COLUMN_RULE_STYLE_INDEX];
+            bits &= COLUMN_RULE_STYLE_MASK;
+            bits >>= COLUMN_RULE_STYLE_SHIFT;
+
+            /* 4bits: tttt : type */
+
+            return (byte)(bits & 0xf);
+        }
+        public void SetColumnRuleStyle(byte type)
+        {
+            uint bits = i.bits[COLUMN_RULE_STYLE_INDEX];
+
+            /* 4bits: tttt : type */
+            i.bits[COLUMN_RULE_STYLE_INDEX] = (bits & ~COLUMN_RULE_STYLE_MASK) | (((uint)type & 0xf) <<
+                    COLUMN_RULE_STYLE_SHIFT);
+        }
+
+        public CssColumnRuleWidthEnum GetColumnRuleWidth(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[COLUMN_RULE_WIDTH_INDEX];
+            bits &= COLUMN_RULE_WIDTH_MASK;
+            bits >>= COLUMN_RULE_WIDTH_SHIFT;
+
+            /* 8bits: uuuuuttt : unit | type */
+            var val = (CssColumnRuleWidthEnum)(bits & 0x7);
+            if (val == CssColumnRuleWidthEnum.CSS_COLUMN_RULE_WIDTH_WIDTH)
+            {
+                length = i.column_rule_width;
+                unit = (CssUnit)(bits >> 3);
+            }
+
+            return val;
+        }
+        public void SetColumnRuleWidth(CssColumnRuleWidthEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[COLUMN_RULE_WIDTH_INDEX];
+
+            /* 8bits: uuuuuttt : unit | type */
+            i.bits[COLUMN_RULE_WIDTH_INDEX] = (bits & ~COLUMN_RULE_WIDTH_MASK) | ((((uint)type & 0x7) | (
+                    (uint)unit << 3)) << COLUMN_RULE_WIDTH_SHIFT);
+
+            i.column_rule_width = length;
+        }
+
+        public byte GetColumnSpan()
+        {
+            uint bits = i.bits[COLUMN_SPAN_INDEX];
+            bits &= COLUMN_SPAN_MASK;
+            bits >>= COLUMN_SPAN_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetColumnSpan(byte type)
+        {
+            uint bits = i.bits[COLUMN_SPAN_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[COLUMN_SPAN_INDEX] = (bits & ~COLUMN_SPAN_MASK) | (((uint)type & 0x3) <<
+                    COLUMN_SPAN_SHIFT);
+        }
+
+        public CssColumnWidthEnum GetColumnWidth(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[COLUMN_WIDTH_INDEX];
+            bits &= COLUMN_WIDTH_MASK;
+            bits >>= COLUMN_WIDTH_SHIFT;
+
+            /* 7bits: uuuuutt : unit | type */
+            var val = (CssColumnWidthEnum)(bits & 0x3);
+            if (val == CssColumnWidthEnum.CSS_COLUMN_WIDTH_SET)
+            {
+                length = i.column_width;
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return val;
+        }
+        public void SetColumnWidth(CssColumnWidthEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[COLUMN_WIDTH_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[COLUMN_WIDTH_INDEX] = (bits & ~COLUMN_WIDTH_MASK) | ((((uint)type & 0x3) | ((uint)unit
+                    << 2)) << COLUMN_WIDTH_SHIFT);
+
+            i.column_width = length;
+        }
+
+        // autogenerated_propget.h:785
+        public CssContent GetContent(ref CssComputedContentItem[] contentItem)
+        {
             uint bits = i.bits[CONTENT_INDEX];
             bits &= CONTENT_MASK;
             bits >>= CONTENT_SHIFT;
 
             /* 2bits: tt : type */
-            if ((bits & 0x3) == (byte)CssContent.CSS_CONTENT_SET)
+            var val = (CssContent)(bits & 0x3);
+            if (val == CssContent.CSS_CONTENT_SET)
             {
                 contentItem = Content;
             }
 
+            return val;
+        }
+        // autogenerated_propset.h:903
+        public void SetContent(CssContent type, ref CssComputedContentItem[] content)
+        {
+            uint bits = i.bits[CONTENT_INDEX];
+
+            /* 2bits: type */
+            //oldcontent = style->content;
+
+            Log.Unimplemented("content needs testplementing");
+
+            i.bits[CONTENT_INDEX] = (bits & ~CONTENT_MASK) | (((uint)type & 0x3) << CONTENT_SHIFT);
+
+            //for (c = Content; c.Type != CssContent.CSS_COMPUTED_CONTENT_NONE; c++)
+            foreach (var c in content)
+            {
+                switch (c.Type)
+                {
+                    case CssComputedContentType.CSS_COMPUTED_CONTENT_STRING:
+                        //c.Name = lwc_string_ref(c->data.string);
+                        break;
+                    case CssComputedContentType.CSS_COMPUTED_CONTENT_URI:
+                        //c.Name = lwc_string_ref(c->data.uri);
+                        break;
+                    case CssComputedContentType.CSS_COMPUTED_CONTENT_ATTR:
+                        //c.Name = lwc_string_ref(c->data.attr);
+                        break;
+                    case CssComputedContentType.CSS_COMPUTED_CONTENT_COUNTER:
+                        //c->data.counter.name = lwc_string_ref(c->data.counter.name);
+                        break;
+                    case CssComputedContentType.CSS_COMPUTED_CONTENT_COUNTERS:
+                        //c->data.counters.name = lwc_string_ref(c->data.counters.name);
+                        //c->data.counters.sep = lwc_string_ref(c->data.counters.sep);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            Content = content;
+        }
+
+        public byte GetCounterIncrement(ref CssComputedCounter[] counterArr)
+        {
+            uint bits = i.bits[COUNTER_INCREMENT_INDEX];
+            bits &= COUNTER_INCREMENT_MASK;
+            bits >>= COUNTER_INCREMENT_SHIFT;
+
+            /* 1bit: t : type */
+            counterArr = CounterIncrement;
+
+            return (byte)(bits & 0x1);
+        }
+        public void SetCounterIncrement(byte type, CssComputedCounter[] counterArr)
+        {
+            uint bits = i.bits[COUNTER_INCREMENT_INDEX];
+            Log.Unimplemented("set counter_increment");
+        }
+
+        public byte GetCounterReset(ref CssComputedCounter[] counterArr)
+        {
+            uint bits = i.bits[COUNTER_RESET_INDEX];
+            bits &= COUNTER_RESET_MASK;
+            bits >>= COUNTER_RESET_SHIFT;
+
+            /* 1bit: t : type */
+            counterArr = CounterReset;
+
+            return (byte)(bits & 0x1);
+        }
+        public void SetCounterReset(byte type, CssComputedCounter[] counterArr)
+        {
+            uint bits = i.bits[COUNTER_RESET_INDEX];
+            Log.Unimplemented("set counter_increment");
+        }
+
+        public byte GetCursor(string[] stringArr)
+        {
+            uint bits = i.bits[CURSOR_INDEX];
+            bits &= CURSOR_MASK;
+            bits >>= CURSOR_SHIFT;
+
+            /* 5bits: ttttt : type */
+            stringArr = Cursor;
+
+            return (byte)(bits & 0x1f);
+        }
+        public void SetCursor(byte type, string[] stringArr)
+        {
+            uint bits = i.bits[CURSOR_INDEX];
+
+            /* 5bits: ttttt : type */
+            i.bits[CURSOR_INDEX] = (bits & ~CURSOR_MASK) | (((uint)type & 0x1f) << CURSOR_SHIFT);
+
+            Log.Unimplemented();
+        }
+
+        public byte GetDirection()
+        {
+            uint bits = i.bits[DIRECTION_INDEX];
+            bits &= DIRECTION_MASK;
+            bits >>= DIRECTION_SHIFT;
+
+            /* 2bits: tt : type */
+
             return (byte)(bits & 0x3);
+        }
+        public void SetDirection(byte type)
+        {
+            uint bits = i.bits[DIRECTION_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[DIRECTION_INDEX] = (bits & ~DIRECTION_MASK) | (((uint)type & 0x3) << DIRECTION_SHIFT);
         }
 
         // autogenerated_propget.h:880
@@ -716,13 +2069,144 @@ namespace SkiaSharpOpenGLBenchmark
             i.bits[DISPLAY_INDEX] = (bits & ~DISPLAY_MASK) | (((uint)type & 0x1f) << DISPLAY_SHIFT);
         }
 
+        public byte GetEmptyCells()
+        {
+            uint bits = i.bits[EMPTY_CELLS_INDEX];
+            bits &= EMPTY_CELLS_MASK;
+            bits >>= EMPTY_CELLS_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetEmptyCells(byte type)
+        {
+            uint bits = i.bits[EMPTY_CELLS_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[EMPTY_CELLS_INDEX] = (bits & ~EMPTY_CELLS_MASK) | (((uint)type & 0x3) << EMPTY_CELLS_SHIFT);
+        }
+
+        public CssFlexBasisEnum GetFlexBasis(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[FLEX_BASIS_INDEX];
+            bits &= FLEX_BASIS_MASK;
+            bits >>= FLEX_BASIS_SHIFT;
+
+            /* 7bits: uuuuutt : unit | type */
+            var val = (CssFlexBasisEnum)(bits & 0x3);
+            if (val == CssFlexBasisEnum.CSS_FLEX_BASIS_SET)
+            {
+                length = i.flex_basis;
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return val;
+        }
+        public void SetFlexBasis(CssFlexBasisEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[FLEX_BASIS_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[FLEX_BASIS_INDEX] = (bits & ~FLEX_BASIS_MASK) | ((((uint)type & 0x3) |
+                ((uint)unit << 2)) << FLEX_BASIS_SHIFT);
+
+            i.flex_basis = length;
+        }
+
+        public byte GetFlexDirection()
+        {
+            uint bits = i.bits[FLEX_DIRECTION_INDEX];
+            bits &= FLEX_DIRECTION_MASK;
+            bits >>= FLEX_DIRECTION_SHIFT;
+
+            /* 3bits: ttt : type */
+
+            return (byte)(bits & 0x7);
+        }
+        public void SetFlexDirection(byte type)
+        {
+            uint bits = i.bits[FLEX_DIRECTION_INDEX];
+
+            /* 3bits: ttt : type */
+            i.bits[FLEX_DIRECTION_INDEX] = (bits & ~FLEX_DIRECTION_MASK) | (((uint)type & 0x7) <<
+                    FLEX_DIRECTION_SHIFT);
+        }
+
+        public CssFlexGrowEnum GetFlexGrow(Fixed value)
+        {
+            uint bits = i.bits[FLEX_GROW_INDEX];
+            bits &= FLEX_GROW_MASK;
+            bits >>= FLEX_GROW_SHIFT;
+
+            /* 1bit: t : type */
+            var en = (CssFlexGrowEnum)(bits & 0x1);
+            if (en == CssFlexGrowEnum.CSS_FLEX_GROW_SET)
+            {
+                value = i.flex_grow;
+            }
+
+            return en;
+        }
+        public void SetFlexGrow(CssFlexGrowEnum type, Fixed value)
+        {
+            uint bits = i.bits[FLEX_GROW_INDEX];
+
+            /* 1bit: t : type */
+            i.bits[FLEX_GROW_INDEX] = (bits & ~FLEX_GROW_MASK) | (((uint)type & 0x1) <<
+                    FLEX_GROW_SHIFT);
+
+            i.flex_grow = value;
+        }
+
+        public CssFlexShrinkEnum GetFlexShrink(Fixed value)
+        {
+            uint bits = i.bits[FLEX_SHRINK_INDEX];
+            bits &= FLEX_SHRINK_MASK;
+            bits >>= FLEX_SHRINK_SHIFT;
+
+            /* 1bit: t : type */
+            var en = (CssFlexShrinkEnum)(bits & 0x1);
+            if (en == CssFlexShrinkEnum.CSS_FLEX_SHRINK_SET)
+            {
+                value = i.flex_shrink;
+            }
+
+            return en;
+        }
+        public void SetFlexShrink(CssFlexShrinkEnum type, Fixed value)
+        {
+            uint bits = i.bits[FLEX_SHRINK_INDEX];
+
+            /* 1bit: t : type */
+            i.bits[FLEX_SHRINK_INDEX] = (bits & ~FLEX_SHRINK_MASK) | (((uint)type & 0x1) <<
+                    FLEX_SHRINK_SHIFT);
+
+            i.flex_shrink = value;
+        }
+
+        public byte GetFlexWrap()
+        {
+            uint bits = i.bits[FLEX_WRAP_INDEX];
+            bits &= FLEX_WRAP_MASK;
+            bits >>= FLEX_WRAP_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetFlexWrap(byte type)
+        {
+            uint bits = i.bits[FLEX_WRAP_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[FLEX_WRAP_INDEX] = (bits & ~FLEX_WRAP_MASK) | (((uint)type & 0x3) <<
+                    FLEX_WRAP_SHIFT);
+        }
+
         // autogenerated_props:1012
         byte GetFloat()
         {
-            const uint FLOAT_INDEX = 11;
-            const byte FLOAT_SHIFT = 30;
-            const uint FLOAT_MASK = 0xc0000000;
-
             uint bits = i.bits[FLOAT_INDEX];
             bits &= FLOAT_MASK;
             bits >>= FLOAT_SHIFT;
@@ -731,14 +2215,34 @@ namespace SkiaSharpOpenGLBenchmark
 
             return (byte)(bits & 0x3);
         }
+        public void SetFloat(byte type)
+        {
+            uint bits = i.bits[FLOAT_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[FLOAT_INDEX] = (bits & ~FLOAT_MASK) | (((uint)type & 0x3) << FLOAT_SHIFT);
+        }
+
+        public byte GetFontFamily(ref string[] stringArr)
+        {
+            uint bits = i.bits[FONT_FAMILY_INDEX];
+            bits &= FONT_FAMILY_MASK;
+            bits >>= FONT_FAMILY_SHIFT;
+
+            /* 3bits: ttt : type */
+            stringArr = FontFamily;
+
+            return (byte)(bits & 0x7);
+        }
+        public void SetFontFamily(byte type, string[] stringArr)
+        {
+            uint bits = i.bits[FONT_FAMILY_INDEX];
+            Log.Unimplemented();
+        }
 
         // autogenerated_propget.h:1048
-        public byte GetFontSize(ref Fixed length, ref CssUnit unit)
+        public CssFontSizeEnum GetFontSize(ref Fixed length, ref CssUnit unit)
         {
-            const uint FONT_SIZE_INDEX = 12;
-            const byte FONT_SIZE_SHIFT = 1;
-            const uint FONT_SIZE_MASK = 0x3fe;
-
             uint bits = i.bits[FONT_SIZE_INDEX];
             bits &= FONT_SIZE_MASK;
             bits >>= FONT_SIZE_SHIFT;
@@ -750,65 +2254,275 @@ namespace SkiaSharpOpenGLBenchmark
                 unit = (CssUnit)(bits >> 4);
             }
 
-            return (byte)(bits & 0xf);
+            return (CssFontSizeEnum)(bits & 0xf);
         }
 
-        // autogenerated_props:1765
-        byte GetPosition()
+        // autogenerated_propset.h:1327
+        public void SetFontSize(CssFontSizeEnum type, Fixed length, CssUnit unit)
         {
-            const uint POSITION_INDEX = 10;
-            const byte POSITION_SHIFT = 20;
-            const uint POSITION_MASK = 0x700000;
+            uint bits = i.bits[FONT_SIZE_INDEX];
 
-            uint bits = i.bits[POSITION_INDEX];
-            bits &= POSITION_MASK;
-            bits >>= POSITION_SHIFT;
+            // 9bits: uuuuutttt : unit | type
+            i.bits[FONT_SIZE_INDEX] =
+                (bits & ~FONT_SIZE_MASK) | ((((uint)type & 0xf) | ((uint)unit << 4)) << FONT_SIZE_SHIFT);
+
+            i.font_size = length;
+        }
+
+        public byte GetFontStyle()
+        {
+            uint bits = i.bits[FONT_STYLE_INDEX];
+            bits &= FONT_STYLE_MASK;
+            bits >>= FONT_STYLE_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetFontStyle(byte type)
+        {
+            uint bits = i.bits[FONT_STYLE_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[FONT_STYLE_INDEX] = (bits & ~FONT_STYLE_MASK) | (((uint)type & 0x3) << FONT_STYLE_SHIFT);
+        }
+
+        public byte GetFontVariant()
+        {
+            uint bits = i.bits[FONT_VARIANT_INDEX];
+            bits &= FONT_VARIANT_MASK;
+            bits >>= FONT_VARIANT_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetFontVariant(byte type)
+        {
+            uint bits = i.bits[FONT_VARIANT_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[FONT_VARIANT_INDEX] = (bits & ~FONT_VARIANT_MASK) | (((uint)type & 0x3) << FONT_VARIANT_SHIFT);
+        }
+
+        public byte GetFontWeight()
+        {
+            uint bits = i.bits[FONT_WEIGHT_INDEX];
+            bits &= FONT_WEIGHT_MASK;
+            bits >>= FONT_WEIGHT_SHIFT;
+
+            /* 4bits: tttt : type */
+
+            return (byte)(bits & 0xf);
+        }
+        public void SetFontWeight(byte type)
+        {
+            uint bits = i.bits[FONT_WEIGHT_INDEX];
+
+            /* 4bits: tttt : type */
+            i.bits[FONT_WEIGHT_INDEX] = (bits & ~FONT_WEIGHT_MASK) | (((uint)type & 0xf) <<
+                    FONT_WEIGHT_SHIFT);
+        }
+
+        public CssHeightEnum GetHeight(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[HEIGHT_INDEX];
+            bits &= HEIGHT_MASK;
+            bits >>= HEIGHT_SHIFT;
+
+            /* 7bits: uuuuutt : unit | type */
+            var val = (CssHeightEnum)(bits & 0x3);
+            if (val == CssHeightEnum.CSS_HEIGHT_SET)
+            {
+                length = i.height;
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return val;
+        }
+        public void SetHeight(CssHeightEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[HEIGHT_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[HEIGHT_INDEX] = (bits & ~HEIGHT_MASK) | ((((uint)type & 0x3) |
+                ((uint)unit << 2)) << HEIGHT_SHIFT);
+
+            i.height = length;
+        }
+
+        public byte GetJustifyContent()
+        {
+            uint bits = i.bits[JUSTIFY_CONTENT_INDEX];
+            bits &= JUSTIFY_CONTENT_MASK;
+            bits >>= JUSTIFY_CONTENT_SHIFT;
 
             /* 3bits: ttt : type */
 
             return (byte)(bits & 0x7);
         }
-
-        // autogenerated_propget.h:1908
-        public CssTextTransformEnum GetTextTransform()
+        public void SetJustifyContent(byte type)
         {
-            uint bits = i.bits[TEXT_TRANSFORM_INDEX];
-            bits &= TEXT_TRANSFORM_MASK;
-            bits >>= TEXT_TRANSFORM_SHIFT;
+            uint bits = i.bits[JUSTIFY_CONTENT_INDEX];
 
             /* 3bits: ttt : type */
-
-            return (CssTextTransformEnum)(bits & 0x7);
+            i.bits[JUSTIFY_CONTENT_INDEX] = (bits & ~JUSTIFY_CONTENT_MASK) | (((uint)type & 0x7) <<
+                    JUSTIFY_CONTENT_SHIFT);
         }
 
-        public void SetTextTransform(CssTextTransformEnum type)
+        public CssLeftEnum GetLeft(ref Fixed length, ref CssUnit unit)
         {
-            uint bits = i.bits[TEXT_TRANSFORM_INDEX];
+            uint bits = i.bits[LEFT_INDEX];
+            bits &= LEFT_MASK;
+            bits >>= LEFT_SHIFT;
 
-            /* 3bits: ttt : type */
-            i.bits[TEXT_TRANSFORM_INDEX] = (bits & ~TEXT_TRANSFORM_MASK) | (((uint)type & 0x7) << TEXT_TRANSFORM_SHIFT);
-        }
-
-        // autogenerated_props.h:2049
-        byte GetWidth(ref Fixed length, ref CssUnit unit)
-        {
-            const uint WIDTH_INDEX = 3;
-            const byte WIDTH_SHIFT = 11;
-            const uint WIDTH_MASK = 0x3f800;
-
-            uint bits = i.bits[WIDTH_INDEX];
-            bits &= WIDTH_MASK;
-            bits >>= WIDTH_SHIFT;
-
-            /* 7bits: uuuuutt : unit | type */
-            byte width = (byte)(bits & 0x3);
-            if (width == (byte)CssWidth.CSS_WIDTH_SET)
+            /* 7bits: uuuuutt : units | type */
+            var val = (CssLeftEnum)(bits & 0x3);
+            if (val == CssLeftEnum.CSS_LEFT_SET)
             {
-                length = i.width;
+                length = i.left;
                 unit = (CssUnit)(bits >> 2);
             }
 
-            return width;
+            return val;
+        }
+        public void SetLeft(CssLeftEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[LEFT_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[LEFT_INDEX] = (bits & ~LEFT_MASK) | ((((uint)type & 0x3) | ((uint)unit << 2))
+                    << LEFT_SHIFT);
+
+            i.left = length;
+        }
+
+        public byte GetLeftBits()
+        {
+            uint bits = i.bits[LEFT_INDEX];
+            bits &= LEFT_MASK;
+            bits >>= LEFT_SHIFT;
+
+            /* 7bits: uuuuutt : units | type */
+            return (byte)bits;
+        }
+        public CssLetterSpacingEnum GetLetterSpacing(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[LETTER_SPACING_INDEX];
+            bits &= LETTER_SPACING_MASK;
+            bits >>= LETTER_SPACING_SHIFT;
+
+            /* 7bits: uuuuutt : unit | type */
+            var val = (CssLetterSpacingEnum)(bits & 0x3);
+            if (val == CssLetterSpacingEnum.CSS_LETTER_SPACING_SET)
+            {
+                length = i.letter_spacing;
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return val;
+        }
+        public void SetLetterSpacing(CssLetterSpacingEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[LETTER_SPACING_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[LETTER_SPACING_INDEX] = (bits & ~LETTER_SPACING_MASK) | ((((uint)type & 0x3) | (
+                    (uint)unit << 2)) << LETTER_SPACING_SHIFT);
+
+            i.letter_spacing = length;
+        }
+
+        public CssLineHeightEnum GetLineHeight(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[LINE_HEIGHT_INDEX];
+            bits &= LINE_HEIGHT_MASK;
+            bits >>= LINE_HEIGHT_SHIFT;
+
+            /* 7bits: uuuuutt : units | type */
+            var val = (CssLineHeightEnum)(bits & 0x3);
+            if (val == CssLineHeightEnum.CSS_LINE_HEIGHT_NUMBER ||
+                val == CssLineHeightEnum.CSS_LINE_HEIGHT_DIMENSION)
+            {
+                length = i.line_height;
+            }
+
+            if (val == CssLineHeightEnum.CSS_LINE_HEIGHT_DIMENSION)
+            {
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return val;
+        }
+        public void SetLineHeight(CssLineHeightEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[LINE_HEIGHT_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[LINE_HEIGHT_INDEX] = (bits & ~LINE_HEIGHT_MASK) | ((((uint)type & 0x3) |
+                ((uint)unit << 2)) << LINE_HEIGHT_SHIFT);
+
+            i.line_height = length;
+        }
+
+        public byte GetListStyleImage(ref string value)
+        {
+            uint bits = i.bits[LIST_STYLE_IMAGE_INDEX];
+            bits &= LIST_STYLE_IMAGE_MASK;
+            bits >>= LIST_STYLE_IMAGE_SHIFT;
+
+            /* 1bit: t : type */
+            value = i.list_style_image;
+
+            return (byte)(bits & 0x1);
+        }
+        public void SetListStyleImage(byte type, string value)
+        {
+            uint bits = i.bits[LIST_STYLE_IMAGE_INDEX];
+
+            /* 1bit: t : type */
+            i.bits[LIST_STYLE_IMAGE_INDEX] = (bits & ~LIST_STYLE_IMAGE_MASK) | (((uint)type & 0x1) <<
+                    LIST_STYLE_IMAGE_SHIFT);
+
+            i.list_style_image = value;
+        }
+
+        public byte GetListStylePosition()
+        {
+            uint bits = i.bits[LIST_STYLE_POSITION_INDEX];
+            bits &= LIST_STYLE_POSITION_MASK;
+            bits >>= LIST_STYLE_POSITION_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetListStylePosition(byte type)
+        {
+            uint bits = i.bits[LIST_STYLE_POSITION_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[LIST_STYLE_POSITION_INDEX] = (bits & ~LIST_STYLE_POSITION_MASK) |
+                (((uint)type & 0x3) << LIST_STYLE_POSITION_SHIFT);
+        }
+
+        public byte GetListStyleType()
+        {
+            uint bits = i.bits[LIST_STYLE_TYPE_INDEX];
+            bits &= LIST_STYLE_TYPE_MASK;
+            bits >>= LIST_STYLE_TYPE_SHIFT;
+
+            /* 6bits: tttttt : type */
+
+            return (byte)(bits & 0x3f);
+        }
+        public void SetListStyleType(byte type)
+        {
+            uint bits = i.bits[LIST_STYLE_TYPE_INDEX];
+
+            /* 6bits: tttttt : type */
+            i.bits[LIST_STYLE_TYPE_INDEX] = (bits & ~LIST_STYLE_TYPE_MASK) |
+                (((uint)type & 0x3f) << LIST_STYLE_TYPE_SHIFT);
         }
 
         // autogenerated_propget.h:1297
@@ -817,20 +2531,21 @@ namespace SkiaSharpOpenGLBenchmark
 
             uint bits = i.bits[MARGIN_BOTTOM_INDEX];
             bits &= MARGIN_BOTTOM_MASK;
-	        bits >>= MARGIN_BOTTOM_SHIFT;
-	
-	        /* 7bits: uuuuutt : unit | type */
-	        if ((CssMarginEnum)(bits & 0x3) == CssMarginEnum.CSS_MARGIN_SET) {
-		        length = i.margin_bottom;
-		        unit = (CssUnit)(bits >> 2);
-	        }
-	
-	        return (CssMarginEnum)(bits & 0x3);
+            bits >>= MARGIN_BOTTOM_SHIFT;
+
+            /* 7bits: uuuuutt : unit | type */
+            if ((CssMarginEnum)(bits & 0x3) == CssMarginEnum.CSS_MARGIN_SET)
+            {
+                length = i.margin_bottom;
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return (CssMarginEnum)(bits & 0x3);
         }
 
         public CssMarginEnum GetMarginLeft(ref Fixed length, ref CssUnit unit)
         {
-            uint bits = i.bits[MARGIN_LEFT_INDEX] ;
+            uint bits = i.bits[MARGIN_LEFT_INDEX];
             bits &= MARGIN_LEFT_MASK;
             bits >>= MARGIN_LEFT_SHIFT;
 
@@ -846,7 +2561,7 @@ namespace SkiaSharpOpenGLBenchmark
 
         public CssMarginEnum GetMarginRight(ref Fixed length, ref CssUnit unit)
         {
-            uint bits = i.bits[MARGIN_RIGHT_INDEX] ;
+            uint bits = i.bits[MARGIN_RIGHT_INDEX];
             bits &= MARGIN_RIGHT_MASK;
             bits >>= MARGIN_RIGHT_SHIFT;
 
@@ -862,7 +2577,7 @@ namespace SkiaSharpOpenGLBenchmark
 
         public CssMarginEnum GetMarginTop(ref Fixed length, ref CssUnit unit)
         {
-            uint bits = i.bits[MARGIN_TOP_INDEX] ;
+            uint bits = i.bits[MARGIN_TOP_INDEX];
             bits &= MARGIN_TOP_MASK;
             bits >>= MARGIN_TOP_SHIFT;
 
@@ -918,6 +2633,736 @@ namespace SkiaSharpOpenGLBenchmark
 
             i.margin_top = length;
         }
+        public CssMaxHeightEnum GetMaxHeight(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[MAX_HEIGHT_INDEX];
+            bits &= MAX_HEIGHT_MASK;
+            bits >>= MAX_HEIGHT_SHIFT;
+
+            /* 7bits: uuuuutt : unit | type */
+            var val = (CssMaxHeightEnum)(bits & 0x3);
+            if (val == CssMaxHeightEnum.CSS_MAX_HEIGHT_SET)
+            {
+                length = i.max_height;
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return val;
+
+        }
+        public void SetMaxHeight(CssMaxHeightEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[MAX_HEIGHT_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[MAX_HEIGHT_INDEX] = (bits & ~MAX_HEIGHT_MASK) | ((((uint)type & 0x3) |
+                ((uint)unit << 2)) << MAX_HEIGHT_SHIFT);
+
+            i.max_height = length;
+        }
+
+        public CssMaxWidthEnum GetMaxWidth(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[MAX_WIDTH_INDEX];
+            bits &= MAX_WIDTH_MASK;
+            bits >>= MAX_WIDTH_SHIFT;
+
+            /* 7bits: uuuuutt : unit | type */
+            var val = (CssMaxWidthEnum)(bits & 0x3);
+            if (val == CssMaxWidthEnum.CSS_MAX_WIDTH_SET)
+            {
+                length = i.max_width;
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return val;
+        }
+        public void SetMaxWidth(CssMaxWidthEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[MAX_WIDTH_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[MAX_WIDTH_INDEX] = (bits & ~MAX_WIDTH_MASK) | ((((uint)type & 0x3) |
+                ((uint)unit << 2)) << MAX_WIDTH_SHIFT);
+
+            i.max_width = length;
+        }
+
+        public CssMinHeightEnum GetMinHeight(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[MIN_HEIGHT_INDEX];
+            bits &= MIN_HEIGHT_MASK;
+            bits >>= MIN_HEIGHT_SHIFT;
+
+            /* 7bits: uuuuutt : unit | type */
+            var val = (CssMinHeightEnum)(bits & 0x3);
+            if (val == CssMinHeightEnum.CSS_MIN_HEIGHT_SET)
+            {
+                length = i.min_height;
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return val;
+        }
+        public void SetMinHeight(CssMinHeightEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[MIN_HEIGHT_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[MIN_HEIGHT_INDEX] = (bits & ~MIN_HEIGHT_MASK) | ((((uint)type & 0x3) |
+                ((uint)unit << 2)) << MIN_HEIGHT_SHIFT);
+
+            i.min_height = length;
+        }
+
+        public CssMinWidthEnum GetMinWidth(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[MIN_WIDTH_INDEX];
+            bits &= MIN_WIDTH_MASK;
+            bits >>= MIN_WIDTH_SHIFT;
+
+            /* 7bits: uuuuutt : unit | type */
+            var val = (CssMinWidthEnum)(bits & 0x3);
+            if (val == CssMinWidthEnum.CSS_MIN_WIDTH_SET)
+            {
+                length = i.min_width;
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return val;
+        }
+        public void SetMinWidth(CssMinWidthEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[MIN_WIDTH_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[MIN_WIDTH_INDEX] = (bits & ~MIN_WIDTH_MASK) | ((((uint)type & 0x3) |
+                ((uint)unit << 2)) << MIN_WIDTH_SHIFT);
+
+            i.min_width = length;
+        }
+
+        public CssOpacityEnum GetOpacity(ref Fixed value)
+        {
+            uint bits = i.bits[OPACITY_INDEX];
+            bits &= OPACITY_MASK;
+            bits >>= OPACITY_SHIFT;
+
+            /* 1bit: t : type */
+            var en = (CssOpacityEnum)(bits & 0x1);
+            if (en == CssOpacityEnum.CSS_OPACITY_SET)
+            {
+               value = i.opacity;
+            }
+
+            return en;
+        }
+        public void SetOpacity(CssOpacityEnum type, Fixed value)
+        {
+            uint bits = i.bits[OPACITY_INDEX];
+
+            /* 1bit: t : type */
+            i.bits[OPACITY_INDEX] = (bits & ~OPACITY_MASK) | (((uint)type & 0x1) <<
+                    OPACITY_SHIFT);
+
+            i.opacity = value;
+        }
+
+        public CssOrderEnum GetOrder(ref int value)
+        {
+            uint bits = i.bits[ORDER_INDEX];
+            bits &= ORDER_MASK;
+            bits >>= ORDER_SHIFT;
+
+            /* 1bit: t : type */
+            var type = (CssOrderEnum)(bits & 0x1);
+            if (type == CssOrderEnum.CSS_ORDER_SET)
+            {
+                value = i.order;
+            }
+
+            return type;
+        }
+        public void SetOrder(CssOrderEnum type, int value)
+        {
+            uint bits = i.bits[ORDER_INDEX];
+
+            /* 1bit: t : type */
+            i.bits[ORDER_INDEX] = (bits & ~ORDER_MASK) | (((uint)type & 0x1) << ORDER_SHIFT);
+
+            i.order = value;
+        }
+
+        public byte GetOrphans(ref int value)
+        {
+            uint bits = i.bits[ORPHANS_INDEX];
+            bits &= ORPHANS_MASK;
+            bits >>= ORPHANS_SHIFT;
+
+            /* 1bit: t : type */
+            value = i.orphans;
+
+            return (byte)(bits & 0x1);
+        }
+        public void SetOrphans(byte type, int value)
+        {
+            uint bits = i.bits[ORPHANS_INDEX];
+
+            /* 1bit: t : type */
+            i.bits[ORPHANS_INDEX] = (bits & ~ORPHANS_MASK) | (((uint)type & 0x1) <<
+                    ORPHANS_SHIFT);
+
+            i.orphans = value;
+        }
+
+        public CssOutlineColorEnum GetOutlineColor(ref Color color)
+        {
+            uint bits = i.bits[OUTLINE_COLOR_INDEX];
+            bits &= OUTLINE_COLOR_MASK;
+            bits >>= OUTLINE_COLOR_SHIFT;
+
+            /* 2bits: tt : type */
+            var val = (CssOutlineColorEnum)(bits & 0x3);
+            if (val == CssOutlineColorEnum.CSS_OUTLINE_COLOR_COLOR)
+            {
+                color = i.outline_color;
+            }
+
+            return val;
+        }
+        public void SetOutlineColor(CssOutlineColorEnum type, Color color)
+        {
+            uint bits = i.bits[OUTLINE_COLOR_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[OUTLINE_COLOR_INDEX] = (bits & ~OUTLINE_COLOR_MASK) | (((uint)type & 0x3) <<
+                    OUTLINE_COLOR_SHIFT);
+
+            i.outline_color = color;
+        }
+
+        public byte GetOutlineStyle()
+        {
+            uint bits = i.bits[OUTLINE_STYLE_INDEX];
+            bits &= OUTLINE_STYLE_MASK;
+            bits >>= OUTLINE_STYLE_SHIFT;
+
+            /* 4bits: tttt : type */
+
+            return (byte)(bits & 0xf);
+        }
+        public void SetOutlineStyle(byte type)
+        {
+            uint bits = i.bits[OUTLINE_STYLE_INDEX];
+
+            /* 4bits: tttt : type */
+            i.bits[OUTLINE_STYLE_INDEX] = (bits & ~OUTLINE_STYLE_MASK) | (((uint)type & 0xf) <<
+                    OUTLINE_STYLE_SHIFT);
+        }
+
+        public CssOutlineWidthEnum GetOutlineWidth(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[OUTLINE_WIDTH_INDEX];
+            bits &= OUTLINE_WIDTH_MASK;
+            bits >>= OUTLINE_WIDTH_SHIFT;
+
+            /* 8bits: uuuuuttt : unit | type */
+            var val = (CssOutlineWidthEnum)(bits & 0x7);
+            if (val == CssOutlineWidthEnum.CSS_OUTLINE_WIDTH_WIDTH)
+            {
+                length = i.outline_width;
+                unit = (CssUnit)(bits >> 3);
+            }
+
+            return val;
+        }
+        public void SetOutlineWidth(CssOutlineWidthEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[OUTLINE_WIDTH_INDEX];
+
+            /* 8bits: uuuuuttt : unit | type */
+            i.bits[OUTLINE_WIDTH_INDEX] = (bits & ~OUTLINE_WIDTH_MASK) | ((((uint)type & 0x7) |
+                ((uint)unit << 3)) << OUTLINE_WIDTH_SHIFT);
+
+            i.outline_width = length;
+        }
+
+        public byte GetOverflowX()
+        {
+            uint bits = i.bits[OVERFLOW_X_INDEX];
+            bits &= OVERFLOW_X_MASK;
+            bits >>= OVERFLOW_X_SHIFT;
+
+            /* 3bits: ttt : type */
+
+            return (byte)(bits & 0x7);
+        }
+        public void SetOverflowX(byte type)
+        {
+            uint bits = i.bits[OVERFLOW_X_INDEX];
+
+            /* 3bits: ttt : type */
+            i.bits[OVERFLOW_X_INDEX] = (bits & ~OVERFLOW_X_MASK) | (((uint)type & 0x7) <<
+                    OVERFLOW_X_SHIFT);
+        }
+
+        public byte GetOverflowY()
+        {
+            uint bits = i.bits[OVERFLOW_Y_INDEX];
+            bits &= OVERFLOW_Y_MASK;
+            bits >>= OVERFLOW_Y_SHIFT;
+
+            /* 3bits: ttt : type */
+
+            return (byte)(bits & 0x7);
+        }
+        public void SetOverflowY(byte type)
+        {
+            uint bits = i.bits[OVERFLOW_Y_INDEX];
+
+            /* 3bits: ttt : type */
+            i.bits[OVERFLOW_Y_INDEX] = (bits & ~OVERFLOW_Y_MASK) | (((uint)type & 0x7) <<
+                    OVERFLOW_Y_SHIFT);
+        }
+
+        public CssPaddingEnum GetPaddingBottom(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[PADDING_BOTTOM_INDEX];
+            bits &= PADDING_BOTTOM_MASK;
+            bits >>= PADDING_BOTTOM_SHIFT;
+
+            /* 6bits: uuuuut : unit | type */
+            var val = (CssPaddingEnum)(bits & 0x1);
+            if (val == CssPaddingEnum.CSS_PADDING_SET)
+            {
+                length = i.padding_bottom;
+                unit = (CssUnit)(bits >> 1);
+            }
+
+            return val;
+        }
+        public void SetPaddingBottom(CssPaddingEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[PADDING_BOTTOM_INDEX];
+
+            /* 6bits: uuuuut : unit | type */
+            i.bits[PADDING_BOTTOM_INDEX] = (bits & ~PADDING_BOTTOM_MASK) | ((((uint)type & 0x1) |
+                ((uint)unit << 1)) << PADDING_BOTTOM_SHIFT);
+
+            i.padding_bottom = length;
+        }
+
+        public CssPaddingEnum GetPaddingLeft(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[PADDING_LEFT_INDEX];
+            bits &= PADDING_LEFT_MASK;
+            bits >>= PADDING_LEFT_SHIFT;
+
+            /* 6bits: uuuuut : unit | type */
+            var val = (CssPaddingEnum)(bits & 0x1);
+            if (val == CssPaddingEnum.CSS_PADDING_SET)
+            {
+                length = i.padding_bottom;
+                unit = (CssUnit)(bits >> 1);
+            }
+
+            return val;
+        }
+        public void SetPaddingLeft(CssPaddingEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[PADDING_LEFT_INDEX];
+
+            /* 6bits: uuuuut : unit | type */
+            i.bits[PADDING_LEFT_INDEX] = (bits & ~PADDING_LEFT_MASK) | ((((uint)type & 0x1) |
+                ((uint)unit << 1)) << PADDING_LEFT_SHIFT);
+
+            i.padding_left = length;
+        }
+
+        public CssPaddingEnum GetPaddingRight(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[PADDING_RIGHT_INDEX];
+            bits &= PADDING_RIGHT_MASK;
+            bits >>= PADDING_RIGHT_SHIFT;
+
+            /* 6bits: uuuuut : unit | type */
+            var val = (CssPaddingEnum)(bits & 0x1);
+            if (val == CssPaddingEnum.CSS_PADDING_SET)
+            {
+                length = i.padding_bottom;
+                unit = (CssUnit)(bits >> 1);
+            }
+
+            return val;
+        }
+        public void SetPaddingRight(CssPaddingEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[PADDING_RIGHT_INDEX];
+
+            /* 6bits: uuuuut : unit | type */
+            i.bits[PADDING_RIGHT_INDEX] = (bits & ~PADDING_RIGHT_MASK) | ((((uint)type & 0x1) |
+                ((uint)unit << 1)) << PADDING_RIGHT_SHIFT);
+
+            i.padding_right = length;
+        }
+
+        public CssPaddingEnum GetPaddingTop(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[PADDING_TOP_INDEX];
+            bits &= PADDING_TOP_MASK;
+            bits >>= PADDING_TOP_SHIFT;
+
+            /* 6bits: uuuuut : unit | type */
+            var val = (CssPaddingEnum)(bits & 0x1);
+            if (val == CssPaddingEnum.CSS_PADDING_SET)
+            {
+                length = i.padding_bottom;
+                unit = (CssUnit)(bits >> 1);
+            }
+
+            return val;
+        }
+        public void SetPaddingTop(CssPaddingEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[PADDING_TOP_INDEX];
+
+            /* 6bits: uuuuut : unit | type */
+            i.bits[PADDING_TOP_INDEX] = (bits & ~PADDING_TOP_MASK) | ((((uint)type & 0x1) |
+                ((uint)unit << 1)) << PADDING_TOP_SHIFT);
+
+            i.padding_top = length;
+        }
+
+        public byte GetPageBreakAfter()
+        {
+            uint bits = i.bits[PAGE_BREAK_AFTER_INDEX];
+            bits &= PAGE_BREAK_AFTER_MASK;
+            bits >>= PAGE_BREAK_AFTER_SHIFT;
+
+            /* 3bits: ttt : type */
+
+            return (byte)(bits & 0x7);
+        }
+        public void SetPageBreakAfter(byte type)
+        {
+            uint bits = i.bits[PAGE_BREAK_AFTER_INDEX];
+
+            /* 3bits: ttt : type */
+            i.bits[PAGE_BREAK_AFTER_INDEX] = (bits & ~PAGE_BREAK_AFTER_MASK) |
+                (((uint)type & 0x7) << PAGE_BREAK_AFTER_SHIFT);
+        }
+
+        public byte GetPageBreakBefore()
+        {
+            uint bits = i.bits[PAGE_BREAK_BEFORE_INDEX];
+            bits &= PAGE_BREAK_BEFORE_MASK;
+            bits >>= PAGE_BREAK_BEFORE_SHIFT;
+
+            /* 3bits: ttt : type */
+
+            return (byte)(bits & 0x7);
+        }
+        public void SetPageBreakBefore(byte type)
+        {
+            uint bits = i.bits[PAGE_BREAK_BEFORE_INDEX];
+
+            /* 3bits: ttt : type */
+            i.bits[PAGE_BREAK_BEFORE_INDEX] = (bits & ~PAGE_BREAK_BEFORE_MASK) |
+                (((uint)type & 0x7) << PAGE_BREAK_BEFORE_SHIFT);
+        }
+
+        public byte GetPageBreakInside()
+        {
+            uint bits = i.bits[PAGE_BREAK_INSIDE_INDEX];
+            bits &= PAGE_BREAK_INSIDE_MASK;
+            bits >>= PAGE_BREAK_INSIDE_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetPageBreakInside(byte type)
+        {
+            uint bits = i.bits[PAGE_BREAK_INSIDE_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[PAGE_BREAK_INSIDE_INDEX] = (bits & ~PAGE_BREAK_INSIDE_MASK) | (((uint)type & 0x3) <<
+                    PAGE_BREAK_INSIDE_SHIFT);
+        }
+
+        // autogenerated_props:1765
+        byte GetPosition()
+        {
+            uint bits = i.bits[POSITION_INDEX];
+            bits &= POSITION_MASK;
+            bits >>= POSITION_SHIFT;
+
+            /* 3bits: ttt : type */
+
+            return (byte)(bits & 0x7);
+        }
+        public void SetPosition(byte type)
+        {
+            uint bits = i.bits[POSITION_INDEX];
+
+            /* 3bits: ttt : type */
+            i.bits[POSITION_INDEX] = (bits & ~POSITION_MASK) | (((uint)type & 0x7) << POSITION_SHIFT);
+        }
+
+        public byte GetQuotes(ref string[] stringArr)
+        {
+            uint bits = i.bits[QUOTES_INDEX];
+            bits &= QUOTES_MASK;
+            bits >>= QUOTES_SHIFT;
+
+            /* 1bit: t : type */
+            stringArr = Quotes;
+
+            return (byte)(bits & 0x1);
+        }
+        public void SetQuotes(byte type, string[] stringArr)
+        {
+            uint bits = i.bits[QUOTES_INDEX];
+            Log.Unimplemented();
+        }
+
+        public CssRightEnum GetRight(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[RIGHT_INDEX];
+            bits &= RIGHT_MASK;
+            bits >>= RIGHT_SHIFT;
+
+            /* 7bits: uuuuutt : units | type */
+            var val = (CssRightEnum)(bits & 0x3);
+            if (val == CssRightEnum.CSS_RIGHT_SET)
+            {
+                length = i.right;
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return val;
+        }
+        public void SetRight(CssRightEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[RIGHT_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[RIGHT_INDEX] = (bits & ~RIGHT_MASK) | ((((uint)type & 0x3) | ((uint)unit << 2))
+                    << RIGHT_SHIFT);
+
+            i.right = length;
+        }
+
+        public byte GetRightBits()
+        {
+            uint bits = i.bits[RIGHT_INDEX];
+            bits &= RIGHT_MASK;
+            bits >>= RIGHT_SHIFT;
+            return (byte)bits;
+        }
+
+        public byte GetTableLayout()
+        {
+            uint bits = i.bits[TABLE_LAYOUT_INDEX];
+            bits &= TABLE_LAYOUT_MASK;
+            bits >>= TABLE_LAYOUT_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetTableLayout(byte type)
+        {
+            uint bits = i.bits[TABLE_LAYOUT_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[TABLE_LAYOUT_INDEX] = (bits & ~TABLE_LAYOUT_MASK) | (((uint)type & 0x3) <<
+                    TABLE_LAYOUT_SHIFT);
+        }
+
+        public byte GetTextAlign()
+        {
+            uint bits = i.bits[TEXT_ALIGN_INDEX];
+            bits &= TEXT_ALIGN_MASK;
+            bits >>= TEXT_ALIGN_SHIFT;
+
+            /* 4bits: tttt : type */
+
+            return (byte)(bits & 0xf);
+        }
+        public void SetTextAlign(byte type)
+        {
+            uint bits = i.bits[TEXT_ALIGN_INDEX];
+
+            /* 4bits: tttt : type */
+            i.bits[TEXT_ALIGN_INDEX] = (bits & ~TEXT_ALIGN_MASK) | (((uint)type & 0xf) <<
+                    TEXT_ALIGN_SHIFT);
+        }
+
+        public byte GetTextDecoration()
+        {
+            uint bits = i.bits[TEXT_DECORATION_INDEX];
+            bits &= TEXT_DECORATION_MASK;
+            bits >>= TEXT_DECORATION_SHIFT;
+
+            /* 5bits: ttttt : type */
+
+            return (byte)(bits & 0x1f);
+        }
+        public void SetTextDecoration(byte type)
+        {
+            uint bits = i.bits[TEXT_DECORATION_INDEX];
+
+            /* 5bits: ttttt : type */
+            i.bits[TEXT_DECORATION_INDEX] = (bits & ~TEXT_DECORATION_MASK) |
+                (((uint)type & 0x1f) << TEXT_DECORATION_SHIFT);
+        }
+
+        public CssTextIndentEnum GetTextIndent(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[TEXT_INDENT_INDEX];
+            bits &= TEXT_INDENT_MASK;
+            bits >>= TEXT_INDENT_SHIFT;
+
+            /* 6bits: uuuuut : unit | type */
+            var val = (CssTextIndentEnum)(bits & 0x1);
+            if (val == CssTextIndentEnum.CSS_TEXT_INDENT_SET)
+            {
+                length = i.text_indent;
+                unit = (CssUnit)(bits >> 1);
+            }
+
+            return val;
+        }
+        public void SetTextIndent(CssTextIndentEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[TEXT_INDENT_INDEX];
+
+            /* 6bits: uuuuut : unit | type */
+            i.bits[TEXT_INDENT_INDEX] = (bits & ~TEXT_INDENT_MASK) | ((((uint)type & 0x1) |
+                ((uint)unit << 1)) << TEXT_INDENT_SHIFT);
+
+            i.text_indent = length;
+        }
+
+        // autogenerated_propget.h:1908
+        public CssTextTransformEnum GetTextTransform()
+        {
+            uint bits = i.bits[TEXT_TRANSFORM_INDEX];
+            bits &= TEXT_TRANSFORM_MASK;
+            bits >>= TEXT_TRANSFORM_SHIFT;
+
+            /* 3bits: ttt : type */
+
+            return (CssTextTransformEnum)(bits & 0x7);
+        }
+
+        public void SetTextTransform(CssTextTransformEnum type)
+        {
+            uint bits = i.bits[TEXT_TRANSFORM_INDEX];
+
+            /* 3bits: ttt : type */
+            i.bits[TEXT_TRANSFORM_INDEX] = (bits & ~TEXT_TRANSFORM_MASK) | (((uint)type & 0x7) << TEXT_TRANSFORM_SHIFT);
+        }
+
+        public CssTopEnum GetTop(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[TOP_INDEX];
+            bits &= TOP_MASK;
+            bits >>= TOP_SHIFT;
+
+            /* 7bits: uuuuutt : units | type */
+            var val = (CssTopEnum)(bits & 0x3);
+            if (val == CssTopEnum.CSS_TOP_SET)
+            {
+                length = i.top;
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return val;
+        }
+        public void SetTop(CssTopEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[TOP_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[TOP_INDEX] = (bits & ~TOP_MASK) | ((((uint)type & 0x3) | ((uint)unit << 2))
+                    << TOP_SHIFT);
+
+            i.top = length;
+        }
+        public byte GetTopBits()
+        {
+            uint bits = i.bits[TOP_INDEX];
+            bits &= TOP_MASK;
+            bits >>= TOP_SHIFT;
+            return (byte)bits;
+        }
+
+        public byte GetUnicodeBidi()
+        {
+            uint bits = i.bits[UNICODE_BIDI_INDEX];
+            bits &= UNICODE_BIDI_MASK;
+            bits >>= UNICODE_BIDI_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetUnicodeBidi(byte type)
+        {
+            uint bits = i.bits[UNICODE_BIDI_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[UNICODE_BIDI_INDEX] = (bits & ~UNICODE_BIDI_MASK) | (((uint)type & 0x3) <<
+                    UNICODE_BIDI_SHIFT);
+        }
+
+        public CssVerticalAlignEnum GetVerticalAlign(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[VERTICAL_ALIGN_INDEX];
+            bits &= VERTICAL_ALIGN_MASK;
+            bits >>= VERTICAL_ALIGN_SHIFT;
+
+            /* 9bits: uuuuutttt : unit | type */
+            var val = (CssVerticalAlignEnum)(bits & 0xf);
+            if (val == CssVerticalAlignEnum.CSS_VERTICAL_ALIGN_SET)
+            {
+                length = i.vertical_align;
+                unit = (CssUnit)(bits >> 4);
+            }
+
+            return val;
+        }
+        public void SetVerticalAlign(CssVerticalAlignEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[VERTICAL_ALIGN_INDEX];
+
+            /* 9bits: uuuuutttt : unit | type */
+            i.bits[VERTICAL_ALIGN_INDEX] = (bits & ~VERTICAL_ALIGN_MASK) | ((((uint)type & 0xf) |
+                ((uint)unit << 4)) << VERTICAL_ALIGN_SHIFT);
+
+            i.vertical_align = length;
+        }
+
+        public byte GetVisibility()
+        {
+            uint bits = i.bits[VISIBILITY_INDEX];
+            bits &= VISIBILITY_MASK;
+            bits >>= VISIBILITY_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetVisibility(byte type)
+        {
+            uint bits = i.bits[VISIBILITY_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[VISIBILITY_INDEX] = (bits & ~VISIBILITY_MASK) | (((uint)type & 0x3) <<
+                    VISIBILITY_SHIFT);
+        }
 
         // autogenerated_propget.h:2013
         public CssWhiteSpaceEnum GetWhitespace()
@@ -930,6 +3375,7 @@ namespace SkiaSharpOpenGLBenchmark
 
             return (CssWhiteSpaceEnum)(bits & 0x7);
         }
+
         // autogenerated_propset.h:2384
 
         public void SetWhitespace(CssWhiteSpaceEnum type)
@@ -940,6 +3386,123 @@ namespace SkiaSharpOpenGLBenchmark
             i.bits[WHITE_SPACE_INDEX] = (bits & ~WHITE_SPACE_MASK) | (((uint)type & 0x7) << WHITE_SPACE_SHIFT);
         }
 
+        public byte GetWidows(ref int value)
+        {
+            uint bits = i.bits[WIDOWS_INDEX];
+            bits &= WIDOWS_MASK;
+            bits >>= WIDOWS_SHIFT;
+
+            /* 1bit: t : type */
+            value = i.widows;
+
+            return (byte)(bits & 0x1);
+        }
+        public void SetWidows(byte type, int value)
+        {
+            uint bits = i.bits[WIDOWS_INDEX];
+
+            /* 1bit: t : type */
+            i.bits[WIDOWS_INDEX] = (bits & ~WIDOWS_MASK) | (((uint)type & 0x1) <<
+                    WIDOWS_SHIFT);
+
+            i.widows = value;
+        }
+
+        // autogenerated_propget.h:2051
+        public CssWidth GetWidth(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[WIDTH_INDEX];
+            bits &= WIDTH_MASK;
+            bits >>= WIDTH_SHIFT;
+
+            /* 7bits: uuuuutt : unit | type */
+            byte width = (byte)(bits & 0x3);
+            if (width == (byte)CssWidth.CSS_WIDTH_SET)
+            {
+                length = i.width;
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return (CssWidth)width;
+        }
+        // autogenerated_propset.h:2429
+        public void SetWidth(CssWidth type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[WIDTH_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[WHITE_SPACE_INDEX] = (bits & ~WIDTH_MASK) | ((((uint)type & 0x3) | ((uint)unit << 2)) << WIDTH_SHIFT);
+
+            i.width = length;
+        }
+        public CssWordSpacingEnum GetWordSpacing(ref Fixed length, ref CssUnit unit)
+        {
+            uint bits = i.bits[WORD_SPACING_INDEX];
+            bits &= WORD_SPACING_MASK;
+            bits >>= WORD_SPACING_SHIFT;
+
+            /* 7bits: uuuuutt : unit | type */
+            var val = (CssWordSpacingEnum)(bits & 0x3);
+            if (val == CssWordSpacingEnum.CSS_WORD_SPACING_SET)
+            {
+                length = i.word_spacing;
+                unit = (CssUnit)(bits >> 2);
+            }
+
+            return val;
+        }
+        public void SetWordSpacing(CssWordSpacingEnum type, Fixed length, CssUnit unit)
+        {
+            uint bits = i.bits[WORD_SPACING_INDEX];
+
+            /* 7bits: uuuuutt : unit | type */
+            i.bits[WORD_SPACING_INDEX] = (bits & ~WORD_SPACING_MASK) | ((((uint)type & 0x3) |
+                ((uint)unit << 2)) << WORD_SPACING_SHIFT);
+
+            i.word_spacing = length;
+        }
+
+        public byte GetWritingMode()
+        {
+            uint bits = i.bits[WRITING_MODE_INDEX];
+            bits &= WRITING_MODE_MASK;
+            bits >>= WRITING_MODE_SHIFT;
+
+            /* 2bits: tt : type */
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetWritingMode(byte type)
+        {
+            uint bits = i.bits[WRITING_MODE_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[WRITING_MODE_INDEX] = (bits & ~WRITING_MODE_MASK) | (((uint)type & 0x3) <<
+                    WRITING_MODE_SHIFT);
+        }
+        public byte GetZIndex(ref int value)
+        {
+            uint bits = i.bits[Z_INDEX_INDEX];
+            bits &= Z_INDEX_MASK;
+            bits >>= Z_INDEX_SHIFT;
+
+            /* 2bits: tt : type */
+            value = i.z_index;
+
+            return (byte)(bits & 0x3);
+        }
+        public void SetZIndex(byte type, int value)
+        {
+            uint bits = i.bits[Z_INDEX_INDEX];
+
+            /* 2bits: tt : type */
+            i.bits[Z_INDEX_INDEX] = (bits & ~Z_INDEX_MASK) | (((uint)type & 0x3) <<
+                    Z_INDEX_SHIFT);
+
+            i.z_index = value;
+        }
+
+        // --------------------------------------------------------------------
 
         // computed.c:1094
         public void ComputeAbsoluteValues(ComputedStyle parent, CssUnitCtx unitCtx)
@@ -947,13 +3510,13 @@ namespace SkiaSharpOpenGLBenchmark
             CssHint psize = null, size = new CssHint(), ex_size = new CssHint();
             //css_error error;
 
-            size.Status = GetFontSize(ref size.Length.Value, ref size.Length.Unit);
+            size.Status = (byte)GetFontSize(ref size.Length.Value, ref size.Length.Unit);
 
             // Get reference font-size for relative sizes.
             if (parent != null)
             {
                 psize = new CssHint();
-                psize.Status = parent.GetFontSize(ref psize.Length.Value, ref psize.Length.Unit);
+                psize.Status = (byte)parent.GetFontSize(ref psize.Length.Value, ref psize.Length.Unit);
                 if (psize.Status != (byte)CssFontSizeEnum.CSS_FONT_SIZE_DIMENSION)
                 {
                     throw new Exception("Bad Param");
@@ -1229,9 +3792,15 @@ namespace SkiaSharpOpenGLBenchmark
         #region Property Accessors
 
         // computed.c:358
-        public CssContent ComputedContent(ref CssComputedContentItem content)
+        public CssContent ComputedContent(ref CssComputedContentItem[] content)
         {
             return (CssContent)GetContent(ref content);
+        }
+
+        // computed.c:372
+        public CssFontSizeEnum ComputedFontSize(ref Fixed length, ref CssUnit unit)
+        {
+            return (CssFontSizeEnum)GetFontSize(ref length, ref unit);
         }
 
         // computed.c:406
@@ -1392,101 +3961,100 @@ namespace SkiaSharpOpenGLBenchmark
         }
 
         // dump.c:63
-        /**
-         * Dump a dimension to the stream in a textual form.
-         *
-         * \param stream  Stream to write to
-         * \param val     Value to write
-         * \param unit    Unit to write
-         */
-        public void DumpCssUnit(StreamWriter sw, Fixed val, CssUnit unit)
+        static string DumpCssNumber(Fixed val)
         {
-            //dump_css_number(stream, val);
-            sw.Write(val.ToString());
+            return val.ToString();
+        }
+
+        static string DumpCssUnit(Fixed val, CssUnit unit)
+        {
+            string res = DumpCssNumber(val);
 
             switch (unit)
             {
                 case CssUnit.CSS_UNIT_PX:
-                    sw.Write("px");
+                    res += "px";
                     break;
                 case CssUnit.CSS_UNIT_EX:
-                    sw.Write("ex");
+                    res += "ex";
                     break;
                 case CssUnit.CSS_UNIT_EM:
-                    sw.Write("em");
+                    res += "em";
                     break;
                 case CssUnit.CSS_UNIT_IN:
-                    sw.Write("in");
+                    res += "in";
                     break;
                 case CssUnit.CSS_UNIT_CM:
-                    sw.Write("cm");
+                    res += "cm";
                     break;
                 case CssUnit.CSS_UNIT_MM:
-                    sw.Write("mm");
+                    res += "mm";
                     break;
                 case CssUnit.CSS_UNIT_PT:
-                    sw.Write("pt");
+                    res += "pt";
                     break;
                 case CssUnit.CSS_UNIT_PC:
-                    sw.Write("pc");
+                    res += "pc";
                     break;
                 case CssUnit.CSS_UNIT_PCT:
-                    sw.Write("%%");
+                    res += "%%";
                     break;
                 case CssUnit.CSS_UNIT_DEG:
-                    sw.Write("deg");
+                    res += "deg";
                     break;
                 case CssUnit.CSS_UNIT_GRAD:
-                    sw.Write("grad");
+                    res += "grad";
                     break;
                 case CssUnit.CSS_UNIT_RAD:
-                    sw.Write("rad");
+                    res += "rad";
                     break;
                 case CssUnit.CSS_UNIT_MS:
-                    sw.Write("ms");
+                    res += "ms";
                     break;
                 case CssUnit.CSS_UNIT_S:
-                    sw.Write("s");
+                    res += "s";
                     break;
                 case CssUnit.CSS_UNIT_HZ:
-                    sw.Write("Hz");
+                    res += "Hz";
                     break;
                 case CssUnit.CSS_UNIT_KHZ:
-                    sw.Write("kHz");
+                    res += "kHz";
                     break;
                 case CssUnit.CSS_UNIT_CH:
-                    sw.Write("ch");
+                    res += "ch";
                     break;
                 case CssUnit.CSS_UNIT_REM:
-                    sw.Write("rem");
+                    res += "rem";
                     break;
                 case CssUnit.CSS_UNIT_LH:
-                    sw.Write("lh");
+                    res += "lh";
                     break;
                 case CssUnit.CSS_UNIT_VH:
-                    sw.Write("vh");
+                    res += "vh";
                     break;
                 case CssUnit.CSS_UNIT_VW:
-                    sw.Write("vw");
+                    res += "vw";
                     break;
                 case CssUnit.CSS_UNIT_VI:
-                    sw.Write("vi");
+                    res += "vi";
                     break;
                 case CssUnit.CSS_UNIT_VB:
-                    sw.Write("vb");
+                    res += "vb";
                     break;
                 case CssUnit.CSS_UNIT_VMIN:
-                    sw.Write("vmin");
+                    res += "vmin";
                     break;
                 case CssUnit.CSS_UNIT_VMAX:
-                    sw.Write("vmax");
+                    res += "vmax";
                     break;
                 case CssUnit.CSS_UNIT_Q:
-                    sw.Write("q");
+                    res += "q";
                     break;
                 default:
                     break;
             }
+
+            return res;
         }
 
         // dump.c:150
@@ -2322,43 +4890,43 @@ namespace SkiaSharpOpenGLBenchmark
                         sw.Write(" monospace ");
                         break;
                 }
-            }
+            } */
 
-            /* font-size
-            val = css_computed_font_size(style, &len1, &unit1);
-            switch (val)
+            // font-size
+            var val2331 = ComputedFontSize(ref len1, ref unit1);
+            switch (val2331)
             {
-                case CSS_FONT_SIZE_XX_SMALL:
+                case CssFontSizeEnum.CSS_FONT_SIZE_XX_SMALL:
                     sw.Write("font-size: xx-small ");
                     break;
-                case CSS_FONT_SIZE_X_SMALL:
+                case CssFontSizeEnum.CSS_FONT_SIZE_X_SMALL:
                     sw.Write("font-size: x-small ");
                     break;
-                case CSS_FONT_SIZE_SMALL:
+                case CssFontSizeEnum.CSS_FONT_SIZE_SMALL:
                     sw.Write("font-size: small ");
                     break;
-                case CSS_FONT_SIZE_MEDIUM:
+                case CssFontSizeEnum.CSS_FONT_SIZE_MEDIUM:
                     sw.Write("font-size: medium ");
                     break;
-                case CSS_FONT_SIZE_LARGE:
+                case CssFontSizeEnum.CSS_FONT_SIZE_LARGE:
                     sw.Write("font-size: large ");
                     break;
-                case CSS_FONT_SIZE_X_LARGE:
+                case CssFontSizeEnum.CSS_FONT_SIZE_X_LARGE:
                     sw.Write("font-size: x-large ");
                     break;
-                case CSS_FONT_SIZE_XX_LARGE:
+                case CssFontSizeEnum.CSS_FONT_SIZE_XX_LARGE:
                     sw.Write("font-size: xx-large ");
                     break;
-                case CSS_FONT_SIZE_LARGER:
+                case CssFontSizeEnum.CSS_FONT_SIZE_LARGER:
                     sw.Write("font-size: larger ");
                     break;
-                case CSS_FONT_SIZE_SMALLER:
+                case CssFontSizeEnum.CSS_FONT_SIZE_SMALLER:
                     sw.Write("font-size: smaller ");
                     break;
-                case CSS_FONT_SIZE_DIMENSION:
+                case CssFontSizeEnum.CSS_FONT_SIZE_DIMENSION:
                     sw.Write("font-size: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -3231,7 +5799,7 @@ namespace SkiaSharpOpenGLBenchmark
                 case CssWidth.CSS_WIDTH_SET:
                     sw.Write("width: ");
 
-                    DumpCssUnit(sw, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
