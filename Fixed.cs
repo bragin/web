@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -58,7 +59,7 @@ namespace SkiaSharpOpenGLBenchmark
             RawValue = (int)xx;
         }
 
-        public static int FromInt(int a)
+        static int FromInt(int a)
         {
             long xx = ((long)a) * (1 << CSS_RADIX_POINT);
 
@@ -108,6 +109,15 @@ namespace SkiaSharpOpenGLBenchmark
         public static Fixed operator +(int other, Fixed one)
         {
             return one + (Fixed)other;
+        }
+        #endregion
+
+        #region -
+        public static Fixed operator -(Fixed one)
+        {
+            Fixed fint;
+            fint.RawValue = -one.RawValue;
+            return fint;
         }
         #endregion
 

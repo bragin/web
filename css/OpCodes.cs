@@ -842,9 +842,9 @@
             return (byte)((OPV >> 10) & 0xff);
         }
 
-        public ushort GetValue()
+        public OpCodeValues GetValue()
         {
-            return (ushort)(OPV >> 18);
+            return (OpCodeValues)((ushort)(OPV >> 18));
         }
 
         public bool IsImportant()
