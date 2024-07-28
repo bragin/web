@@ -354,6 +354,50 @@ namespace SkiaSharpOpenGLBenchmark.css
         CSS_DISPLAY_INLINE_FLEX = 0x12
     };
 
+    public enum CssEmptyCellsEnum : byte
+    {
+        CSS_EMPTY_CELLS_INHERIT = 0x0,
+        CSS_EMPTY_CELLS_SHOW = 0x1,
+        CSS_EMPTY_CELLS_HIDE = 0x2
+    };
+
+    public enum CssFlexBasisEnum : byte
+    {
+        CSS_FLEX_BASIS_INHERIT = 0x0,
+        CSS_FLEX_BASIS_SET = 0x1,
+        CSS_FLEX_BASIS_AUTO = 0x2,
+        CSS_FLEX_BASIS_CONTENT = 0x3
+    };
+
+    public enum CssFlexDirectionEnum : byte
+    {
+        CSS_FLEX_DIRECTION_INHERIT = 0x0,
+        CSS_FLEX_DIRECTION_ROW = 0x1,
+        CSS_FLEX_DIRECTION_ROW_REVERSE = 0x2,
+        CSS_FLEX_DIRECTION_COLUMN = 0x3,
+        CSS_FLEX_DIRECTION_COLUMN_REVERSE = 0x4
+    };
+
+    public enum CssFlexGrowEnum : byte
+    {
+        CSS_FLEX_GROW_INHERIT = 0x0,
+        CSS_FLEX_GROW_SET = 0x1
+    };
+
+    public enum CssFlexShrinkEnum : byte
+    {
+        CSS_FLEX_SHRINK_INHERIT = 0x0,
+        CSS_FLEX_SHRINK_SET = 0x1
+    };
+
+    public enum CssFlexWrapEnum : byte
+    {
+        CSS_FLEX_WRAP_INHERIT = 0x0,
+        CSS_FLEX_WRAP_NOWRAP = 0x1,
+        CSS_FLEX_WRAP_WRAP = 0x2,
+        CSS_FLEX_WRAP_WRAP_REVERSE = 0x3
+    };
+
     // properties.h:484
     public enum CssFloat : byte
     {
@@ -389,6 +433,151 @@ namespace SkiaSharpOpenGLBenchmark.css
         CSS_FONT_SIZE_SMALLER = 0x9,
         CSS_FONT_SIZE_DIMENSION = 0xa
     }
+
+    public enum CssFontStyleEnum : byte
+    {
+        CSS_FONT_STYLE_INHERIT = 0x0,
+        CSS_FONT_STYLE_NORMAL = 0x1,
+        CSS_FONT_STYLE_ITALIC = 0x2,
+        CSS_FONT_STYLE_OBLIQUE = 0x3
+    };
+
+    public enum CssFontVariantEnum : byte
+    {
+        CSS_FONT_VARIANT_INHERIT = 0x0,
+        CSS_FONT_VARIANT_NORMAL = 0x1,
+        CSS_FONT_VARIANT_SMALL_CAPS = 0x2
+    };
+
+    public enum CssFontWeightEnum : byte
+    {
+        CSS_FONT_WEIGHT_INHERIT = 0x0,
+        CSS_FONT_WEIGHT_NORMAL = 0x1,
+        CSS_FONT_WEIGHT_BOLD = 0x2,
+        CSS_FONT_WEIGHT_BOLDER = 0x3,
+        CSS_FONT_WEIGHT_LIGHTER = 0x4,
+        CSS_FONT_WEIGHT_100 = 0x5,
+        CSS_FONT_WEIGHT_200 = 0x6,
+        CSS_FONT_WEIGHT_300 = 0x7,
+        CSS_FONT_WEIGHT_400 = 0x8,
+        CSS_FONT_WEIGHT_500 = 0x9,
+        CSS_FONT_WEIGHT_600 = 0xa,
+        CSS_FONT_WEIGHT_700 = 0xb,
+        CSS_FONT_WEIGHT_800 = 0xc,
+        CSS_FONT_WEIGHT_900 = 0xd
+    };
+
+    public enum CssHeightEnum : byte
+    {
+        CSS_HEIGHT_INHERIT = 0x0,
+        CSS_HEIGHT_SET = 0x1,
+        CSS_HEIGHT_AUTO = 0x2
+    };
+
+    public enum CssJustifyContentEnum : byte
+    {
+        CSS_JUSTIFY_CONTENT_INHERIT = 0x0,
+        CSS_JUSTIFY_CONTENT_FLEX_START = 0x1,
+        CSS_JUSTIFY_CONTENT_FLEX_END = 0x2,
+        CSS_JUSTIFY_CONTENT_CENTER = 0x3,
+        CSS_JUSTIFY_CONTENT_SPACE_BETWEEN = 0x4,
+        CSS_JUSTIFY_CONTENT_SPACE_AROUND = 0x5,
+        CSS_JUSTIFY_CONTENT_SPACE_EVENLY = 0x6
+    };
+
+    public enum CssLeftEnum : byte
+    {
+        CSS_LEFT_INHERIT = 0x0,
+        CSS_LEFT_SET = 0x1,
+        CSS_LEFT_AUTO = 0x2
+    };
+
+    public enum CssLetterSpacingEnum : byte
+    {
+        CSS_LETTER_SPACING_INHERIT = CssColumnGapEnum.CSS_COLUMN_GAP_INHERIT,
+        CSS_LETTER_SPACING_SET = CssColumnGapEnum.CSS_COLUMN_GAP_SET,
+        CSS_LETTER_SPACING_NORMAL = CssColumnGapEnum.CSS_COLUMN_GAP_NORMAL
+    };
+
+    public enum CssLineHeightEnum : byte
+    {
+        CSS_LINE_HEIGHT_INHERIT = 0x0,
+        CSS_LINE_HEIGHT_NUMBER = 0x1,
+        CSS_LINE_HEIGHT_DIMENSION = 0x2,
+        CSS_LINE_HEIGHT_NORMAL = 0x3
+    };
+
+    public enum CssListStyleImageEnum : byte
+    {
+        CSS_LIST_STYLE_IMAGE_INHERIT = 0x0,
+        /* Consult pointer in struct to determine which */
+        CSS_LIST_STYLE_IMAGE_URI = 0x1,
+        CSS_LIST_STYLE_IMAGE_NONE = 0x1
+    };
+
+    public enum CssListStylePositionEnum : byte
+    {
+        CSS_LIST_STYLE_POSITION_INHERIT = 0x0,
+        CSS_LIST_STYLE_POSITION_INSIDE = 0x1,
+        CSS_LIST_STYLE_POSITION_OUTSIDE = 0x2
+    };
+
+    public enum CssListStyleTypeEnum : byte
+    {
+        CSS_LIST_STYLE_TYPE_INHERIT = 0x0,
+        CSS_LIST_STYLE_TYPE_DISC = 0x1,
+        CSS_LIST_STYLE_TYPE_CIRCLE = 0x2,
+        CSS_LIST_STYLE_TYPE_SQUARE = 0x3,
+        CSS_LIST_STYLE_TYPE_DECIMAL = 0x4,
+        CSS_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO = 0x5,
+        CSS_LIST_STYLE_TYPE_LOWER_ROMAN = 0x6,
+        CSS_LIST_STYLE_TYPE_UPPER_ROMAN = 0x7,
+        CSS_LIST_STYLE_TYPE_LOWER_GREEK = 0x8,
+        CSS_LIST_STYLE_TYPE_LOWER_LATIN = 0x9,
+        CSS_LIST_STYLE_TYPE_UPPER_LATIN = 0xa,
+        CSS_LIST_STYLE_TYPE_ARMENIAN = 0xb,
+        CSS_LIST_STYLE_TYPE_GEORGIAN = 0xc,
+        CSS_LIST_STYLE_TYPE_LOWER_ALPHA = 0xd,
+        CSS_LIST_STYLE_TYPE_UPPER_ALPHA = 0xe,
+        CSS_LIST_STYLE_TYPE_NONE = 0xf,
+        CSS_LIST_STYLE_TYPE_BINARY = 0x10,
+        CSS_LIST_STYLE_TYPE_OCTAL = 0x11,
+        CSS_LIST_STYLE_TYPE_LOWER_HEXADECIMAL = 0x12,
+        CSS_LIST_STYLE_TYPE_UPPER_HEXADECIMAL = 0x13,
+        CSS_LIST_STYLE_TYPE_ARABIC_INDIC = 0x14,
+        CSS_LIST_STYLE_TYPE_LOWER_ARMENIAN = 0x15,
+        CSS_LIST_STYLE_TYPE_UPPER_ARMENIAN = 0x16,
+        CSS_LIST_STYLE_TYPE_BENGALI = 0x17,
+        CSS_LIST_STYLE_TYPE_CAMBODIAN = 0x18,
+        CSS_LIST_STYLE_TYPE_KHMER = 0x19,
+        CSS_LIST_STYLE_TYPE_CJK_DECIMAL = 0x1a,
+        CSS_LIST_STYLE_TYPE_DEVANAGARI = 0x1b,
+        CSS_LIST_STYLE_TYPE_GUJARATI = 0x1c,
+        CSS_LIST_STYLE_TYPE_GURMUKHI = 0x1d,
+        CSS_LIST_STYLE_TYPE_HEBREW = 0x1e,
+        CSS_LIST_STYLE_TYPE_KANNADA = 0x1f,
+        CSS_LIST_STYLE_TYPE_LAO = 0x20,
+        CSS_LIST_STYLE_TYPE_MALAYALAM = 0x21,
+        CSS_LIST_STYLE_TYPE_MONGOLIAN = 0x22,
+        CSS_LIST_STYLE_TYPE_MYANMAR = 0x23,
+        CSS_LIST_STYLE_TYPE_ORIYA = 0x24,
+        CSS_LIST_STYLE_TYPE_PERSIAN = 0x25,
+        CSS_LIST_STYLE_TYPE_TAMIL = 0x26,
+        CSS_LIST_STYLE_TYPE_TELUGU = 0x27,
+        CSS_LIST_STYLE_TYPE_THAI = 0x28,
+        CSS_LIST_STYLE_TYPE_TIBETAN = 0x29,
+        CSS_LIST_STYLE_TYPE_CJK_EARTHLY_BRANCH = 0x2a,
+        CSS_LIST_STYLE_TYPE_CJK_HEAVENLY_STEM = 0x2b,
+        CSS_LIST_STYLE_TYPE_HIAGANA = 0x2c,
+        CSS_LIST_STYLE_TYPE_HIAGANA_IROHA = 0x2d,
+        CSS_LIST_STYLE_TYPE_KATAKANA = 0x2e,
+        CSS_LIST_STYLE_TYPE_KATAKANA_IROHA = 0x2f,
+        CSS_LIST_STYLE_TYPE_JAPANESE_INFORMAL = 0x30,
+        CSS_LIST_STYLE_TYPE_JAPANESE_FORMAL = 0x31,
+        CSS_LIST_STYLE_TYPE_KOREAN_HANGUL_FORMAL = 0x32,
+        CSS_LIST_STYLE_TYPE_KOREAN_HANJA_INFORMAL = 0x33,
+        CSS_LIST_STYLE_TYPE_KOREAN_HANJA_FORMAL = 0x34
+    };
 
     // properties.h:649
     public enum CssMarginEnum : byte
@@ -1674,20 +1863,6 @@ namespace SkiaSharpOpenGLBenchmark.css
             return hint;
         }
 
-        static void SetBackgroundAttachment(ComputedStyle style, uint type)
-        {
-            const uint BACKGROUND_ATTACHMENT_INDEX = 11;
-            const byte BACKGROUND_ATTACHMENT_SHIFT = 26;
-            const uint BACKGROUND_ATTACHMENT_MASK = 0x0c000000;
-
-            uint bits = style.i.bits[BACKGROUND_ATTACHMENT_INDEX];
-
-            uint val = (type & 0x3) << BACKGROUND_ATTACHMENT_SHIFT;
-
-            // 2bits: tt : type
-            style.i.bits[BACKGROUND_ATTACHMENT_INDEX] = (bits & ~BACKGROUND_ATTACHMENT_MASK) | val;
-        }
-
         // autogenerated_propset.h:1327
 
         /////////////////////////////////////////////////////////////////////////
@@ -1731,8 +1906,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_background_attachment(CssSelectState state)
         {
-            SetBackgroundAttachment(state.Computed,
-                (uint)CssBackgroundAttachment.CSS_BACKGROUND_ATTACHMENT_SCROLL);
+            state.Computed.SetBackgroundAttachment(CssBackgroundAttachment.CSS_BACKGROUND_ATTACHMENT_SCROLL);
             return CssStatus.CSS_OK;
         }
 
@@ -1950,7 +2124,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_border_top_color(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBorderTopColor(CssBorderColorEnum.CSS_BORDER_COLOR_CURRENT_COLOR, new Color(0));
             return CssStatus.CSS_OK;
         }
 
@@ -1976,7 +2150,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_border_right_color(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBorderRightColor(CssBorderColorEnum.CSS_BORDER_COLOR_CURRENT_COLOR, new Color(0));
             return CssStatus.CSS_OK;
         }
 
@@ -2002,7 +2176,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_border_bottom_color(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBorderBottomColor(CssBorderColorEnum.CSS_BORDER_COLOR_CURRENT_COLOR, new Color(0));
             return CssStatus.CSS_OK;
         }
 
@@ -2028,7 +2202,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_border_left_color(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBorderLeftColor(CssBorderColorEnum.CSS_BORDER_COLOR_CURRENT_COLOR, new Color(0));
             return CssStatus.CSS_OK;
         }
 
@@ -2054,7 +2228,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_border_top_style(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBorderTopStyle(CssBorderStyleEnum.CSS_BORDER_STYLE_NONE);
             return CssStatus.CSS_OK;
         }
 
@@ -2080,7 +2254,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_border_right_style(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBorderRightStyle(CssBorderStyleEnum.CSS_BORDER_STYLE_NONE);
             return CssStatus.CSS_OK;
         }
 
@@ -2106,7 +2280,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_border_bottom_style(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBorderBottomStyle(CssBorderStyleEnum.CSS_BORDER_STYLE_NONE);
             return CssStatus.CSS_OK;
         }
 
@@ -2132,7 +2306,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_border_left_style(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBorderLeftStyle(CssBorderStyleEnum.CSS_BORDER_STYLE_NONE);
             return CssStatus.CSS_OK;
         }
 
@@ -2158,7 +2332,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_border_top_width(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBorderTopWidth(CssBorderWidthEnum.CSS_BORDER_WIDTH_MEDIUM, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -2184,7 +2358,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_border_right_width(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBorderRightWidth(CssBorderWidthEnum.CSS_BORDER_WIDTH_MEDIUM, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -2210,7 +2384,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_border_bottom_width(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBorderBottomWidth(CssBorderWidthEnum.CSS_BORDER_WIDTH_MEDIUM, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -2236,7 +2410,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_border_left_width(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBorderLeftWidth(CssBorderWidthEnum.CSS_BORDER_WIDTH_MEDIUM, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -2262,7 +2436,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_bottom(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBottom(CssBottomEnum.CSS_BOTTOM_AUTO, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -2314,7 +2488,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_clear(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetClear(CssClearEnum.CSS_CLEAR_NONE);
             return CssStatus.CSS_OK;
         }
 
@@ -2340,7 +2514,15 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_clip(CssSelectState state)
         {
-            Log.Unimplemented();
+            CssComputedClipRect rect = new CssComputedClipRect();
+            rect.Top = rect.Bottom = rect.Left = rect.Right = Fixed.F_0;
+            rect.Bunit = CssUnit.CSS_UNIT_PX;
+            rect.Tunit = CssUnit.CSS_UNIT_PX;
+            rect.Lunit = CssUnit.CSS_UNIT_PX;
+            rect.Runit = CssUnit.CSS_UNIT_PX;
+
+            state.Computed.SetClip(CssClipEnum.CSS_CLIP_AUTO, rect);
+
             return CssStatus.CSS_OK;
         }
 
@@ -2362,17 +2544,17 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             if (inherit == false)
             {
-                switch (op.GetValue())
+                switch ((OpColor)op.GetValue())
                 {
-                    case (ushort)OpColor.COLOR_TRANSPARENT:
+                    case OpColor.COLOR_TRANSPARENT:
                         value = CssColorEnum.CSS_COLOR_COLOR;
                         break;
-                    case (ushort)OpColor.COLOR_CURRENT_COLOR:
+                    case OpColor.COLOR_CURRENT_COLOR:
                         // color: currentColor always computes to inherit
                         value = CssColorEnum.CSS_COLOR_INHERIT;
                         inherit = true;
                         break;
-                    case (ushort)OpColor.COLOR_SET:
+                    case OpColor.COLOR_SET:
                         value = CssColorEnum.CSS_COLOR_COLOR;
                         color.Value = style.Bytecode[bi].GetOPV(); //color = *((css_color*)style->bytecode);
                         //advance_bytecode(style, sizeof(color));
@@ -2427,7 +2609,8 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_content(CssSelectState state)
         {
-            Log.Unimplemented();
+            var temp = new CssComputedContentItem[0];
+            state.Computed.SetContent(CssContent.CSS_CONTENT_NORMAL, ref temp);
             return CssStatus.CSS_OK;
         }
 
@@ -2453,7 +2636,8 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_counter_increment(CssSelectState state)
         {
-            Log.Unimplemented();
+            var temp = new CssComputedCounter[0];
+            state.Computed.SetCounterIncrement(CssCounterIncrementEnum.CSS_COUNTER_INCREMENT_NONE, temp);
             return CssStatus.CSS_OK;
         }
 
@@ -2479,7 +2663,8 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_counter_reset(CssSelectState state)
         {
-            Log.Unimplemented();
+            var temp = new CssComputedCounter[0];
+            state.Computed.SetCounterReset(CssCounterResetEnum.CSS_COUNTER_RESET_NONE, temp);
             return CssStatus.CSS_OK;
         }
 
@@ -2499,19 +2684,16 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispSFH_cue_after(CssHint hint, ComputedStyle style)
         {
-            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispInitial_cue_after(CssSelectState state)
         {
-            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispCompose_cue_after(ComputedStyle parent, ComputedStyle child, ComputedStyle result)
         {
-            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         #endregion
@@ -2525,19 +2707,16 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispSFH_cue_before(CssHint hint, ComputedStyle style)
         {
-            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispInitial_cue_before(CssSelectState state)
         {
-            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispCompose_cue_before(ComputedStyle parent, ComputedStyle child, ComputedStyle result)
         {
-            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         #endregion
@@ -2694,7 +2873,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_float(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetFloat(CssFloat.CSS_FLOAT_NONE);
             return CssStatus.CSS_OK;
         }
 
@@ -2734,7 +2913,69 @@ namespace SkiaSharpOpenGLBenchmark.css
         #region font_size
         static CssStatus PropDispCascade_font_size(OpCode op, CssStyle style, ref int bi, ref int used, CssSelectState state)
         {
-            Log.Unimplemented();
+            CssFontSizeEnum value = CssFontSizeEnum.CSS_FONT_SIZE_INHERIT;
+            Fixed size = Fixed.F_0;
+            OpcodeUnit unit = OpcodeUnit.PX;
+
+            if (!op.IsInherit())
+            {
+                switch (op.GetValue())
+                {
+                    case OpCodeValues.FONT_SIZE_DIMENSION:
+                        value = CssFontSizeEnum.CSS_FONT_SIZE_DIMENSION;
+
+                        //size = *((css_fixed*)style->bytecode);
+                        //advance_bytecode(style, sizeof(size));
+                        size.RawValue = (int)style.Bytecode[bi].GetOPV();
+                        bi++;
+                        used--;
+
+                        //unit = *((uint32_t*)style->bytecode);
+                        //advance_bytecode(style, sizeof(unit));
+                        unit = (OpcodeUnit)style.Bytecode[bi].GetOPV();
+                        bi++;
+                        used--;
+                        break;
+                    case OpCodeValues.FONT_SIZE_XX_SMALL:
+                        value = CssFontSizeEnum.CSS_FONT_SIZE_XX_SMALL;
+                        break;
+                    case OpCodeValues.FONT_SIZE_X_SMALL:
+                        value = CssFontSizeEnum.CSS_FONT_SIZE_X_SMALL;
+                        break;
+                    case OpCodeValues.FONT_SIZE_SMALL:
+                        value = CssFontSizeEnum.CSS_FONT_SIZE_SMALL;
+                        break;
+                    case OpCodeValues.FONT_SIZE_MEDIUM:
+                        value = CssFontSizeEnum.CSS_FONT_SIZE_MEDIUM;
+                        break;
+                    case OpCodeValues.FONT_SIZE_LARGE:
+                        value = CssFontSizeEnum.CSS_FONT_SIZE_LARGE;
+                        break;
+                    case OpCodeValues.FONT_SIZE_X_LARGE:
+                        value = CssFontSizeEnum.CSS_FONT_SIZE_X_LARGE;
+                        break;
+                    case OpCodeValues.FONT_SIZE_XX_LARGE:
+                        value = CssFontSizeEnum.CSS_FONT_SIZE_XX_LARGE;
+                        break;
+                    case OpCodeValues.FONT_SIZE_LARGER:
+                        value = CssFontSizeEnum.CSS_FONT_SIZE_LARGER;
+                        break;
+                    case OpCodeValues.FONT_SIZE_SMALLER:
+                        value = CssFontSizeEnum.CSS_FONT_SIZE_SMALLER;
+                        break;
+                    default:
+                        Log.Unimplemented();
+                        break;
+                }
+            }
+
+            var cssunit = CssUnitCtx.FromOpcodeUnit(unit);
+
+            if (state.OutranksExisting(op, op.IsImportant(), op.IsInherit()))
+            {
+                state.Computed.SetFontSize(value, size, cssunit);
+            }
+
             return CssStatus.CSS_OK;
         }
 
@@ -2755,7 +2996,17 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispCompose_font_size(ComputedStyle parent, ComputedStyle child, ComputedStyle result)
         {
-            Log.Unimplemented();
+            Fixed size = Fixed.F_0;
+            CssUnit unit = CssUnit.CSS_UNIT_PX;
+            CssFontSizeEnum type = (CssFontSizeEnum)child.GetFontSize(ref size, ref unit);
+
+            if (type == CssFontSizeEnum.CSS_FONT_SIZE_INHERIT)
+            {
+                type = (CssFontSizeEnum)parent.GetFontSize(ref size, ref unit);
+            }
+
+            result.SetFontSize(type, size, unit);
+
             return CssStatus.CSS_OK;
         }
         #endregion
@@ -2853,7 +3104,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_height(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetHeight(CssHeightEnum.CSS_HEIGHT_AUTO, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -2879,7 +3130,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_left(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetLeft(CssLeftEnum.CSS_LEFT_AUTO, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -3179,7 +3430,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_max_height(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetMaxHeight(CssMaxHeightEnum.CSS_MAX_HEIGHT_NONE, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -3205,7 +3456,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_max_width(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetMaxWidth(CssMaxWidthEnum.CSS_MAX_WIDTH_NONE, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -3231,7 +3482,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_min_height(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetMinHeight(CssMinHeightEnum.CSS_MIN_HEIGHT_AUTO, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -3257,7 +3508,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_min_width(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetMinWidth(CssMinWidthEnum.CSS_MIN_WIDTH_AUTO, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -3309,7 +3560,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_outline_color(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetOutlineColor(CssOutlineColorEnum.CSS_OUTLINE_COLOR_INVERT, new Color(0));
             return CssStatus.CSS_OK;
         }
 
@@ -3335,7 +3586,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_outline_style(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetOutlineStyle(CssOutlineStyleEnum.CSS_OUTLINE_STYLE_NONE);
             return CssStatus.CSS_OK;
         }
 
@@ -3361,7 +3612,8 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_outline_width(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetOutlineWidth(CssOutlineWidthEnum.CSS_OUTLINE_WIDTH_MEDIUM,
+                Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -3387,7 +3639,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_overflow_x(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetOverflowX(CssOverflowEnum.CSS_OVERFLOW_VISIBLE);
             return CssStatus.CSS_OK;
         }
 
@@ -3413,7 +3665,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_padding_top(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetPaddingTop(CssPaddingEnum.CSS_PADDING_SET, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -3439,7 +3691,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_padding_right(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetPaddingRight(CssPaddingEnum.CSS_PADDING_SET, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -3465,7 +3717,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_padding_bottom(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetPaddingBottom(CssPaddingEnum.CSS_PADDING_SET, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -3491,7 +3743,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_padding_left(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetPaddingLeft(CssPaddingEnum.CSS_PADDING_SET, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -3517,7 +3769,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_page_break_after(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetPageBreakAfter(CssPageBreakAfterEnum.CSS_PAGE_BREAK_AFTER_AUTO);
             return CssStatus.CSS_OK;
         }
 
@@ -3543,7 +3795,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_page_break_before(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetPageBreakBefore(CssPageBreakBeforeEnum.CSS_PAGE_BREAK_BEFORE_AUTO);
             return CssStatus.CSS_OK;
         }
 
@@ -3589,19 +3841,16 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispSFH_pause_after(CssHint hint, ComputedStyle style)
         {
-            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispInitial_pause_after(CssSelectState state)
         {
-            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispCompose_pause_after(ComputedStyle parent, ComputedStyle child, ComputedStyle result)
         {
-            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         #endregion
@@ -3615,19 +3864,16 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispSFH_pause_before(CssHint hint, ComputedStyle style)
         {
-            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispInitial_pause_before(CssSelectState state)
         {
-            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispCompose_pause_before(ComputedStyle parent, ComputedStyle child, ComputedStyle result)
         {
-            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         #endregion
@@ -3693,19 +3939,16 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispSFH_play_during(CssHint hint, ComputedStyle style)
         {
-            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispInitial_play_during(CssSelectState state)
         {
-            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispCompose_play_during(ComputedStyle parent, ComputedStyle child, ComputedStyle result)
         {
-            Log.Unimplemented();
             return CssStatus.CSS_OK;
         }
         #endregion
@@ -3725,7 +3968,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_position(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetPosition(CssPosition.CSS_POSITION_STATIC);
             return CssStatus.CSS_OK;
         }
 
@@ -3803,7 +4046,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_right(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetRight(CssRightEnum.CSS_RIGHT_AUTO, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -3985,7 +4228,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_table_layout(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetTableLayout(CssTableLayoutEnum.CSS_TABLE_LAYOUT_AUTO);
             return CssStatus.CSS_OK;
         }
 
@@ -4037,7 +4280,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_text_decoration(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetTextDecoration(CssTextDecorationEnum.CSS_TEXT_DECORATION_NONE);
             return CssStatus.CSS_OK;
         }
 
@@ -4063,7 +4306,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_text_indent(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetTextIndent(CssTextIndentEnum.CSS_TEXT_INDENT_SET, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -4122,7 +4365,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_top(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetTop(CssTopEnum.CSS_TOP_AUTO, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -4148,7 +4391,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_unicode_bidi(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetUnicodeBidi(CssUnicodeBidiEnum.CSS_UNICODE_BIDI_NORMAL);
             return CssStatus.CSS_OK;
         }
 
@@ -4174,7 +4417,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_vertical_align(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetVerticalAlign(CssVerticalAlignEnum.CSS_VERTICAL_ALIGN_BASELINE, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -4338,13 +4581,23 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_width(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetWidth(CssWidth.CSS_WIDTH_AUTO, Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
         static CssStatus PropDispCompose_width(ComputedStyle parent, ComputedStyle child, ComputedStyle result)
         {
-            Log.Unimplemented();
+            Fixed length = Fixed.F_0;
+            CssUnit unit = CssUnit.CSS_UNIT_PX;
+            CssWidth type = (CssWidth)child.GetWidth(ref length, ref unit);
+
+            if (type == CssWidth.CSS_WIDTH_INHERIT)
+            {
+                type = parent.GetWidth(ref length, ref unit);
+            }
+
+            result.SetWidth(type, length, unit);
+
             return CssStatus.CSS_OK;
         }
         #endregion
@@ -4390,7 +4643,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_z_index(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetZIndex(CssZindexEnum.CSS_Z_INDEX_AUTO, 0);
             return CssStatus.CSS_OK;
         }
 
@@ -4416,7 +4669,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_opacity(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetOpacity(CssOpacityEnum.CSS_OPACITY_SET, new Fixed(1));
             return CssStatus.CSS_OK;
         }
 
@@ -4442,7 +4695,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_break_after(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBreakAfter(CssBreakAfterEnum.CSS_BREAK_AFTER_AUTO);
             return CssStatus.CSS_OK;
         }
 
@@ -4468,7 +4721,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_break_before(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBreakBefore(CssBreakBeforeEnum.CSS_BREAK_BEFORE_AUTO);
             return CssStatus.CSS_OK;
         }
 
@@ -4494,7 +4747,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_break_inside(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBreakInside(CssBreakInsideEnum.CSS_BREAK_INSIDE_AUTO);
             return CssStatus.CSS_OK;
         }
 
@@ -4520,7 +4773,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_column_count(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetColumnCount(CssColumnCountEnum.CSS_COLUMN_COUNT_AUTO, 0);
             return CssStatus.CSS_OK;
         }
 
@@ -4546,7 +4799,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_column_fill(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetColumnFill(CssColumnFillEnum.CSS_COLUMN_FILL_BALANCE);
             return CssStatus.CSS_OK;
         }
 
@@ -4572,7 +4825,8 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_column_gap(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetColumnGap(CssColumnGapEnum.CSS_COLUMN_GAP_NORMAL,
+                new Fixed(1), CssUnit.CSS_UNIT_EM);
             return CssStatus.CSS_OK;
         }
 
@@ -4598,7 +4852,8 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_column_rule_color(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetColumnRuleColor(CssColumnRuleColorEnum.CSS_COLUMN_RULE_COLOR_CURRENT_COLOR,
+                new Color(0));
             return CssStatus.CSS_OK;
         }
 
@@ -4624,7 +4879,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_column_rule_style(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetColumnRuleStyle(CssColumnRuleStyleEnum.CSS_COLUMN_RULE_STYLE_NONE);
             return CssStatus.CSS_OK;
         }
 
@@ -4650,7 +4905,8 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_column_rule_width(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetColumnRuleWidth(CssColumnRuleWidthEnum.CSS_COLUMN_RULE_WIDTH_MEDIUM,
+                Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -4676,7 +4932,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_column_span(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetColumnSpan(CssColumnSpanEnum.CSS_COLUMN_SPAN_NONE);
             return CssStatus.CSS_OK;
         }
 
@@ -4702,7 +4958,8 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_column_width(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetColumnWidth(CssColumnWidthEnum.CSS_COLUMN_WIDTH_AUTO,
+                new Fixed(1), CssUnit.CSS_UNIT_EM);
             return CssStatus.CSS_OK;
         }
 
@@ -4728,7 +4985,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_writing_mode(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetWritingMode(CssWritingModeEnum.CSS_WRITING_MODE_HORIZONTAL_TB);
             return CssStatus.CSS_OK;
         }
 
@@ -4754,7 +5011,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_overflow_y(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetOverflowY(CssOverflowEnum.CSS_OVERFLOW_VISIBLE);
             return CssStatus.CSS_OK;
         }
 
@@ -4780,7 +5037,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_box_sizing(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetBoxSizing(CssBoxSizingEnum.CSS_BOX_SIZING_CONTENT_BOX);
             return CssStatus.CSS_OK;
         }
 
@@ -4806,7 +5063,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_align_content(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetAlignContent(CssAlignContentEnum.CSS_ALIGN_CONTENT_STRETCH);
             return CssStatus.CSS_OK;
         }
 
@@ -4832,7 +5089,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_align_items(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetAlignItems(CssAlignItemsEnum.CSS_ALIGN_ITEMS_STRETCH);
             return CssStatus.CSS_OK;
         }
 
@@ -4858,7 +5115,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_align_self(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetAlignSelf(CssAlignSelfEnum.CSS_ALIGN_SELF_AUTO);
             return CssStatus.CSS_OK;
         }
 
@@ -4884,7 +5141,8 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_flex_basis(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetFlexBasis(CssFlexBasisEnum.CSS_FLEX_BASIS_AUTO,
+                Fixed.F_0, CssUnit.CSS_UNIT_PX);
             return CssStatus.CSS_OK;
         }
 
@@ -4910,7 +5168,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_flex_direction(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetFlexDirection(CssFlexDirectionEnum.CSS_FLEX_DIRECTION_ROW);
             return CssStatus.CSS_OK;
         }
 
@@ -4936,7 +5194,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_flex_grow(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetFlexGrow(CssFlexGrowEnum.CSS_FLEX_GROW_SET, Fixed.F_0);
             return CssStatus.CSS_OK;
         }
 
@@ -4962,7 +5220,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_flex_shrink(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetFlexShrink(CssFlexShrinkEnum.CSS_FLEX_SHRINK_SET, new Fixed(1));
             return CssStatus.CSS_OK;
         }
 
@@ -4988,7 +5246,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_flex_wrap(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetFlexWrap(CssFlexWrapEnum.CSS_FLEX_WRAP_NOWRAP);
             return CssStatus.CSS_OK;
         }
 
@@ -5014,7 +5272,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_justify_content(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetJustifyContent(CssJustifyContentEnum.CSS_JUSTIFY_CONTENT_FLEX_START);
             return CssStatus.CSS_OK;
         }
 
@@ -5040,7 +5298,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         static CssStatus PropDispInitial_order(CssSelectState state)
         {
-            Log.Unimplemented();
+            state.Computed.SetOrder(CssOrderEnum.CSS_ORDER_SET, 0);
             return CssStatus.CSS_OK;
         }
 
