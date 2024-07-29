@@ -187,6 +187,18 @@ namespace SkiaSharpOpenGLBenchmark
             return new Fixed(src);
         }
 
+        #region ==
+        public static bool operator ==(Fixed b1, Fixed b2)
+        {
+            if ((object)b1 == null)
+                return (object)b2 == null;
+
+            return b1.Equals(b2);
+        }
+        public static bool operator !=(Fixed b1, Fixed b2)
+        {
+            return !(b1 == b2);
+        }
         public override bool Equals(object obj)
         {
             if (obj is Fixed)
@@ -194,5 +206,6 @@ namespace SkiaSharpOpenGLBenchmark
             else
                 return false;
         }
+        #endregion
     }
 }

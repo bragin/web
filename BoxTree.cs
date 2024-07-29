@@ -116,7 +116,7 @@ namespace SkiaSharpOpenGLBenchmark
 
         // INLINE_END box corresponding to this INLINE box, or INLINE
         // box corresponding to this INLINE_END box.
-        Box inline_end;
+        Box InlineEnd;
 
 
         // First float child box, or NULL. Float boxes are in the tree
@@ -196,7 +196,7 @@ namespace SkiaSharpOpenGLBenchmark
         public int Length;
 
         // Width of space after current text (depends on font and size).
-        int space;
+        int Space;
 
         // Byte offset within a textual representation of this content.
         //size_t byte_offset;
@@ -279,7 +279,7 @@ namespace SkiaSharpOpenGLBenchmark
             //box->byte_offset = 0;
             //box->text = NULL;
             //box->length = 0;
-            //box->space = 0;
+            Space = 0;
             //box->href = (href == NULL) ? NULL : nsurl_ref(href);
             //box->target = target;
             //box->title = title;
@@ -547,10 +547,9 @@ namespace SkiaSharpOpenGLBenchmark
             if (Text != null)
                 sw.Write($"{0} '{Text}'");
 
-            /*
-            if (box->space)
+            if (Space != 0)
                 sw.Write("space ");
-            if (box->object) {
+            /*if (box->object) {
                 fprintf(stream, "(object '%s') ",
                     nsurl_access(hlcache_handle_get_url(box->object)));
             }
@@ -569,10 +568,9 @@ namespace SkiaSharpOpenGLBenchmark
                 sw.Write($" [{Title}]");
             if (Id != null)
                 sw.Write($" ID:{Id}");
-            /*
-            if (box->type == BOX_INLINE || box->type == BOX_INLINE_END)
-                fprintf(stream, " inline_end %p", box->inline_end);
-            if (box->float_children)
+            if (Type == BoxType.BOX_INLINE || Type == BoxType.BOX_INLINE_END)
+                sw.Write($" inline_end {InlineEnd.GetHashCode()}");
+            /*if (box->float_children)
                 fprintf(stream, " float_children %p", box->float_children);
             if (box->next_float)
                 fprintf(stream, " next_float %p", box->next_float);
@@ -760,8 +758,6 @@ namespace SkiaSharpOpenGLBenchmark
         private CssSelectResults nscssGetStyle(ComputedStyle parentStyle, ComputedStyle rootStyle,
             XmlNode node, ref CssMedia media, ref CssUnitCtx unitCtx, CssStylesheet inlineStyle)
         {
-            // STUB
-
             // Select style for node
             var styles = CssSelectStyle(node, ref unitCtx, ref media, inlineStyle);
 
@@ -776,24 +772,24 @@ namespace SkiaSharpOpenGLBenchmark
                 // Replace select_results style with composed style
                 styles.Styles[(int)CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE] = composed;
             }
-            Log.Unimplemented();
-            
-            /*
-            for (pseudo_element = CSS_PSEUDO_ELEMENT_NONE + 1;
-                    pseudo_element < CSS_PSEUDO_ELEMENT_COUNT;
+
+            for (int pseudo_element = (int)CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE + 1;
+                    pseudo_element < (int)CssPseudoElement.CSS_PSEUDO_ELEMENT_COUNT;
                     pseudo_element++)
             {
 
-                if (pseudo_element == CSS_PSEUDO_ELEMENT_FIRST_LETTER ||
-                        pseudo_element == CSS_PSEUDO_ELEMENT_FIRST_LINE)
+                if (pseudo_element == (int)CssPseudoElement.CSS_PSEUDO_ELEMENT_FIRST_LETTER ||
+                        pseudo_element == (int)CssPseudoElement.CSS_PSEUDO_ELEMENT_FIRST_LINE)
                     // TODO: Handle first-line and first-letter pseudo
                     //       element computed style completion
                     continue;
 
-                if (styles->styles[pseudo_element] == NULL)
+                if (styles.Styles[pseudo_element] == null)
                     // There were no rules concerning this pseudo element
                     continue;
 
+                Log.Unimplemented();
+                /*
                 // Complete the pseudo element's computed style, by composing
                 // with the base element's style
                 error = css_computed_style_compose(
@@ -810,8 +806,8 @@ namespace SkiaSharpOpenGLBenchmark
 
                 // Replace select_results style with composed style
                 css_computed_style_destroy(styles->styles[pseudo_element]);
-                styles->styles[pseudo_element] = composed;
-            }*/
+                styles->styles[pseudo_element] = composed;*/
+            }
 
             return styles;
         }
@@ -911,6 +907,37 @@ namespace SkiaSharpOpenGLBenchmark
             return value;
         }
 
+        // utils.h:69
+        public static CssMinHeightEnum ns_computed_min_height(ComputedStyle style,
+            ref Fixed length, ref CssUnit unit)
+        {
+            var value = style.ComputedMinHeight(ref length, ref unit);
+
+            if (value == CssMinHeightEnum.CSS_MIN_HEIGHT_AUTO)
+            {
+                value = CssMinHeightEnum.CSS_MIN_HEIGHT_SET;
+                length = Fixed.F_0;
+                unit = CssUnit.CSS_UNIT_PX;
+            }
+
+            return value;
+        }
+
+        // utils.h:85
+        public static CssMinWidthEnum ns_computed_min_width(ComputedStyle style,
+            ref Fixed length, ref CssUnit unit)
+        {
+            var value = style.ComputedMinWidth(ref length, ref unit);
+
+            if (value == CssMinWidthEnum.CSS_MIN_WIDTH_AUTO)
+            {
+                value = CssMinWidthEnum.CSS_MIN_WIDTH_SET;
+                length = Fixed.F_0;
+                unit = CssUnit.CSS_UNIT_PX;
+            }
+
+            return value;
+        }
 
         // box_construct.c:468 - box_construct_element()
         private bool BoxConstructElement(XmlNode node, ref bool ConvertChildren)
@@ -971,6 +998,20 @@ namespace SkiaSharpOpenGLBenchmark
             }*/
 
             // Extract id attribute, if present
+            /*
+            err = dom_element_get_attribute(ctx->n, corestring_dom_id, &s);
+	        if (err != DOM_NO_ERR)
+		        return false;
+
+	        if (s != NULL) {
+		        err = dom_string_intern(s, &id);
+		        if (err != DOM_NO_ERR)
+			        id = NULL;
+
+		        dom_string_unref(s);
+	        }
+             */
+
             //var box = new Box(styles, styles->styles[CSS_PSEUDO_ELEMENT_NONE], false,
             //      props.href, props.target, props.title, id, ctx->bctx);
             var box = new Box(
@@ -1084,11 +1125,12 @@ namespace SkiaSharpOpenGLBenchmark
                     box.Styles.Styles[(int)CssPseudoElement.CSS_PSEUDO_ELEMENT_BEFORE]);
             }
 
-            /*
-            if (box->type == BOX_NONE || (ns_computed_display(box->style,
-                    props.node_is_root) == CSS_DISPLAY_NONE &&
-                    props.node_is_root == false))
+            if (box.Type == BoxType.BOX_NONE ||
+                (ns_computed_display(box.Style, props.NodeIsRoot) == CssDisplay.CSS_DISPLAY_NONE &&
+                    props.NodeIsRoot == false))
             {
+                Log.Unimplemented();
+                /*
                 css_select_results_destroy(styles);
                 box->styles = NULL;
                 box->style = NULL;
@@ -1107,9 +1149,9 @@ namespace SkiaSharpOpenGLBenchmark
 
                 *convert_children = false;
 
-                return true;
+                return true;*/
             }
-    */
+
             // Attach DOM node to box
             AttachNodeToBox(node, box);
 
@@ -1183,21 +1225,23 @@ namespace SkiaSharpOpenGLBenchmark
             }
             else
             {
-                /*
-                if (ns_computed_display(box->style, props.node_is_root) ==
-                        CSS_DISPLAY_LIST_ITEM)
+                if (ns_computed_display(box.Style, props.NodeIsRoot) == CssDisplay.CSS_DISPLAY_LIST_ITEM)
                 {
                     // List item: compute marker
+                    /*
                     if (box_construct_marker(box, props.title, ctx,
                             props.containing_block) == false)
-                        return false;
-                }*/
+                        return false;*/
+                    Log.Unimplemented();
+                }
 
-                /*if (props.node_is_root == false &&
-                        box__containing_block_is_flex(&props) == false &&
-                        (css_computed_float(box->style) == CSS_FLOAT_LEFT ||
-                        css_computed_float(box->style) == CSS_FLOAT_RIGHT))
+                if (props.NodeIsRoot == false &&
+                        /*box__containing_block_is_flex(&props) == false &&*/
+                        (box.Style.ComputedFloat() == CssFloat.CSS_FLOAT_LEFT ||
+                        box.Style.ComputedFloat() == CssFloat.CSS_FLOAT_RIGHT))
                 {
+                    Log.Unimplemented();
+                    /*
                     // Float: insert a float between the parent and box.
                     struct box *flt = box_create(NULL, NULL, false,
                                 props.href, props.target, props.title,
@@ -1211,9 +1255,9 @@ namespace SkiaSharpOpenGLBenchmark
                         flt->type = BOX_FLOAT_RIGHT;
 
                     props.InlineContainer.AddChild(flt);
-                    flt.AddChild(box);
+                    flt.AddChild(box);*/
                 }
-                else*/
+                else
                 {
                     // Non-floated block-level box: add to containing block
                     // if there is one. If we're the root box, then there
@@ -1230,7 +1274,7 @@ namespace SkiaSharpOpenGLBenchmark
         {
             Box gen = null;
             //enum css_display_e computed_display;
-            CssComputedContentItem c_item = new CssComputedContentItem();
+            CssComputedContentItem[] c_item = new CssComputedContentItem[1];
 
             // Nothing to generate if the parent box is not a block
             if (box.Type != BoxType.BOX_BLOCK)
@@ -1656,6 +1700,9 @@ namespace SkiaSharpOpenGLBenchmark
                 convert_children = true;
 
                 Debug.Assert(ctx_n != null);
+
+                ctx_n.Dump(); // AB
+
                 if (BoxConstructElement(ctx_n, ref convert_children) == false)
                 {
                     // ctx->cb(ctx->content, false);
@@ -1667,6 +1714,8 @@ namespace SkiaSharpOpenGLBenchmark
                 next = NextNode(ctx_n, convert_children);
                 while (next != null)
                 {
+                    next.Dump(); // AB
+
                     if (next.NodeType == XmlNodeType.Element)
                         break;
 

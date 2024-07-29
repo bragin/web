@@ -44,7 +44,7 @@ namespace SkiaSharpOpenGLBenchmark.css
     {
         CssSelectResults Partial;
         public CssBloom Bloom;
-        CssNodeFlags Flags;
+        public CssNodeFlags Flags;
 
         public CssNodeData()
         {
@@ -106,7 +106,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         public PropState[][] Props; //prop_state props[CSS_N_PROPERTIES][CSS_PSEUDO_ELEMENT_COUNT];
 
-        // select.c:1065
+        // select.c:1065 css_select__initialise_selection_state
         public CssSelectState(XmlNode node, XmlNode parent, ref CssMedia media, ref CssUnitCtx unitCtx)
         {
             Node = node;
@@ -140,8 +140,14 @@ namespace SkiaSharpOpenGLBenchmark.css
                 Classes = null;
             }
 
-            // TODO: Node pseudo classes
-            Log.Unimplemented("Node pseudo classes");
+            // Node pseudo classes
+            if (node.IsLink())
+            {
+                NodeData.Flags =
+                    (CssNodeFlags)((short)NodeData.Flags | (short)CssNodeFlags.CSS_NODE_FLAGS_PSEUDO_CLASS_LINK);
+            }
+
+            Log.Unimplemented("Some node pseudo classes flags are missing");
 
             // Props
             Props = new PropState[(int)CssPropertiesEnum.CSS_N_PROPERTIES][];

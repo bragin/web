@@ -58,5 +58,24 @@ namespace SkiaSharpOpenGLBenchmark
 
             return false;
         }
+
+        public static bool IsLink(this XmlNode node)
+        {
+            return string.Equals(node.Name, "a", StringComparison.OrdinalIgnoreCase);
+        }
+
+        // Just for debugging
+        public static void Dump(this XmlNode node)
+        {
+            Console.Write($"Node: {node.Name} ({node.GetHashCode()}), type: {node.NodeType }");
+
+            var data = GetNodeData(node);
+            if (data != null )
+            {
+                Console.Write($" {data.ToString()}");
+            }
+
+            Console.WriteLine();
+        }
     }
 }

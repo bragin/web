@@ -1237,7 +1237,7 @@ namespace SkiaSharpOpenGLBenchmark
             i.border_bottom_width = length;
         }
 
-        public byte GetBorderCollapse()
+        public CssBorderCollapseEnum GetBorderCollapse()
         {
             uint bits = i.bits[BORDER_COLLAPSE_INDEX];
             bits &= BORDER_COLLAPSE_MASK;
@@ -1245,9 +1245,9 @@ namespace SkiaSharpOpenGLBenchmark
 
             /* 2bits: tt : type */
 
-            return (byte)(bits & 0x3);
+            return (CssBorderCollapseEnum)(bits & 0x3);
         }
-        public void SetBorderCollapse(byte type)
+        public void SetBorderCollapse(CssBorderCollapseEnum type)
         {
             uint bits = i.bits[BORDER_COLLAPSE_INDEX];
 
@@ -1604,7 +1604,7 @@ namespace SkiaSharpOpenGLBenchmark
                     BREAK_INSIDE_SHIFT);
         }
 
-        public byte GetCaptionSide()
+        public CssCaptionSideEnum GetCaptionSide()
         {
             uint bits = i.bits[CAPTION_SIDE_INDEX];
             bits &= CAPTION_SIDE_MASK;
@@ -1612,9 +1612,9 @@ namespace SkiaSharpOpenGLBenchmark
 
             /* 2bits: tt : type */
 
-            return (byte)(bits & 0x3);
+            return (CssCaptionSideEnum)(bits & 0x3);
         }
-        public void SetCaptionSide(byte type)
+        public void SetCaptionSide(CssCaptionSideEnum type)
         {
             uint bits = i.bits[CAPTION_SIDE_INDEX];
 
@@ -2022,7 +2022,7 @@ namespace SkiaSharpOpenGLBenchmark
             Log.Unimplemented();
         }
 
-        public byte GetDirection()
+        public CssDirectionEnum GetDirection()
         {
             uint bits = i.bits[DIRECTION_INDEX];
             bits &= DIRECTION_MASK;
@@ -2030,9 +2030,9 @@ namespace SkiaSharpOpenGLBenchmark
 
             /* 2bits: tt : type */
 
-            return (byte)(bits & 0x3);
+            return (CssDirectionEnum)(bits & 0x3);
         }
-        public void SetDirection(byte type)
+        public void SetDirection(CssDirectionEnum type)
         {
             uint bits = i.bits[DIRECTION_INDEX];
 
@@ -2060,7 +2060,7 @@ namespace SkiaSharpOpenGLBenchmark
             i.bits[DISPLAY_INDEX] = (bits & ~DISPLAY_MASK) | (((uint)type & 0x1f) << DISPLAY_SHIFT);
         }
 
-        public byte GetEmptyCells()
+        public CssEmptyCellsEnum GetEmptyCells()
         {
             uint bits = i.bits[EMPTY_CELLS_INDEX];
             bits &= EMPTY_CELLS_MASK;
@@ -2068,9 +2068,9 @@ namespace SkiaSharpOpenGLBenchmark
 
             /* 2bits: tt : type */
 
-            return (byte)(bits & 0x3);
+            return (CssEmptyCellsEnum)(bits & 0x3);
         }
-        public void SetEmptyCells(byte type)
+        public void SetEmptyCells(CssEmptyCellsEnum type)
         {
             uint bits = i.bits[EMPTY_CELLS_INDEX];
 
@@ -2214,7 +2214,7 @@ namespace SkiaSharpOpenGLBenchmark
             i.bits[FLOAT_INDEX] = (bits & ~FLOAT_MASK) | (((uint)type & 0x3) << FLOAT_SHIFT);
         }
 
-        public byte GetFontFamily(ref string[] stringArr)
+        public CssFontFamilyEnum GetFontFamily(out string[] stringArr)
         {
             uint bits = i.bits[FONT_FAMILY_INDEX];
             bits &= FONT_FAMILY_MASK;
@@ -2223,9 +2223,9 @@ namespace SkiaSharpOpenGLBenchmark
             /* 3bits: ttt : type */
             stringArr = FontFamily;
 
-            return (byte)(bits & 0x7);
+            return (CssFontFamilyEnum)(bits & 0x7);
         }
-        public void SetFontFamily(byte type, string[] stringArr)
+        public void SetFontFamily(CssFontFamilyEnum type, string[] stringArr)
         {
             uint bits = i.bits[FONT_FAMILY_INDEX];
             Log.Unimplemented();
@@ -2260,7 +2260,7 @@ namespace SkiaSharpOpenGLBenchmark
             i.font_size = length;
         }
 
-        public byte GetFontStyle()
+        public CssFontStyleEnum GetFontStyle()
         {
             uint bits = i.bits[FONT_STYLE_INDEX];
             bits &= FONT_STYLE_MASK;
@@ -2268,9 +2268,9 @@ namespace SkiaSharpOpenGLBenchmark
 
             /* 2bits: tt : type */
 
-            return (byte)(bits & 0x3);
+            return (CssFontStyleEnum)(bits & 0x3);
         }
-        public void SetFontStyle(byte type)
+        public void SetFontStyle(CssFontStyleEnum type)
         {
             uint bits = i.bits[FONT_STYLE_INDEX];
 
@@ -2278,7 +2278,7 @@ namespace SkiaSharpOpenGLBenchmark
             i.bits[FONT_STYLE_INDEX] = (bits & ~FONT_STYLE_MASK) | (((uint)type & 0x3) << FONT_STYLE_SHIFT);
         }
 
-        public byte GetFontVariant()
+        public CssFontVariantEnum GetFontVariant()
         {
             uint bits = i.bits[FONT_VARIANT_INDEX];
             bits &= FONT_VARIANT_MASK;
@@ -2286,9 +2286,9 @@ namespace SkiaSharpOpenGLBenchmark
 
             /* 2bits: tt : type */
 
-            return (byte)(bits & 0x3);
+            return (CssFontVariantEnum)(bits & 0x3);
         }
-        public void SetFontVariant(byte type)
+        public void SetFontVariant(CssFontVariantEnum type)
         {
             uint bits = i.bits[FONT_VARIANT_INDEX];
 
@@ -2296,7 +2296,7 @@ namespace SkiaSharpOpenGLBenchmark
             i.bits[FONT_VARIANT_INDEX] = (bits & ~FONT_VARIANT_MASK) | (((uint)type & 0x3) << FONT_VARIANT_SHIFT);
         }
 
-        public byte GetFontWeight()
+        public CssFontWeightEnum GetFontWeight()
         {
             uint bits = i.bits[FONT_WEIGHT_INDEX];
             bits &= FONT_WEIGHT_MASK;
@@ -2304,9 +2304,9 @@ namespace SkiaSharpOpenGLBenchmark
 
             /* 4bits: tttt : type */
 
-            return (byte)(bits & 0xf);
+            return (CssFontWeightEnum)(bits & 0xf);
         }
-        public void SetFontWeight(byte type)
+        public void SetFontWeight(CssFontWeightEnum type)
         {
             uint bits = i.bits[FONT_WEIGHT_INDEX];
 
@@ -2478,7 +2478,7 @@ namespace SkiaSharpOpenGLBenchmark
             i.list_style_image = value;
         }
 
-        public byte GetListStylePosition()
+        public CssListStylePositionEnum GetListStylePosition()
         {
             uint bits = i.bits[LIST_STYLE_POSITION_INDEX];
             bits &= LIST_STYLE_POSITION_MASK;
@@ -2486,9 +2486,9 @@ namespace SkiaSharpOpenGLBenchmark
 
             /* 2bits: tt : type */
 
-            return (byte)(bits & 0x3);
+            return (CssListStylePositionEnum)(bits & 0x3);
         }
-        public void SetListStylePosition(byte type)
+        public void SetListStylePosition(CssListStylePositionEnum type)
         {
             uint bits = i.bits[LIST_STYLE_POSITION_INDEX];
 
@@ -2497,7 +2497,7 @@ namespace SkiaSharpOpenGLBenchmark
                 (((uint)type & 0x3) << LIST_STYLE_POSITION_SHIFT);
         }
 
-        public byte GetListStyleType()
+        public CssListStyleTypeEnum GetListStyleType()
         {
             uint bits = i.bits[LIST_STYLE_TYPE_INDEX];
             bits &= LIST_STYLE_TYPE_MASK;
@@ -2505,9 +2505,9 @@ namespace SkiaSharpOpenGLBenchmark
 
             /* 6bits: tttttt : type */
 
-            return (byte)(bits & 0x3f);
+            return (CssListStyleTypeEnum)(bits & 0x3f);
         }
-        public void SetListStyleType(byte type)
+        public void SetListStyleType(CssListStyleTypeEnum type)
         {
             uint bits = i.bits[LIST_STYLE_TYPE_INDEX];
 
@@ -3171,7 +3171,7 @@ namespace SkiaSharpOpenGLBenchmark
                     TABLE_LAYOUT_SHIFT);
         }
 
-        public byte GetTextAlign()
+        public CssTextAlignEnum GetTextAlign()
         {
             uint bits = i.bits[TEXT_ALIGN_INDEX];
             bits &= TEXT_ALIGN_MASK;
@@ -3179,9 +3179,9 @@ namespace SkiaSharpOpenGLBenchmark
 
             /* 4bits: tttt : type */
 
-            return (byte)(bits & 0xf);
+            return (CssTextAlignEnum)(bits & 0xf);
         }
-        public void SetTextAlign(byte type)
+        public void SetTextAlign(CssTextAlignEnum type)
         {
             uint bits = i.bits[TEXT_ALIGN_INDEX];
 
@@ -3336,7 +3336,7 @@ namespace SkiaSharpOpenGLBenchmark
             i.vertical_align = length;
         }
 
-        public byte GetVisibility()
+        public CssVisibilityEnum GetVisibility()
         {
             uint bits = i.bits[VISIBILITY_INDEX];
             bits &= VISIBILITY_MASK;
@@ -3344,9 +3344,9 @@ namespace SkiaSharpOpenGLBenchmark
 
             /* 2bits: tt : type */
 
-            return (byte)(bits & 0x3);
+            return (CssVisibilityEnum)(bits & 0x3);
         }
-        public void SetVisibility(byte type)
+        public void SetVisibility(CssVisibilityEnum type)
         {
             uint bits = i.bits[VISIBILITY_INDEX];
 
@@ -3558,7 +3558,7 @@ namespace SkiaSharpOpenGLBenchmark
                                 set_background_color);
 
                         // Fix up border-{top,right,bottom,left}-color
-                        compute_border_colors(style);
+                        compute_border_colors();
 
                         // Fix up border-{top,right,bottom,left}-width
                         compute_absolute_border_width(style, &ex_size.data.length);
@@ -3883,7 +3883,7 @@ namespace SkiaSharpOpenGLBenchmark
             return GetBorderLeftWidth(ref length, ref unit);
         }
 
-        public CssBackgroundImageEnum ComputedBackground_image(out string url)
+        public CssBackgroundImageEnum ComputedBackgroundImage(out string url)
         {
             return GetBackgroundImage(out url);
         }
@@ -4082,13 +4082,13 @@ namespace SkiaSharpOpenGLBenchmark
             return GetBoxSizing();
         }
 
-        public CssHeightEnum Computed_height(
+        public CssHeightEnum ComputedHeight(
                 ref Fixed length, ref CssUnit unit)
         {
             return GetHeight(ref length, ref unit);
         }
 
-        public CssLineHeightEnum ComputedLine_height(
+        public CssLineHeightEnum ComputedLineHeight(
                 ref Fixed length, ref CssUnit unit)
         {
             return GetLineHeight(ref length, ref unit);
@@ -4100,7 +4100,7 @@ namespace SkiaSharpOpenGLBenchmark
             return (CssBackgroundColorEnum)GetBackgroundColor(out color);
         }
 
-        public CssZindexEnum Computed_z_index(ref int z_index)
+        public CssZindexEnum ComputedZindex(ref int z_index)
         {
             return GetZIndex(ref z_index);
         }
@@ -4134,17 +4134,17 @@ namespace SkiaSharpOpenGLBenchmark
             return GetBackgroundAttachment();
         }
 
-        public byte ComputedBorderCollapse()
+        public CssBorderCollapseEnum ComputedBorderCollapse()
         {
             return GetBorderCollapse();
         }
 
-        public byte ComputedCaptionSide()
+        public CssCaptionSideEnum ComputedCaptionSide()
         {
             return GetCaptionSide();
         }
 
-        public byte Computed_direction()
+        public CssDirectionEnum ComputedDirection()
         {
             return GetDirection();
         }
@@ -4154,7 +4154,7 @@ namespace SkiaSharpOpenGLBenchmark
             return GetMaxHeight(ref length, ref unit);
         }
 
-        public CssMaxWidthEnum Computed_maxWidth(ref Fixed length, ref CssUnit unit)
+        public CssMaxWidthEnum ComputedMaxWidth(ref Fixed length, ref CssUnit unit)
         {
             return GetMaxWidth(ref length, ref unit);
         }
@@ -4164,7 +4164,7 @@ namespace SkiaSharpOpenGLBenchmark
             return (CssWidth)GetWidth(ref length, ref unit);
         }
 
-        public byte ComputedEmptyCells()
+        public CssEmptyCellsEnum ComputedEmptyCells()
         {
             return GetEmptyCells();
         }
@@ -4183,7 +4183,7 @@ namespace SkiaSharpOpenGLBenchmark
             return value;
         }
 
-        public byte ComputedFontStyle()
+        public CssFontStyleEnum ComputedFontStyle()
         {
             return GetFontStyle();
         }
@@ -4430,7 +4430,7 @@ namespace SkiaSharpOpenGLBenchmark
         {
             return (CssDisplay)GetDisplay();
         }
-        public byte ComputedFontVariant()
+        public CssFontVariantEnum ComputedFontVariant()
         {
             return GetFontVariant();
         }
@@ -4440,9 +4440,9 @@ namespace SkiaSharpOpenGLBenchmark
             return GetTextDecoration();
         }
 
-        public byte ComputedFontFamily(string[] names)
+        public CssFontFamilyEnum ComputedFontFamily(out string[] names)
         {
-            return GetFontFamily(ref names);
+            return GetFontFamily(out names);
         }
 
         public CssBorderStyleEnum ComputedBorderTopStyle()
@@ -4465,12 +4465,12 @@ namespace SkiaSharpOpenGLBenchmark
             return GetBorderLeftStyle();
         }
 
-        public byte ComputedFontWeight()
+        public CssFontWeightEnum ComputedFontWeight()
         {
             return GetFontWeight();
         }
 
-        public byte ComputedListStyleType()
+        public CssListStyleTypeEnum ComputedListStyleType()
         {
             return GetListStyleType();
         }
@@ -4490,17 +4490,17 @@ namespace SkiaSharpOpenGLBenchmark
             return GetUnicodeBidi();
         }
 
-        public byte ComputedVisibility()
+        public CssVisibilityEnum ComputedVisibility()
         {
             return GetVisibility();
         }
 
-        public byte ComputedListStylePosition()
+        public CssListStylePositionEnum ComputedListStylePosition()
         {
             return GetListStylePosition();
         }
 
-        public byte ComputedTextAlign()
+        public CssTextAlignEnum ComputedTextAlign()
         {
             return GetTextAlign();
         }
@@ -4556,7 +4556,7 @@ namespace SkiaSharpOpenGLBenchmark
             return GetFlexDirection();
         }
 
-        public CssFlexGrowEnum ComputedFlex_grow(ref Fixed number)
+        public CssFlexGrowEnum ComputedFlexGrow(ref Fixed number)
         {
             return GetFlexGrow(number);
         }
@@ -4571,12 +4571,12 @@ namespace SkiaSharpOpenGLBenchmark
             return GetFlexWrap();
         }
 
-        public CssJustifyContentEnum Computed_justifyContent()
+        public CssJustifyContentEnum ComputedJustifyContent()
         {
             return GetJustifyContent();
         }
 
-        public CssOrderEnum Computed_order(ref int order)
+        public CssOrderEnum ComputedOrder(ref int order)
         {
             return GetOrder(ref order);
         }
@@ -4637,12 +4637,17 @@ namespace SkiaSharpOpenGLBenchmark
             }
         }
 
-        // dump.c:63
+        // dump.c:49
         static string DumpCssNumber(Fixed val)
         {
-            return val.ToString();
+            var i = val.ToInt();
+            if (new Fixed(i) == val)
+                return i.ToString();
+            else
+                return val.ToString();
         }
 
+        // dump.c:63
         static string DumpCssUnit(Fixed val, CssUnit unit)
         {
             string res = DumpCssNumber(val);
@@ -4674,7 +4679,7 @@ namespace SkiaSharpOpenGLBenchmark
                     res += "pc";
                     break;
                 case CssUnit.CSS_UNIT_PCT:
-                    res += "%%";
+                    res += "%";
                     break;
                 case CssUnit.CSS_UNIT_DEG:
                     res += "deg";
@@ -4734,20 +4739,119 @@ namespace SkiaSharpOpenGLBenchmark
             return res;
         }
 
+        string DumpSide(int s)
+        {
+            string side;
+
+            switch (s)
+            {
+                case 0:
+                    side = "top";
+                    break;
+                case 1:
+                    side = "right";
+                    break;
+                case 2:
+                    side = "bottom";
+                    break;
+                case 3:
+                    side = "left";
+                    break;
+                default:
+                    side = "unknown";
+                    break;
+            }
+
+            return side;
+        }
+
+        string DumpBorderStyle(CssBorderStyleEnum bs, int s)
+        {
+            string side = DumpSide(s);
+
+            string bsname;
+            switch (bs)
+            {
+                case CssBorderStyleEnum.CSS_BORDER_STYLE_NONE:
+                    bsname = $"border-{side}-style: none ";
+                    break;
+                case CssBorderStyleEnum.CSS_BORDER_STYLE_HIDDEN:
+                    bsname = $"border-{side}-style: hidden ";
+                    break;
+                case CssBorderStyleEnum.CSS_BORDER_STYLE_DOTTED:
+                    bsname = $"border-{side}-style: dotted ";
+                    break;
+                case CssBorderStyleEnum.CSS_BORDER_STYLE_DASHED:
+                    bsname = $"border-{side}-style: dashed ";
+                    break;
+                case CssBorderStyleEnum.CSS_BORDER_STYLE_SOLID:
+                    bsname = $"border-{side}-style: solid ";
+                    break;
+                case CssBorderStyleEnum.CSS_BORDER_STYLE_DOUBLE:
+                    bsname = $"border-{side}-style: double ";
+                    break;
+                case CssBorderStyleEnum.CSS_BORDER_STYLE_GROOVE:
+                    bsname = $"border-{side}-style: groove ";
+                    break;
+                case CssBorderStyleEnum.CSS_BORDER_STYLE_RIDGE:
+                    bsname = $"border-{side}-style: ridge ";
+                    break;
+                case CssBorderStyleEnum.CSS_BORDER_STYLE_INSET:
+                    bsname = $"border-{side}-style: inset ";
+                    break;
+                case CssBorderStyleEnum.CSS_BORDER_STYLE_OUTSET:
+                    bsname = $"border-{side}-style: outset ";
+                    break;
+                default:
+                    bsname = "";
+                    break;
+            }
+
+            return bsname;
+        }
+
+        string DumpBorderWidth(CssBorderWidthEnum bw, ref Fixed length, ref CssUnit unit, int s)
+        {
+            string side = DumpSide(s);
+
+            string bwname;
+            switch (bw)
+            {
+                case CssBorderWidthEnum.CSS_BORDER_WIDTH_THIN:
+                    bwname = $"border-{side}-width: thin ";
+                    break;
+                case CssBorderWidthEnum.CSS_BORDER_WIDTH_MEDIUM:
+                    bwname = $"border-{side}-width: medium ";
+                    break;
+                case CssBorderWidthEnum.CSS_BORDER_WIDTH_THICK:
+                    bwname = $"border-{side}-width: thick ";
+                    break;
+                case CssBorderWidthEnum.CSS_BORDER_WIDTH_WIDTH:
+                    bwname = $"border-{side}-width: {DumpCssUnit(length, unit)} ";
+                    break;
+                default:
+                    bwname = "";
+                    break;
+            }
+
+            return bwname;
+        }
+
         // dump.c:150
         public void Dump(StreamWriter sw)
         {
-            /*
-                byte val;
-                CssColor color = 0;
-                lwc_string *url = NULL;
-                css_computed_clip_rect rect = { 0, 0, 0, 0, CSS_UNIT_PX, CSS_UNIT_PX,
-                                CSS_UNIT_PX, CSS_UNIT_PX, true, true,
-                                true, true };
-                const css_computed_content_item *content = NULL;
-                const css_computed_counter *counter = NULL;
-                lwc_string **string_list = NULL;
-                int32_t zindex = 0;*/
+            byte val;
+            Color color = new Color(0);
+            string url;
+            CssComputedClipRect rect = new CssComputedClipRect();
+            rect.Top = rect.Bottom = rect.Left = rect.Right = Fixed.F_0;
+            rect.Bunit = CssUnit.CSS_UNIT_PX;
+            rect.Tunit = CssUnit.CSS_UNIT_PX;
+            rect.Lunit = CssUnit.CSS_UNIT_PX;
+            rect.Runit = CssUnit.CSS_UNIT_PX;
+            rect.TopAuto = rect.BottomAuto = rect.LeftAuto = rect.RightAuto = true;
+            string[] string_list;
+            int zindex = 0;
             Fixed len1 = new Fixed(0);
             Fixed len2 = new Fixed(0);
             CssUnit unit1 = CssUnit.CSS_UNIT_PX, unit2 = CssUnit.CSS_UNIT_PX;
@@ -4755,22 +4859,21 @@ namespace SkiaSharpOpenGLBenchmark
             sw.Write("{ ");
 
             // background-attachment
-            /*
-        val = css_computed_backgroundAttachment(style);
-        switch (val)
-        {
-            case CSS_BACKGROUND_ATTACHMENT_FIXED:
-                sw.Write("background-attachment: fixed ");
-                break;
-            case CSS_BACKGROUND_ATTACHMENT_SCROLL:
-                sw.Write("background-attachment: scroll ");
-                break;
-            default:
-                break;
-        }
-*/
+            var val1 = ComputedBackgroundAttachment();
+            switch (val1)
+            {
+                case CssBackgroundAttachment.CSS_BACKGROUND_ATTACHMENT_FIXED:
+                    sw.Write("background-attachment: fixed ");
+                    break;
+                case CssBackgroundAttachment.CSS_BACKGROUND_ATTACHMENT_SCROLL:
+                    sw.Write("background-attachment: scroll ");
+                    break;
+                default:
+                    break;
+            }
+
             // background-color
-            var val2 = ComputedBackgroundColor(out Color color);
+            var val2 = ComputedBackgroundColor(out color);
             switch (val2)
             {
                 case CssBackgroundColorEnum.CSS_BACKGROUND_COLOR_COLOR:
@@ -4780,59 +4883,58 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* background-image
-            val = css_computed_background_image(style, &url);
-            if (val == CSS_BACKGROUND_IMAGE_IMAGE && url != NULL)
+            // background-image
+            var val3 = ComputedBackgroundImage(out url);
+            if (val3 == CssBackgroundImageEnum.CSS_BACKGROUND_IMAGE_IMAGE &&
+                !string.IsNullOrEmpty(url))
             {
-                fprintf(stream, "background-image: url('%.*s') ",
-                        (int)lwc_string_length(url),
-                        lwc_string_data(url));
+                sw.Write($"background-image: url('{url}') ");
             }
-            else if (val == CSS_BACKGROUND_IMAGE_NONE)
+            else if (val3 == CssBackgroundImageEnum.CSS_BACKGROUND_IMAGE_NONE)
             {
                 sw.Write("background-image: none ");
             }
 
-            /* background-position
-            val = css_computed_background_position(style, &len1, &unit1,
-                    &len2, &unit2);
-            if (val == CSS_BACKGROUND_POSITION_SET)
+            // background-position
+            var val4 = ComputedBackgroundPosition(out len1, out unit1,
+                    out len2, out unit2);
+            if (val4 == CssBackgroundPositionEnum.CSS_BACKGROUND_POSITION_SET)
             {
-                fprintf(stream, "background-position: ");
-                dump_css_unit(stream, len1, unit1);
-                fprintf(stream, " ");
-                dump_css_unit(stream, len2, unit2);
+                sw.Write("background-position: ");
+                sw.Write(DumpCssUnit(len1, unit1));
+                sw.Write(" ");
+                sw.Write(DumpCssUnit(len2, unit2));
                 sw.Write(" ");
             }
 
-            /* background-repeat
-            val = css_computed_background_repeat(style);
-            switch (val)
+            // background-repeat
+            var val5 = ComputedBackgroundRepeat();
+            switch (val5)
             {
-                case CSS_BACKGROUND_REPEAT_REPEAT_X:
+                case CssBackgroundRepeat.CSS_BACKGROUND_REPEAT_REPEAT_X:
                     sw.Write("background-repeat: repeat-x ");
                     break;
-                case CSS_BACKGROUND_REPEAT_REPEAT_Y:
+                case CssBackgroundRepeat.CSS_BACKGROUND_REPEAT_REPEAT_Y:
                     sw.Write("background-repeat: repeat-y ");
                     break;
-                case CSS_BACKGROUND_REPEAT_REPEAT:
+                case CssBackgroundRepeat.CSS_BACKGROUND_REPEAT_REPEAT:
                     sw.Write("background-repeat: repeat ");
                     break;
-                case CSS_BACKGROUND_REPEAT_NO_REPEAT:
+                case CssBackgroundRepeat.CSS_BACKGROUND_REPEAT_NO_REPEAT:
                     sw.Write("background-repeat: no-repeat ");
                     break;
                 default:
                     break;
             }
 
-            /* border-collapse
-            val = css_computed_border_collapse(style);
-            switch (val)
+            // border-collapse
+            var val6 = ComputedBorderCollapse();
+            switch (val6)
             {
-                case CSS_BORDER_COLLAPSE_SEPARATE:
+                case CssBorderCollapseEnum.CSS_BORDER_COLLAPSE_SEPARATE:
                     sw.Write("border-collapse: separate ");
                     break;
-                case CSS_BORDER_COLLAPSE_COLLAPSE:
+                case CssBorderCollapseEnum.CSS_BORDER_COLLAPSE_COLLAPSE:
                     sw.Write("border-collapse: collapse ");
                     break;
                 default:
@@ -4840,399 +4942,190 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* border-spacing
-            val = css_computed_border_spacing(style, &len1, &unit1, &len2, &unit2);
-            if (val == CSS_BORDER_SPACING_SET)
+            // border-spacing
+            var val7 = ComputedBorderSpacing(ref len1, ref unit1, ref len2, ref unit2);
+            if (val7 == CssBorderSpacingEnum.CSS_BORDER_SPACING_SET)
             {
                 sw.Write("border-spacing: ");
-                dump_css_unit(stream, len1, unit1);
+                sw.Write(DumpCssUnit(len1, unit1));
                 sw.Write(" ");
-                dump_css_unit(stream, len2, unit2);
+                sw.Write(DumpCssUnit(len2, unit2));
                 sw.Write(" ");
             }
 
-            /* border-top-color
-            val = css_computed_border_top_color(style, &color);
-            switch (val)
+            // border-top-color
+            var val8 = ComputedBorderTopColor(ref color);
+            switch (val8)
             {
-                case CSS_BORDER_COLOR_COLOR:
-                    sw.Write("border-top-color: #%08x ", color);
+                case CssBorderColorEnum.CSS_BORDER_COLOR_COLOR:
+                    sw.Write($"border-top-color: #{color.ToString()} ");
                     break;
                 default:
                     break;
             }
 
-            /* border-right-color
-            val = css_computed_border_right_color(style, &color);
-            switch (val)
+            // border-right-color
+            val8 = ComputedBorderRightColor(ref color);
+            switch (val8)
             {
-                case CSS_BORDER_COLOR_COLOR:
-                    fprintf(stream, "border-right-color: #%08x ", color);
+                case CssBorderColorEnum.CSS_BORDER_COLOR_COLOR:
+                    sw.Write($"border-right-color: #{color.ToString()} ");
                     break;
                 default:
                     break;
             }
 
-            /* border-bottom-color
-            val = css_computed_border_bottom_color(style, &color);
-            switch (val)
+            // border-bottom-color
+            val8 = ComputedBorderBottomColor(ref color);
+            switch (val8)
             {
-                case CSS_BORDER_COLOR_COLOR:
-                    fprintf(stream, "border-bottom-color: #%08x ", color);
+                case CssBorderColorEnum.CSS_BORDER_COLOR_COLOR:
+                    sw.Write($"border-bottom-color: #{color.ToString()} ");
                     break;
                 default:
                     break;
             }
 
-            /* border-left-color
-            val = css_computed_border_left_color(style, &color);
-            switch (val)
+            // border-left-color
+            val8 = ComputedBorderLeftColor(ref color);
+            switch (val8)
             {
-                case CSS_BORDER_COLOR_COLOR:
-                    fprintf(stream, "border-left-color: #%08x ", color);
+                case CssBorderColorEnum.CSS_BORDER_COLOR_COLOR:
+                    sw.Write($"border-left-color: #{color.ToString()} ");
                     break;
                 default:
                     break;
             }
 
-            /* border-top-style
-            val = css_computed_border_top_style(style);
-            switch (val)
-            {
-                case CSS_BORDER_STYLE_NONE:
-                    sw.Write("border-top-style: none ");
-                    break;
-                case CSS_BORDER_STYLE_HIDDEN:
-                    sw.Write("border-top-style: hidden ");
-                    break;
-                case CSS_BORDER_STYLE_DOTTED:
-                    sw.Write("border-top-style: dotted ");
-                    break;
-                case CSS_BORDER_STYLE_DASHED:
-                    sw.Write("border-top-style: dashed ");
-                    break;
-                case CSS_BORDER_STYLE_SOLID:
-                    sw.Write("border-top-style: solid ");
-                    break;
-                case CSS_BORDER_STYLE_DOUBLE:
-                    sw.Write("border-top-style: double ");
-                    break;
-                case CSS_BORDER_STYLE_GROOVE:
-                    sw.Write("border-top-style: groove ");
-                    break;
-                case CSS_BORDER_STYLE_RIDGE:
-                    sw.Write("border-top-style: ridge ");
-                    break;
-                case CSS_BORDER_STYLE_INSET:
-                    sw.Write("border-top-style: inset ");
-                    break;
-                case CSS_BORDER_STYLE_OUTSET:
-                    sw.Write("border-top-style: outset ");
-                    break;
-                default:
-                    break;
-            }
+            // border-top-style
+            var val12 = ComputedBorderTopStyle();
+            sw.Write(DumpBorderStyle(val12, 0));
 
-            /* border-right-style
-            val = css_computed_border_right_style(style);
-            switch (val)
-            {
-                case CSS_BORDER_STYLE_NONE:
-                    sw.Write("border-right-style: none ");
-                    break;
-                case CSS_BORDER_STYLE_HIDDEN:
-                    sw.Write("border-right-style: hidden ");
-                    break;
-                case CSS_BORDER_STYLE_DOTTED:
-                    sw.Write("border-right-style: dotted ");
-                    break;
-                case CSS_BORDER_STYLE_DASHED:
-                    sw.Write("border-right-style: dashed ");
-                    break;
-                case CSS_BORDER_STYLE_SOLID:
-                    sw.Write("border-right-style: solid ");
-                    break;
-                case CSS_BORDER_STYLE_DOUBLE:
-                    sw.Write("border-right-style: double ");
-                    break;
-                case CSS_BORDER_STYLE_GROOVE:
-                    sw.Write("border-right-style: groove ");
-                    break;
-                case CSS_BORDER_STYLE_RIDGE:
-                    sw.Write("border-right-style: ridge ");
-                    break;
-                case CSS_BORDER_STYLE_INSET:
-                    sw.Write("border-right-style: inset ");
-                    break;
-                case CSS_BORDER_STYLE_OUTSET:
-                    sw.Write("border-right-style: outset ");
-                    break;
-                default:
-                    break;
-            }
+            // border-right-style
+            val12 = ComputedBorderRightStyle();
+            sw.Write(DumpBorderStyle(val12, 1));
 
-            /* border-bottom-style
-            val = css_computed_border_bottom_style(style);
-            switch (val)
-            {
-                case CSS_BORDER_STYLE_NONE:
-                    sw.Write("border-bottom-style: none ");
-                    break;
-                case CSS_BORDER_STYLE_HIDDEN:
-                    sw.Write("border-bottom-style: hidden ");
-                    break;
-                case CSS_BORDER_STYLE_DOTTED:
-                    sw.Write("border-bottom-style: dotted ");
-                    break;
-                case CSS_BORDER_STYLE_DASHED:
-                    sw.Write("border-bottom-style: dashed ");
-                    break;
-                case CSS_BORDER_STYLE_SOLID:
-                    sw.Write("border-bottom-style: solid ");
-                    break;
-                case CSS_BORDER_STYLE_DOUBLE:
-                    sw.Write("border-bottom-style: double ");
-                    break;
-                case CSS_BORDER_STYLE_GROOVE:
-                    sw.Write("border-bottom-style: groove ");
-                    break;
-                case CSS_BORDER_STYLE_RIDGE:
-                    sw.Write("border-bottom-style: ridge ");
-                    break;
-                case CSS_BORDER_STYLE_INSET:
-                    sw.Write("border-bottom-style: inset ");
-                    break;
-                case CSS_BORDER_STYLE_OUTSET:
-                    sw.Write("border-bottom-style: outset ");
-                    break;
-                default:
-                    break;
-            }
+            // border-bottom-style
+            val12 = ComputedBorderBottomStyle();
+            sw.Write(DumpBorderStyle(val12, 2));
 
-            /* border-left-style 
-            val = css_computed_border_left_style(style);
-            switch (val)
-            {
-                case CSS_BORDER_STYLE_NONE:
-                    sw.Write("border-left-style: none ");
-                    break;
-                case CSS_BORDER_STYLE_HIDDEN:
-                    sw.Write("border-left-style: hidden ");
-                    break;
-                case CSS_BORDER_STYLE_DOTTED:
-                    sw.Write("border-left-style: dotted ");
-                    break;
-                case CSS_BORDER_STYLE_DASHED:
-                    sw.Write("border-left-style: dashed ");
-                    break;
-                case CSS_BORDER_STYLE_SOLID:
-                    sw.Write("border-left-style: solid ");
-                    break;
-                case CSS_BORDER_STYLE_DOUBLE:
-                    sw.Write("border-left-style: double ");
-                    break;
-                case CSS_BORDER_STYLE_GROOVE:
-                    sw.Write("border-left-style: groove ");
-                    break;
-                case CSS_BORDER_STYLE_RIDGE:
-                    sw.Write("border-left-style: ridge ");
-                    break;
-                case CSS_BORDER_STYLE_INSET:
-                    sw.Write("border-left-style: inset ");
-                    break;
-                case CSS_BORDER_STYLE_OUTSET:
-                    sw.Write("border-left-style: outset ");
-                    break;
-                default:
-                    break;
-            }
+            // border-left-style 
+            val12 = ComputedBorderLeftStyle();
+            sw.Write(DumpBorderStyle(val12, 3));
 
-            /* border-top-width
-            val = css_computed_border_top_width(style, &len1, &unit1);
-            switch (val)
-            {
-                case CSS_BORDER_WIDTH_THIN:
-                    sw.Write("border-top-width: thin ");
-                    break;
-                case CSS_BORDER_WIDTH_MEDIUM:
-                    sw.Write("border-top-width: medium ");
-                    break;
-                case CSS_BORDER_WIDTH_THICK:
-                    sw.Write("border-top-width: thick ");
-                    break;
-                case CSS_BORDER_WIDTH_WIDTH:
-                    sw.Write("border-top-width: ");
-                    dump_css_unit(stream, len1, unit1);
-                    sw.Write(" ");
-                    break;
-                default:
-                    break;
-            }
+            // border-top-width
+            var val13 = ComputedBorderTopWidth(ref len1, ref unit1);
+            sw.Write(DumpBorderWidth(val13, ref len1, ref unit1, 0));
 
-            /* border-right-width
-            val = css_computed_border_right_width(style, &len1, &unit1);
-            switch (val)
-            {
-                case CSS_BORDER_WIDTH_THIN:
-                    sw.Write("border-right-width: thin ");
-                    break;
-                case CSS_BORDER_WIDTH_MEDIUM:
-                    sw.Write("border-right-width: medium ");
-                    break;
-                case CSS_BORDER_WIDTH_THICK:
-                    sw.Write("border-right-width: thick ");
-                    break;
-                case CSS_BORDER_WIDTH_WIDTH:
-                    sw.Write("border-right-width: ");
-                    dump_css_unit(stream, len1, unit1);
-                    sw.Write(" ");
-                    break;
-                default:
-                    break;
-            }
+            // border-right-width
+            val13 = ComputedBorderRightWidth(ref len1, ref unit1);
+            sw.Write(DumpBorderWidth(val13, ref len1, ref unit1, 1));
 
-            /* border-bottom-width
-            val = css_computed_border_bottom_width(style, &len1, &unit1);
-            switch (val)
-            {
-                case CSS_BORDER_WIDTH_THIN:
-                    sw.Write("border-bottom-width: thin ");
-                    break;
-                case CSS_BORDER_WIDTH_MEDIUM:
-                    sw.Write("border-bottom-width: medium ");
-                    break;
-                case CSS_BORDER_WIDTH_THICK:
-                    sw.Write("border-bottom-width: thick ");
-                    break;
-                case CSS_BORDER_WIDTH_WIDTH:
-                    sw.Write("border-bottom-width: ");
-                    dump_css_unit(stream, len1, unit1);
-                    sw.Write(" ");
-                    break;
-                default:
-                    break;
-            }
+            // border-bottom-width
+            val13 = ComputedBorderBottomWidth(ref len1, ref unit1);
+            sw.Write(DumpBorderWidth(val13, ref len1, ref unit1, 2));
+            // border-left-width
+            val13 = ComputedBorderLeftWidth(ref len1, ref unit1);
+            sw.Write(DumpBorderWidth(val13, ref len1, ref unit1, 3));
 
-            /* border-left-width
-            val = css_computed_border_left_width(style, &len1, &unit1);
-            switch (val)
+            // bottom
+            var val14 = ComputedBottom(ref len1, ref unit1);
+            switch (val14)
             {
-                case CSS_BORDER_WIDTH_THIN:
-                    sw.Write("border-left-width: thin ");
-                    break;
-                case CSS_BORDER_WIDTH_MEDIUM:
-                    sw.Write("border-left-width: medium ");
-                    break;
-                case CSS_BORDER_WIDTH_THICK:
-                    sw.Write("border-left-width: thick ");
-                    break;
-                case CSS_BORDER_WIDTH_WIDTH:
-                    sw.Write("border-left-width: ");
-                    dump_css_unit(stream, len1, unit1);
-                    sw.Write(" ");
-                    break;
-                default:
-                    break;
-            }
-
-            /* bottom
-            val = css_computed_bottom(style, &len1, &unit1);
-            switch (val)
-            {
-                case CSS_BOTTOM_AUTO:
+                case CssBottomEnum.CSS_BOTTOM_AUTO:
                     sw.Write("bottom: auto ");
                     break;
-                case CSS_BOTTOM_SET:
+                case CssBottomEnum.CSS_BOTTOM_SET:
                     sw.Write("bottom: ");
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
                     sw.Write(" ");
                     break;
                 default:
                     break;
             }
 
-            /* caption-side
-            val = css_computed_caption_side(style);
-            switch (val)
+            // caption-side
+            var val15 = ComputedCaptionSide();
+            switch (val15)
             {
-                case CSS_CAPTION_SIDE_TOP:
+                case CssCaptionSideEnum.CSS_CAPTION_SIDE_TOP:
                     sw.Write("caption_side: top ");
                     break;
-                case CSS_CAPTION_SIDE_BOTTOM:
+                case CssCaptionSideEnum.CSS_CAPTION_SIDE_BOTTOM:
                     sw.Write("caption_side: bottom ");
                     break;
                 default:
                     break;
             }
 
-            /* clear
-            val = css_computed_clear(style);
-            switch (val)
+            // clear
+            var val16 = ComputedClear();
+            switch (val16)
             {
-                case CSS_CLEAR_NONE:
+                case CssClearEnum.CSS_CLEAR_NONE:
                     sw.Write("clear: none ");
                     break;
-                case CSS_CLEAR_LEFT:
+                case CssClearEnum.CSS_CLEAR_LEFT:
                     sw.Write("clear: left ");
                     break;
-                case CSS_CLEAR_RIGHT:
+                case CssClearEnum.CSS_CLEAR_RIGHT:
                     sw.Write("clear: right ");
                     break;
-                case CSS_CLEAR_BOTH:
+                case CssClearEnum.CSS_CLEAR_BOTH:
                     sw.Write("clear: both ");
                     break;
                 default:
                     break;
             }
 
-            /* clip
-            val = css_computed_clip(style, &rect);
-            switch (val)
+            // clip
+            var val17 = ComputedClip(ref rect);
+            switch (val17)
             {
-                case CSS_CLIP_AUTO:
+                case CssClipEnum.CSS_CLIP_AUTO:
                     sw.Write("clip: auto ");
                     break;
-                case CSS_CLIP_RECT:
+                case CssClipEnum.CSS_CLIP_RECT:
                     sw.Write("clip: rect( ");
 
-                    if (rect.top_auto)
+                    if (rect.TopAuto)
                         sw.Write("auto");
                     else
-                        dump_css_unit(stream, rect.top, rect.tunit);
+                        sw.Write(DumpCssUnit(rect.Top, rect.Tunit));
                     sw.Write(", ");
 
-                    if (rect.right_auto)
+                    if (rect.RightAuto)
                         sw.Write("auto");
                     else
-                        dump_css_unit(stream, rect.right, rect.runit);
+                        sw.Write(DumpCssUnit(rect.Right, rect.Runit));
                     sw.Write(", ");
 
-                    if (rect.bottom_auto)
+                    if (rect.BottomAuto)
                         sw.Write("auto");
                     else
-                        dump_css_unit(stream, rect.bottom, rect.bunit);
+                        sw.Write(DumpCssUnit(rect.Bottom, rect.Bunit));
                     sw.Write(", ");
 
-                    if (rect.left_auto)
+                    if (rect.LeftAuto)
                         sw.Write("auto");
                     else
-                        dump_css_unit(stream, rect.left, rect.lunit);
+                        sw.Write(DumpCssUnit(rect.Left, rect.Lunit));
                     sw.Write(") ");
                     break;
                 default:
                     break;
             }
-            */
+
             // color
-            var val50 = ComputedColor(out color);
-            if (val50 == CssColorEnum.CSS_COLOR_COLOR)
+            var val18 = ComputedColor(out color);
+            if (val18 == CssColorEnum.CSS_COLOR_COLOR)
             {
                 sw.Write($"color: #{color.ToString()} ");
             }
 
             /* content
-            val = css_computed_content(style, &content);
-            switch (val)
+            val20 = ComputedContent(&content);
+            switch (val20)
             {
                 case CSS_CONTENT_NONE:
                     sw.Write("content: none ");
@@ -5250,28 +5143,28 @@ namespace SkiaSharpOpenGLBenchmark
                         switch (content->type)
                         {
                             case CSS_COMPUTED_CONTENT_STRING:
-                                fprintf(stream, "\"%.*s\"",
+                                sw.Write("\"%.*s\"",
                                         (int)lwc_string_length(
                                         content->data.string),
                                         lwc_string_data(
                                         content->data.string));
                                 break;
                             case CSS_COMPUTED_CONTENT_URI:
-                                fprintf(stream, "uri(\"%.*s\")",
+                                sw.Write("uri(\"%.*s\")",
                                         (int)lwc_string_length(
                                         content->data.uri),
                                         lwc_string_data(
                                         content->data.uri));
                                 break;
                             case CSS_COMPUTED_CONTENT_COUNTER:
-                                fprintf(stream, "counter(%.*s)",
+                                sw.Write("counter(%.*s)",
                                         (int)lwc_string_length(
                                         content->data.counter.name),
                                         lwc_string_data(
                                         content->data.counter.name));
                                 break;
                             case CSS_COMPUTED_CONTENT_COUNTERS:
-                                fprintf(stream, "counters(%.*s, \"%.*s\")",
+                                sw.Write("counters(%.*s, \"%.*s\")",
                                         (int)lwc_string_length(
                                         content->data.counters.name),
                                         lwc_string_data(
@@ -5282,14 +5175,14 @@ namespace SkiaSharpOpenGLBenchmark
                                         content->data.counters.sep));
                                 break;
                             case CSS_COMPUTED_CONTENT_ATTR:
-                                fprintf(stream, "attr(%.*s)",
+                                sw.Write("attr(%.*s)",
                                         (int)lwc_string_length(
                                         content->data.attr),
                                         lwc_string_data(
                                         content->data.attr));
                                 break;
                             case CSS_COMPUTED_CONTENT_OPEN_QUOTE:
-                                fprintf(stream, "open-quote");
+                                sw.Write("open-quote");
                                 break;
                             case CSS_COMPUTED_CONTENT_CLOSE_QUOTE:
                                 sw.Write("close-quote");
@@ -5309,10 +5202,10 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
                 default:
                     break;
-            }
+            }*/
 
             /* counter-increment
-            val = css_computed_counter_increment(style, &counter);
+            val21 = ComputedCounter_increment(&counter);
             if ((val == CSS_COUNTER_INCREMENT_NONE) || (counter == NULL))
             {
                 sw.Write("counter-increment: none ");
@@ -5323,20 +5216,20 @@ namespace SkiaSharpOpenGLBenchmark
 
                 while (counter->name != NULL)
                 {
-                    fprintf(stream, " %.*s ",
+                    sw.Write(" %.*s ",
                             (int)lwc_string_length(counter->name),
                             lwc_string_data(counter->name));
 
-                    dump_css_fixed(stream, counter->value);
+                    dumpCssFixed(stream, counter->value);
 
                     counter++;
                 }
 
                 sw.Write(" ");
-            }
+            }*/
 
             /* counter-reset
-            val = css_computed_counter_reset(style, &counter);
+            val22 = ComputedCounterReset(&counter);
             if ((val == CSS_COUNTER_RESET_NONE) || (counter == NULL))
             {
                 sw.Write("counter-reset: none ");
@@ -5347,21 +5240,21 @@ namespace SkiaSharpOpenGLBenchmark
 
                 while (counter->name != NULL)
                 {
-                    fprintf(stream, " %.*s ",
+                    sw.Write(" %.*s ",
                             (int)lwc_string_length(counter->name),
                             lwc_string_data(counter->name));
 
-                    dump_css_fixed(stream, counter->value);
+                    dumpCssFixed(stream, counter->value);
 
                     counter++;
                 }
 
                 sw.Write(" ");
-            }
+            }*/
 
             /* cursor
-            val = css_computed_cursor(style, &string_list);
-            fprintf(stream, "cursor:");
+            val23 = ComputedCursor(&string_list);
+            sw.Write("cursor:");
 
             if (string_list != NULL)
             {
@@ -5429,25 +5322,25 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
                 default:
                     break;
-            }
+            }*/
 
-            /* direction
-            val = css_computed_direction(style);
-            switch (val)
+            // direction
+            var val24 = ComputedDirection();
+            switch (val24)
             {
-                case CSS_DIRECTION_LTR:
+                case CssDirectionEnum.CSS_DIRECTION_LTR:
                     sw.Write("direction: ltr ");
                     break;
-                case CSS_DIRECTION_RTL:
+                case CssDirectionEnum.CSS_DIRECTION_RTL:
                     sw.Write("direction: rtl ");
                     break;
                 default:
                     break;
             }
-                */
+
             // display
-            var val100 = BoxTree.ns_computed_display_static(this);
-            switch (val100)
+            var val25 = BoxTree.ns_computed_display_static(this);
+            switch (val25)
             {
                 case CssDisplay.CSS_DISPLAY_INLINE:
                     sw.Write("display: inline ");
@@ -5501,23 +5394,23 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* empty-cells
-            val = css_computed_empty_cells(style);
-            switch (val)
+            // empty-cells
+            var val26 = ComputedEmptyCells();
+            switch (val26)
             {
-                case CSS_EMPTY_CELLS_SHOW:
+                case CssEmptyCellsEnum.CSS_EMPTY_CELLS_SHOW:
                     sw.Write("empty-cells: show ");
                     break;
-                case CSS_EMPTY_CELLS_HIDE:
+                case CssEmptyCellsEnum.CSS_EMPTY_CELLS_HIDE:
                     sw.Write("empty-cells: hide ");
                     break;
                 default:
                     break;
             }
-            */
+
             // float
-            var val150 = ComputedFloat();
-            switch (val150)
+            var val27 = ComputedFloat();
+            switch (val27)
             {
                 case CssFloat.CSS_FLOAT_LEFT:
                     sw.Write("float: left ");
@@ -5532,46 +5425,42 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* font-family
-            val = css_computed_font_family(style, &string_list);
-            if (val != CSS_FONT_FAMILY_INHERIT)
+            // font-family
+            var val28 = ComputedFontFamily(out string_list);
+            if (val28 != CssFontFamilyEnum.CSS_FONT_FAMILY_INHERIT)
             {
                 sw.Write("font-family:");
 
-                if (string_list != NULL)
+                if (string_list.Length > 0)
                 {
-                    while (*string_list != NULL)
+                    foreach (var s in string_list)
                     {
-                        sw.Write(" \"%.*s\"",
-                            (int)lwc_string_length(*string_list),
-                            lwc_string_data(*string_list));
-
-                        string_list++;
+                        sw.Write($" \"{s}\"");
                     }
                 }
-                switch (val)
+                switch (val28)
                 {
-                    case CSS_FONT_FAMILY_SERIF:
+                    case CssFontFamilyEnum.CSS_FONT_FAMILY_SERIF:
                         sw.Write(" serif ");
                         break;
-                    case CSS_FONT_FAMILY_SANS_SERIF:
+                    case CssFontFamilyEnum.CSS_FONT_FAMILY_SANS_SERIF:
                         sw.Write(" sans-serif ");
                         break;
-                    case CSS_FONT_FAMILY_CURSIVE:
+                    case CssFontFamilyEnum.CSS_FONT_FAMILY_CURSIVE:
                         sw.Write(" cursive ");
                         break;
-                    case CSS_FONT_FAMILY_FANTASY:
+                    case CssFontFamilyEnum.CSS_FONT_FAMILY_FANTASY:
                         sw.Write(" fantasy ");
                         break;
-                    case CSS_FONT_FAMILY_MONOSPACE:
+                    case CssFontFamilyEnum.CSS_FONT_FAMILY_MONOSPACE:
                         sw.Write(" monospace ");
                         break;
                 }
-            } */
+            }
 
             // font-size
-            var val2331 = ComputedFontSize(ref len1, ref unit1);
-            switch (val2331)
+            var val29 = ComputedFontSize(ref len1, ref unit1);
+            switch (val29)
             {
                 case CssFontSizeEnum.CSS_FONT_SIZE_XX_SMALL:
                     sw.Write("font-size: xx-small ");
@@ -5611,95 +5500,95 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* font-style
-            val = css_computed_font_style(style);
-            switch (val)
+            // font-style
+            var val30 = ComputedFontStyle();
+            switch (val30)
             {
-                case CSS_FONT_STYLE_NORMAL:
+                case CssFontStyleEnum.CSS_FONT_STYLE_NORMAL:
                     sw.Write("font-style: normal ");
                     break;
-                case CSS_FONT_STYLE_ITALIC:
+                case CssFontStyleEnum.CSS_FONT_STYLE_ITALIC:
                     sw.Write("font-style: italic ");
                     break;
-                case CSS_FONT_STYLE_OBLIQUE:
+                case CssFontStyleEnum.CSS_FONT_STYLE_OBLIQUE:
                     sw.Write("font-style: oblique ");
                     break;
                 default:
                     break;
             }
 
-            /* font-variant
-            val = css_computed_font_variant(style);
-            switch (val)
+            // font-variant
+            var val31 = ComputedFontVariant();
+            switch (val31)
             {
-                case CSS_FONT_VARIANT_NORMAL:
+                case CssFontVariantEnum.CSS_FONT_VARIANT_NORMAL:
                     sw.Write("font-variant: normal ");
                     break;
-                case CSS_FONT_VARIANT_SMALL_CAPS:
+                case CssFontVariantEnum.CSS_FONT_VARIANT_SMALL_CAPS:
                     sw.Write("font-variant: small-caps ");
                     break;
                 default:
                     break;
             }
 
-            /* font-weight
-            val = css_computed_font_weight(style);
-            switch (val)
+            // font-weight
+            var val32 = ComputedFontWeight();
+            switch (val32)
             {
-                case CSS_FONT_WEIGHT_NORMAL:
+                case CssFontWeightEnum.CSS_FONT_WEIGHT_NORMAL:
                     sw.Write("font-weight: normal ");
                     break;
-                case CSS_FONT_WEIGHT_BOLD:
+                case CssFontWeightEnum.CSS_FONT_WEIGHT_BOLD:
                     sw.Write("font-weight: bold ");
                     break;
-                case CSS_FONT_WEIGHT_BOLDER:
+                case CssFontWeightEnum.CSS_FONT_WEIGHT_BOLDER:
                     sw.Write("font-weight: bolder ");
                     break;
-                case CSS_FONT_WEIGHT_LIGHTER:
+                case CssFontWeightEnum.CSS_FONT_WEIGHT_LIGHTER:
                     sw.Write("font-weight: lighter ");
                     break;
-                case CSS_FONT_WEIGHT_100:
+                case CssFontWeightEnum.CSS_FONT_WEIGHT_100:
                     sw.Write("font-weight: 100 ");
                     break;
-                case CSS_FONT_WEIGHT_200:
+                case CssFontWeightEnum.CSS_FONT_WEIGHT_200:
                     sw.Write("font-weight: 200 ");
                     break;
-                case CSS_FONT_WEIGHT_300:
+                case CssFontWeightEnum.CSS_FONT_WEIGHT_300:
                     sw.Write("font-weight: 300 ");
                     break;
-                case CSS_FONT_WEIGHT_400:
+                case CssFontWeightEnum.CSS_FONT_WEIGHT_400:
                     sw.Write("font-weight: 400 ");
                     break;
-                case CSS_FONT_WEIGHT_500:
+                case CssFontWeightEnum.CSS_FONT_WEIGHT_500:
                     sw.Write("font-weight: 500 ");
                     break;
-                case CSS_FONT_WEIGHT_600:
+                case CssFontWeightEnum.CSS_FONT_WEIGHT_600:
                     sw.Write("font-weight: 600 ");
                     break;
-                case CSS_FONT_WEIGHT_700:
+                case CssFontWeightEnum.CSS_FONT_WEIGHT_700:
                     sw.Write("font-weight: 700 ");
                     break;
-                case CSS_FONT_WEIGHT_800:
+                case CssFontWeightEnum.CSS_FONT_WEIGHT_800:
                     sw.Write("font-weight: 800 ");
                     break;
-                case CSS_FONT_WEIGHT_900:
+                case CssFontWeightEnum.CSS_FONT_WEIGHT_900:
                     sw.Write("font-weight: 900 ");
                     break;
                 default:
                     break;
             }
 
-            /* height
-            val = css_computed_height(style, &len1, &unit1);
-            switch (val)
+            // height
+            var val33 = ComputedHeight(ref len1, ref unit1);
+            switch (val33)
             {
-                case CSS_HEIGHT_AUTO:
+                case CssHeightEnum.CSS_HEIGHT_AUTO:
                     sw.Write("height: auto ");
                     break;
-                case CSS_HEIGHT_SET:
+                case CssHeightEnum.CSS_HEIGHT_SET:
                     sw.Write("height: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -5707,17 +5596,17 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* left
-            val = css_computed_left(style, &len1, &unit1);
-            switch (val)
+            // left
+            var val34 = ComputedLeft(ref len1, ref unit1);
+            switch (val34)
             {
-                case CSS_LEFT_AUTO:
+                case CssLeftEnum.CSS_LEFT_AUTO:
                     sw.Write("left: auto ");
                     break;
-                case CSS_LEFT_SET:
+                case CssLeftEnum.CSS_LEFT_SET:
                     sw.Write("left: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -5725,17 +5614,17 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* letter-spacing
-            val = css_computed_letter_spacing(style, &len1, &unit1);
-            switch (val)
+            // letter-spacing
+            var val35 = ComputedLetterSpacing(ref len1, ref unit1);
+            switch (val35)
             {
-                case CSS_LETTER_SPACING_NORMAL:
+                case CssLetterSpacingEnum.CSS_LETTER_SPACING_NORMAL:
                     sw.Write("letter-spacing: normal ");
                     break;
-                case CSS_LETTER_SPACING_SET:
+                case CssLetterSpacingEnum.CSS_LETTER_SPACING_SET:
                     sw.Write("letter-spacing: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -5743,24 +5632,24 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* line-height
-            val = css_computed_line_height(style, &len1, &unit1);
-            switch (val)
+            // line-height
+            var val36 = ComputedLineHeight(ref len1, ref unit1);
+            switch (val36)
             {
-                case CSS_LINE_HEIGHT_NORMAL:
+                case CssLineHeightEnum.CSS_LINE_HEIGHT_NORMAL:
                     sw.Write("line-height: normal ");
                     break;
-                case CSS_LINE_HEIGHT_NUMBER:
+                case CssLineHeightEnum.CSS_LINE_HEIGHT_NUMBER:
                     sw.Write("line-height: ");
 
-                    dump_css_fixed(stream, len1);
+                    sw.Write(len1.ToString());
 
                     sw.Write(" ");
                     break;
-                case CSS_LINE_HEIGHT_DIMENSION:
+                case CssLineHeightEnum.CSS_LINE_HEIGHT_DIMENSION:
                     sw.Write("line-height: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -5769,96 +5658,96 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
             /* list-style-image
-            val = css_computed_list_style_image(style, &url);
+            val37 = ComputedListStyle_image(&url);
             if (url != NULL)
             {
-                fprintf(stream, "list-style-image: url('%.*s') ",
+                sw.Write("list-style-image: url('%.*s') ",
                         (int)lwc_string_length(url),
                         lwc_string_data(url));
             }
             else if (val == CSS_LIST_STYLE_IMAGE_NONE)
             {
                 sw.Write("list-style-image: none ");
-            }
+            }*/
 
-            /* list-style-position
-            val = css_computed_list_style_position(style);
-            switch (val)
+            // list-style-position
+            var val38 = ComputedListStylePosition();
+            switch (val38)
             {
-                case CSS_LIST_STYLE_POSITION_INSIDE:
+                case CssListStylePositionEnum.CSS_LIST_STYLE_POSITION_INSIDE:
                     sw.Write("list-style-position: inside ");
                     break;
-                case CSS_LIST_STYLE_POSITION_OUTSIDE:
+                case CssListStylePositionEnum.CSS_LIST_STYLE_POSITION_OUTSIDE:
                     sw.Write("list-style-position: outside ");
                     break;
                 default:
                     break;
             }
 
-            /* list-style-type
-            val = css_computed_list_style_type(style);
-            switch (val)
+            // list-style-type
+            var val39 = ComputedListStyleType();
+            switch (val39)
             {
-                case CSS_LIST_STYLE_TYPE_DISC:
+                case CssListStyleTypeEnum.CSS_LIST_STYLE_TYPE_DISC:
                     sw.Write("list-style-type: disc ");
                     break;
-                case CSS_LIST_STYLE_TYPE_CIRCLE:
+                case CssListStyleTypeEnum.CSS_LIST_STYLE_TYPE_CIRCLE:
                     sw.Write("list-style-type: circle ");
                     break;
-                case CSS_LIST_STYLE_TYPE_SQUARE:
+                case CssListStyleTypeEnum.CSS_LIST_STYLE_TYPE_SQUARE:
                     sw.Write("list-style-type: square ");
                     break;
-                case CSS_LIST_STYLE_TYPE_DECIMAL:
+                case CssListStyleTypeEnum.CSS_LIST_STYLE_TYPE_DECIMAL:
                     sw.Write("list-style-type: decimal ");
                     break;
-                case CSS_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
+                case CssListStyleTypeEnum.CSS_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
                     sw.Write("list-style-type: decimal-leading-zero ");
                     break;
-                case CSS_LIST_STYLE_TYPE_LOWER_ROMAN:
+                case CssListStyleTypeEnum.CSS_LIST_STYLE_TYPE_LOWER_ROMAN:
                     sw.Write("list-style-type: lower-roman ");
                     break;
-                case CSS_LIST_STYLE_TYPE_UPPER_ROMAN:
+                case CssListStyleTypeEnum.CSS_LIST_STYLE_TYPE_UPPER_ROMAN:
                     sw.Write("list-style-type: upper-roman ");
                     break;
-                case CSS_LIST_STYLE_TYPE_LOWER_GREEK:
+                case CssListStyleTypeEnum.CSS_LIST_STYLE_TYPE_LOWER_GREEK:
                     sw.Write("list-style-type: lower-greek ");
                     break;
-                case CSS_LIST_STYLE_TYPE_LOWER_LATIN:
+                case CssListStyleTypeEnum.CSS_LIST_STYLE_TYPE_LOWER_LATIN:
                     sw.Write("list-style-type: lower-latin ");
                     break;
-                case CSS_LIST_STYLE_TYPE_UPPER_LATIN:
+                case CssListStyleTypeEnum.CSS_LIST_STYLE_TYPE_UPPER_LATIN:
                     sw.Write("list-style-type: upper-latin ");
                     break;
-                case CSS_LIST_STYLE_TYPE_ARMENIAN:
+                case CssListStyleTypeEnum.CSS_LIST_STYLE_TYPE_ARMENIAN:
                     sw.Write("list-style-type: armenian ");
                     break;
-                case CSS_LIST_STYLE_TYPE_GEORGIAN:
+                case CssListStyleTypeEnum.CSS_LIST_STYLE_TYPE_GEORGIAN:
                     sw.Write("list-style-type: georgian ");
                     break;
-                case CSS_LIST_STYLE_TYPE_LOWER_ALPHA:
+                case CssListStyleTypeEnum.CSS_LIST_STYLE_TYPE_LOWER_ALPHA:
                     sw.Write("list-style-type: lower-alpha ");
                     break;
-                case CSS_LIST_STYLE_TYPE_UPPER_ALPHA:
+                case CssListStyleTypeEnum.CSS_LIST_STYLE_TYPE_UPPER_ALPHA:
                     sw.Write("list-style-type: upper-alpha ");
                     break;
-                case CSS_LIST_STYLE_TYPE_NONE:
+                case CssListStyleTypeEnum.CSS_LIST_STYLE_TYPE_NONE:
                     sw.Write("list-style-type: none ");
                     break;
                 default:
                     break;
             }
 
-            /* margin-top
-            val = css_computed_margin_top(style, &len1, &unit1);
-            switch (val)
+            // margin-top
+            var val40 = ComputedMarginTop(ref len1, ref unit1);
+            switch (val40)
             {
-                case CSS_MARGIN_AUTO:
+                case CssMarginEnum.CSS_MARGIN_AUTO:
                     sw.Write("margin-top: auto ");
                     break;
-                case CSS_MARGIN_SET:
+                case CssMarginEnum.CSS_MARGIN_SET:
                     sw.Write("margin-top: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -5866,17 +5755,17 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* margin-right
-            val = css_computed_margin_right(style, &len1, &unit1);
-            switch (val)
+            // margin-right
+            val40 = ComputedMarginRight(ref len1, ref unit1);
+            switch (val40)
             {
-                case CSS_MARGIN_AUTO:
+                case CssMarginEnum.CSS_MARGIN_AUTO:
                     sw.Write("margin-right: auto ");
                     break;
-                case CSS_MARGIN_SET:
+                case CssMarginEnum.CSS_MARGIN_SET:
                     sw.Write("margin-right: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -5884,17 +5773,17 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* margin-bottom
-            val = css_computed_margin_bottom(style, &len1, &unit1);
-            switch (val)
+            // margin-bottom
+            val40 = ComputedMarginBottom(ref len1, ref unit1);
+            switch (val40)
             {
-                case CSS_MARGIN_AUTO:
+                case CssMarginEnum.CSS_MARGIN_AUTO:
                     sw.Write("margin-bottom: auto ");
                     break;
-                case CSS_MARGIN_SET:
+                case CssMarginEnum.CSS_MARGIN_SET:
                     sw.Write("margin-bottom: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -5902,17 +5791,17 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* margin-left
-            val = css_computed_margin_left(style, &len1, &unit1);
-            switch (val)
+            // margin-left
+            val40 = ComputedMarginLeft(ref len1, ref unit1);
+            switch (val40)
             {
-                case CSS_MARGIN_AUTO:
+                case CssMarginEnum.CSS_MARGIN_AUTO:
                     sw.Write("margin-left: auto ");
                     break;
-                case CSS_MARGIN_SET:
+                case CssMarginEnum.CSS_MARGIN_SET:
                     sw.Write("margin-left: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -5920,17 +5809,17 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* max-height
-            val = css_computed_max_height(style, &len1, &unit1);
-            switch (val)
+            // max-height
+            var val41 = ComputedMaxHeight(ref len1, ref unit1);
+            switch (val41)
             {
-                case CSS_MAX_HEIGHT_NONE:
+                case CssMaxHeightEnum.CSS_MAX_HEIGHT_NONE:
                     sw.Write("max-height: none ");
                     break;
-                case CSS_MAX_HEIGHT_SET:
+                case CssMaxHeightEnum.CSS_MAX_HEIGHT_SET:
                     sw.Write("max-height: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -5938,17 +5827,17 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* max-width
-            val = css_computed_max_width(style, &len1, &unit1);
-            switch (val)
+            // max-width
+            var val42 = ComputedMaxWidth(ref len1, ref unit1);
+            switch (val42)
             {
-                case CSS_MAX_WIDTH_NONE:
+                case CssMaxWidthEnum.CSS_MAX_WIDTH_NONE:
                     sw.Write("max-width: none ");
                     break;
-                case CSS_MAX_WIDTH_SET:
+                case CssMaxWidthEnum.CSS_MAX_WIDTH_SET:
                     sw.Write("max-width: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -5956,14 +5845,14 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* min-height
-            val = ns_computed_min_height(style, &len1, &unit1);
-            switch (val)
+            // min-height
+            var val43 = BoxTree.ns_computed_min_height(this, ref len1, ref unit1);
+            switch (val43)
             {
-                case CSS_MIN_HEIGHT_SET:
+                case CssMinHeightEnum.CSS_MIN_HEIGHT_SET:
                     sw.Write("min-height: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -5971,14 +5860,14 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* min-width
-            val = ns_computed_min_width(style, &len1, &unit1);
-            switch (val)
+            // min-width
+            var val44 = BoxTree.ns_computed_min_width(this, ref len1, ref unit1);
+            switch (val44)
             {
-                case CSS_MIN_WIDTH_SET:
+                case CssMinWidthEnum.CSS_MIN_WIDTH_SET:
                     sw.Write("min-width: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -5986,14 +5875,14 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* opacity
-            val = css_computed_opacity(style, &len1);
-            switch (val)
+            // opacity
+            var val45 = ComputedOpacity(ref len1);
+            switch (val45)
             {
-                case CSS_OPACITY_SET:
+                case CssOpacityEnum.CSS_OPACITY_SET:
                     sw.Write("opacity: ");
 
-                    dump_css_fixed(stream, len1);
+                    sw.Write(len1.ToString());
 
                     sw.Write(" ");
                     break;
@@ -6001,72 +5890,72 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* outline-color
-            val = css_computed_outline_color(style, &color);
-            switch (val)
+            // outline-color
+            var val46 = ComputedOutlineColor(ref color);
+            switch (val46)
             {
-                case CSS_OUTLINE_COLOR_INVERT:
+                case CssOutlineColorEnum.CSS_OUTLINE_COLOR_INVERT:
                     sw.Write("outline-color: invert ");
                     break;
-                case CSS_OUTLINE_COLOR_COLOR:
+                case CssOutlineColorEnum.CSS_OUTLINE_COLOR_COLOR:
                     sw.Write("outline-color: #%08x ", color);
                     break;
                 default:
                     break;
             }
 
-            /* outline-style
-            val = css_computed_outline_style(style);
-            switch (val)
+            // outline-style
+            var val47 = ComputedOutlineStyle();
+            switch (val47)
             {
-                case CSS_OUTLINE_STYLE_NONE:
+                case CssOutlineStyleEnum.CSS_OUTLINE_STYLE_NONE:
                     sw.Write("outline-style: none ");
                     break;
-                case CSS_OUTLINE_STYLE_DOTTED:
+                case CssOutlineStyleEnum.CSS_OUTLINE_STYLE_DOTTED:
                     sw.Write("outline-style: dotted ");
                     break;
-                case CSS_OUTLINE_STYLE_DASHED:
+                case CssOutlineStyleEnum.CSS_OUTLINE_STYLE_DASHED:
                     sw.Write("outline-style: dashed ");
                     break;
-                case CSS_OUTLINE_STYLE_SOLID:
+                case CssOutlineStyleEnum.CSS_OUTLINE_STYLE_SOLID:
                     sw.Write("outline-style: solid ");
                     break;
-                case CSS_OUTLINE_STYLE_DOUBLE:
+                case CssOutlineStyleEnum.CSS_OUTLINE_STYLE_DOUBLE:
                     sw.Write("outline-style: double ");
                     break;
-                case CSS_OUTLINE_STYLE_GROOVE:
+                case CssOutlineStyleEnum.CSS_OUTLINE_STYLE_GROOVE:
                     sw.Write("outline-style: groove ");
                     break;
-                case CSS_OUTLINE_STYLE_RIDGE:
+                case CssOutlineStyleEnum.CSS_OUTLINE_STYLE_RIDGE:
                     sw.Write("outline-style: ridge ");
                     break;
-                case CSS_OUTLINE_STYLE_INSET:
+                case CssOutlineStyleEnum.CSS_OUTLINE_STYLE_INSET:
                     sw.Write("outline-style: inset ");
                     break;
-                case CSS_OUTLINE_STYLE_OUTSET:
+                case CssOutlineStyleEnum.CSS_OUTLINE_STYLE_OUTSET:
                     sw.Write("outline-style: outset ");
                     break;
                 default:
                     break;
             }
 
-            /* outline-width
-            val = css_computed_outline_width(style, &len1, &unit1);
-            switch (val)
+            // outline-width
+            var val49 = ComputedOutlineWidth(ref len1, ref unit1);
+            switch (val49)
             {
-                case CSS_OUTLINE_WIDTH_THIN:
+                case CssOutlineWidthEnum.CSS_OUTLINE_WIDTH_THIN:
                     sw.Write("outline-width: thin ");
                     break;
-                case CSS_OUTLINE_WIDTH_MEDIUM:
+                case CssOutlineWidthEnum.CSS_OUTLINE_WIDTH_MEDIUM:
                     sw.Write("outline-width: medium ");
                     break;
-                case CSS_OUTLINE_WIDTH_THICK:
+                case CssOutlineWidthEnum.CSS_OUTLINE_WIDTH_THICK:
                     sw.Write("outline-width: thick ");
                     break;
-                case CSS_OUTLINE_WIDTH_WIDTH:
+                case CssOutlineWidthEnum.CSS_OUTLINE_WIDTH_WIDTH:
                     sw.Write("outline-width: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -6074,54 +5963,54 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* overflow
-            val = css_computed_overflow_x(style);
-            switch (val)
+            // overflow
+            var val48 = ComputedOverflowX();
+            switch (val48)
             {
-                case CSS_OVERFLOW_VISIBLE:
+                case CssOverflowEnum.CSS_OVERFLOW_VISIBLE:
                     sw.Write("overflow-x: visible ");
                     break;
-                case CSS_OVERFLOW_HIDDEN:
+                case CssOverflowEnum.CSS_OVERFLOW_HIDDEN:
                     sw.Write("overflow-x: hidden ");
                     break;
-                case CSS_OVERFLOW_SCROLL:
+                case CssOverflowEnum.CSS_OVERFLOW_SCROLL:
                     sw.Write("overflow-x: scroll ");
                     break;
-                case CSS_OVERFLOW_AUTO:
+                case CssOverflowEnum.CSS_OVERFLOW_AUTO:
                     sw.Write("overflow-x auto ");
                     break;
                 default:
                     break;
             }
 
-            /* overflow
-            val = css_computed_overflow_y(style);
-            switch (val)
+            // overflow
+            val48 = ComputedOverflowY();
+            switch (val48)
             {
-                case CSS_OVERFLOW_VISIBLE:
+                case CssOverflowEnum.CSS_OVERFLOW_VISIBLE:
                     sw.Write("overflow-y: visible ");
                     break;
-                case CSS_OVERFLOW_HIDDEN:
+                case CssOverflowEnum.CSS_OVERFLOW_HIDDEN:
                     sw.Write("overflow-y: hidden ");
                     break;
-                case CSS_OVERFLOW_SCROLL:
+                case CssOverflowEnum.CSS_OVERFLOW_SCROLL:
                     sw.Write("overflow-y: scroll ");
                     break;
-                case CSS_OVERFLOW_AUTO:
+                case CssOverflowEnum.CSS_OVERFLOW_AUTO:
                     sw.Write("overflow-y: auto ");
                     break;
                 default:
                     break;
             }
 
-            /* padding-top
-            val = css_computed_padding_top(style, &len1, &unit1);
-            switch (val)
+            // padding-top
+            var val50 = ComputedPaddingTop(ref len1, ref unit1);
+            switch (val50)
             {
-                case CSS_PADDING_SET:
+                case CssPaddingEnum.CSS_PADDING_SET:
                     sw.Write("padding-top: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -6129,14 +6018,14 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* padding-right
-            val = css_computed_padding_right(style, &len1, &unit1);
-            switch (val)
+            // padding-right
+            val50 = ComputedPaddingRight(ref len1, ref unit1);
+            switch (val50)
             {
-                case CSS_PADDING_SET:
+                case CssPaddingEnum.CSS_PADDING_SET:
                     sw.Write("padding-right: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -6144,14 +6033,14 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* padding-bottom
-            val = css_computed_padding_bottom(style, &len1, &unit1);
-            switch (val)
+            // padding-bottom
+            val50 = ComputedPaddingBottom(ref len1, ref unit1);
+            switch (val50)
             {
-                case CSS_PADDING_SET:
+                case CssPaddingEnum.CSS_PADDING_SET:
                     sw.Write("padding-bottom: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -6159,24 +6048,24 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* padding-left
-            val = css_computed_padding_left(style, &len1, &unit1);
-            switch (val)
+            // padding-left
+            val50 = ComputedPaddingLeft(ref len1, ref unit1);
+            switch (val50)
             {
-                case CSS_PADDING_SET:
+                case CssPaddingEnum.CSS_PADDING_SET:
                     sw.Write("padding-left: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
                 default:
                     break;
             }
-            */
+
             // position
-            var val200 = ComputedPosition();
-            switch (val200)
+            var val51 = ComputedPosition();
+            switch (val51)
             {
                 case CssPosition.CSS_POSITION_STATIC:
                     sw.Write("position: static ");
@@ -6194,15 +6083,16 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
             }
 
-            /* quotes
-            val = css_computed_quotes(style, &string_list);
-            if (val == CSS_QUOTES_STRING && string_list != NULL)
+            // quotes
+            /*
+            val52 = ComputedQuotes(&string_list);
+            if (val52 == CSS_QUOTES_STRING && string_list != NULL)
             {
                 sw.Write("quotes:");
 
                 while (*string_list != NULL)
                 {
-                    fprintf(stream, " \"%.*s\"",
+                    sw.Write(" \"%.*s\"",
                         (int)lwc_string_length(*string_list),
                         lwc_string_data(*string_list));
 
@@ -6221,19 +6111,19 @@ namespace SkiaSharpOpenGLBenchmark
                     default:
                         break;
                 }
-            }
+            }*/
 
-            /* right
-            val = css_computed_right(style, &len1, &unit1);
-            switch (val)
+            // right
+            var val53 = ComputedRight(ref len1, ref unit1);
+            switch (val53)
             {
-                case CSS_RIGHT_AUTO:
+                case CssRightEnum.CSS_RIGHT_AUTO:
                     sw.Write("right: auto ");
                     break;
-                case CSS_RIGHT_SET:
+                case CssRightEnum.CSS_RIGHT_SET:
                     sw.Write("right: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -6242,13 +6132,13 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
             // table-layout
-            val = css_computed_table_layout(style);
-            switch (val)
+            var val54 = ComputedTableLayout();
+            switch (val54)
             {
-                case CSS_TABLE_LAYOUT_AUTO:
+                case CssTableLayoutEnum.CSS_TABLE_LAYOUT_AUTO:
                     sw.Write("table-layout: auto ");
                     break;
-                case CSS_TABLE_LAYOUT_FIXED:
+                case CssTableLayoutEnum.CSS_TABLE_LAYOUT_FIXED:
                     sw.Write("table-layout: fixed ");
                     break;
                 default:
@@ -6256,31 +6146,31 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
             // text-align
-            val = css_computed_text_align(style);
-            switch (val)
+            var val55 = ComputedTextAlign();
+            switch (val55)
             {
-                case CSS_TEXT_ALIGN_LEFT:
+                case CssTextAlignEnum.CSS_TEXT_ALIGN_LEFT:
                     sw.Write("text-align: left ");
                     break;
-                case CSS_TEXT_ALIGN_RIGHT:
+                case CssTextAlignEnum.CSS_TEXT_ALIGN_RIGHT:
                     sw.Write("text-align: right ");
                     break;
-                case CSS_TEXT_ALIGN_CENTER:
+                case CssTextAlignEnum.CSS_TEXT_ALIGN_CENTER:
                     sw.Write("text-align: center ");
                     break;
-                case CSS_TEXT_ALIGN_JUSTIFY:
+                case CssTextAlignEnum.CSS_TEXT_ALIGN_JUSTIFY:
                     sw.Write("text-align: justify ");
                     break;
-                case CSS_TEXT_ALIGN_DEFAULT:
+                case CssTextAlignEnum.CSS_TEXT_ALIGN_DEFAULT:
                     sw.Write("text-align: default ");
                     break;
-                case CSS_TEXT_ALIGN_LIBCSS_LEFT:
+                case CssTextAlignEnum.CSS_TEXT_ALIGN_LIBCSS_LEFT:
                     sw.Write("text-align: -libcss-left ");
                     break;
-                case CSS_TEXT_ALIGN_LIBCSS_CENTER:
+                case CssTextAlignEnum.CSS_TEXT_ALIGN_LIBCSS_CENTER:
                     sw.Write("text-align: -libcss-center ");
                     break;
-                case CSS_TEXT_ALIGN_LIBCSS_RIGHT:
+                case CssTextAlignEnum.CSS_TEXT_ALIGN_LIBCSS_RIGHT:
                     sw.Write("text-align: -libcss-right ");
                     break;
                 default:
@@ -6288,8 +6178,8 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
             // text-decoration
-            val = css_computed_text_decoration(style);
-            if (val == CSS_TEXT_DECORATION_NONE)
+            val = (byte)ComputedTextDecoration();
+            if (val == (byte)CssTextDecorationEnum.CSS_TEXT_DECORATION_NONE)
             {
                 sw.Write("text-decoration: none ");
             }
@@ -6297,19 +6187,19 @@ namespace SkiaSharpOpenGLBenchmark
             {
                 sw.Write("text-decoration:");
 
-                if (val & CSS_TEXT_DECORATION_BLINK)
+                if ((val & (byte)CssTextDecorationEnum.CSS_TEXT_DECORATION_BLINK) != 0)
                 {
                     sw.Write(" blink");
                 }
-                if (val & CSS_TEXT_DECORATION_LINE_THROUGH)
+                if ((val & (byte)CssTextDecorationEnum.CSS_TEXT_DECORATION_LINE_THROUGH) != 0)
                 {
                     sw.Write(" line-through");
                 }
-                if (val & CSS_TEXT_DECORATION_OVERLINE)
+                if ((val & (byte)CssTextDecorationEnum.CSS_TEXT_DECORATION_OVERLINE) != 0)
                 {
                     sw.Write(" overline");
                 }
-                if (val & CSS_TEXT_DECORATION_UNDERLINE)
+                if ((val & (byte)CssTextDecorationEnum.CSS_TEXT_DECORATION_UNDERLINE) != 0)
                 {
                     sw.Write(" underline");
                 }
@@ -6318,13 +6208,13 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
             // text-indent
-            val = css_computed_text_indent(style, &len1, &unit1);
-            switch (val)
+            var val56 = ComputedTextIndent(ref len1, ref unit1);
+            switch (val56)
             {
-                case CSS_TEXT_INDENT_SET:
+                case CssTextIndentEnum.CSS_TEXT_INDENT_SET:
                     sw.Write("text-indent: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -6333,19 +6223,19 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
             // text-transform
-            val = css_computed_text_transform(style);
-            switch (val)
+            var val57 = ComputedTextTransform();
+            switch (val57)
             {
-                case CSS_TEXT_TRANSFORM_CAPITALIZE:
+                case CssTextTransformEnum.CSS_TEXT_TRANSFORM_CAPITALIZE:
                     sw.Write("text-transform: capitalize ");
                     break;
-                case CSS_TEXT_TRANSFORM_UPPERCASE:
+                case CssTextTransformEnum.CSS_TEXT_TRANSFORM_UPPERCASE:
                     sw.Write("text-transform: uppercase ");
                     break;
-                case CSS_TEXT_TRANSFORM_LOWERCASE:
+                case CssTextTransformEnum.CSS_TEXT_TRANSFORM_LOWERCASE:
                     sw.Write("text-transform: lowercase ");
                     break;
-                case CSS_TEXT_TRANSFORM_NONE:
+                case CssTextTransformEnum.CSS_TEXT_TRANSFORM_NONE:
                     sw.Write("text-transform: none ");
                     break;
                 default:
@@ -6353,16 +6243,16 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
             // top
-            val = css_computed_top(style, &len1, &unit1);
-            switch (val)
+            var val58 = ComputedTop(ref len1, ref unit1);
+            switch (val58)
             {
-                case CSS_TOP_AUTO:
+                case CssTopEnum.CSS_TOP_AUTO:
                     sw.Write("top: auto ");
                     break;
-                case CSS_TOP_SET:
+                case CssTopEnum.CSS_TOP_SET:
                     sw.Write("top: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -6371,16 +6261,16 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
             // unicode-bidi
-            val = css_computed_unicode_bidi(style);
-            switch (val)
+            var val59 = ComputedUnicodeBidi();
+            switch (val59)
             {
-                case CSS_UNICODE_BIDI_NORMAL:
+                case CssUnicodeBidiEnum.CSS_UNICODE_BIDI_NORMAL:
                     sw.Write("unicode-bidi: normal ");
                     break;
-                case CSS_UNICODE_BIDI_EMBED:
+                case CssUnicodeBidiEnum.CSS_UNICODE_BIDI_EMBED:
                     sw.Write("unicode-bidi: embed ");
                     break;
-                case CSS_UNICODE_BIDI_BIDI_OVERRIDE:
+                case CssUnicodeBidiEnum.CSS_UNICODE_BIDI_BIDI_OVERRIDE:
                     sw.Write("unicode-bidi: bidi-override ");
                     break;
                 default:
@@ -6388,37 +6278,37 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
             // vertical-align
-            val = css_computed_vertical_align(style, &len1, &unit1);
-            switch (val)
+            var val60 = ComputedVerticalAlign(ref len1, ref unit1);
+            switch (val60)
             {
-                case CSS_VERTICAL_ALIGN_BASELINE:
+                case CssVerticalAlignEnum.CSS_VERTICAL_ALIGN_BASELINE:
                     sw.Write("vertical-align: baseline ");
                     break;
-                case CSS_VERTICAL_ALIGN_SUB:
+                case CssVerticalAlignEnum.CSS_VERTICAL_ALIGN_SUB:
                     sw.Write("vertical-align: sub ");
                     break;
-                case CSS_VERTICAL_ALIGN_SUPER:
+                case CssVerticalAlignEnum.CSS_VERTICAL_ALIGN_SUPER:
                     sw.Write("vertical-align: super ");
                     break;
-                case CSS_VERTICAL_ALIGN_TOP:
+                case CssVerticalAlignEnum.CSS_VERTICAL_ALIGN_TOP:
                     sw.Write("vertical-align: top ");
                     break;
-                case CSS_VERTICAL_ALIGN_TEXT_TOP:
+                case CssVerticalAlignEnum.CSS_VERTICAL_ALIGN_TEXT_TOP:
                     sw.Write("vertical-align: text-top ");
                     break;
-                case CSS_VERTICAL_ALIGN_MIDDLE:
+                case CssVerticalAlignEnum.CSS_VERTICAL_ALIGN_MIDDLE:
                     sw.Write("vertical-align: middle ");
                     break;
-                case CSS_VERTICAL_ALIGN_BOTTOM:
+                case CssVerticalAlignEnum.CSS_VERTICAL_ALIGN_BOTTOM:
                     sw.Write("vertical-align: bottom ");
                     break;
-                case CSS_VERTICAL_ALIGN_TEXT_BOTTOM:
+                case CssVerticalAlignEnum.CSS_VERTICAL_ALIGN_TEXT_BOTTOM:
                     sw.Write("vertical-align: text-bottom ");
                     break;
-                case CSS_VERTICAL_ALIGN_SET:
+                case CssVerticalAlignEnum.CSS_VERTICAL_ALIGN_SET:
                     sw.Write("vertical-align: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -6427,25 +6317,25 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
             // visibility
-            val = css_computed_visibility(style);
-            switch (val)
+            var val61 = ComputedVisibility();
+            switch (val61)
             {
-                case CSS_VISIBILITY_VISIBLE:
+                case CssVisibilityEnum.CSS_VISIBILITY_VISIBLE:
                     sw.Write("visibility: visible ");
                     break;
-                case CSS_VISIBILITY_HIDDEN:
+                case CssVisibilityEnum.CSS_VISIBILITY_HIDDEN:
                     sw.Write("visibility: hidden ");
                     break;
-                case CSS_VISIBILITY_COLLAPSE:
+                case CssVisibilityEnum.CSS_VISIBILITY_COLLAPSE:
                     sw.Write("visibility: collapse ");
                     break;
                 default:
                     break;
             }
-            */
+
             // white-space
-            var val299 = ComputedWhitespace();
-            switch (val299)
+            var val62 = ComputedWhitespace();
+            switch (val62)
             {
                 case CssWhiteSpaceEnum.CSS_WHITE_SPACE_NORMAL:
                     sw.Write("white-space: normal ");
@@ -6467,8 +6357,8 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
             // width
-            var val300 = ComputedWidth(ref len1, ref unit1);
-            switch (val300)
+            var val63 = ComputedWidth(ref len1, ref unit1);
+            switch (val63)
             {
                 case CssWidth.CSS_WIDTH_AUTO:
                     sw.Write("width: auto ");
@@ -6483,18 +6373,18 @@ namespace SkiaSharpOpenGLBenchmark
                 default:
                     break;
             }
-            /*
+
             // word-spacing
-            val = css_computed_word_spacing(style, &len1, &unit1);
-            switch (val)
+            var val64 = ComputedWordSpacing(ref len1, ref unit1);
+            switch (val64)
             {
-                case CSS_WORD_SPACING_NORMAL:
+                case CssWordSpacingEnum.CSS_WORD_SPACING_NORMAL:
                     sw.Write("word-spacing: normal ");
                     break;
-                case CSS_WORD_SPACING_SET:
+                case CssWordSpacingEnum.CSS_WORD_SPACING_SET:
                     sw.Write("word-spacing: ");
 
-                    dump_css_unit(stream, len1, unit1);
+                    sw.Write(DumpCssUnit(len1, unit1));
 
                     sw.Write(" ");
                     break;
@@ -6503,19 +6393,18 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
             // z-index
-            val = css_computed_z_index(style, &zindex);
-            switch (val)
+            var val65 = ComputedZindex(ref zindex);
+            switch (val65)
             {
-                case CSS_Z_INDEX_AUTO:
+                case CssZindexEnum.CSS_Z_INDEX_AUTO:
                     sw.Write("z-index: auto ");
                     break;
-                case CSS_Z_INDEX_SET:
-                    fprintf(stream, "z-index: %d ", zindex);
+                case CssZindexEnum.CSS_Z_INDEX_SET:
+                    sw.Write($"z-index: {zindex} ");
                     break;
                 default:
                     break;
             }
-            */
             sw.Write("}");
         }
     }

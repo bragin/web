@@ -148,5 +148,40 @@ namespace SkiaSharpOpenGLBenchmark.css
 
         //Optional client callback for font measuring.
         //const css_unit_len_measure measure;
+
+        static public CssUnit FromOpcodeUnit(OpcodeUnit unit)
+        {
+            switch (unit)
+            {
+                case OpcodeUnit.PX: return CssUnit.CSS_UNIT_PX;
+                case OpcodeUnit.EX: return CssUnit.CSS_UNIT_EX;
+                case OpcodeUnit.EM: return CssUnit.CSS_UNIT_EM;
+                case OpcodeUnit.IN: return CssUnit.CSS_UNIT_IN;
+                case OpcodeUnit.CM: return CssUnit.CSS_UNIT_CM;
+                case OpcodeUnit.MM: return CssUnit.CSS_UNIT_MM;
+                case OpcodeUnit.PT: return CssUnit.CSS_UNIT_PT;
+                case OpcodeUnit.PC: return CssUnit.CSS_UNIT_PC;
+                case OpcodeUnit.CH: return CssUnit.CSS_UNIT_CH;
+                case OpcodeUnit.REM: return CssUnit.CSS_UNIT_REM;
+                case OpcodeUnit.LH: return CssUnit.CSS_UNIT_LH;
+                case OpcodeUnit.VH: return CssUnit.CSS_UNIT_VH;
+                case OpcodeUnit.VW: return CssUnit.CSS_UNIT_VW;
+                case OpcodeUnit.VI: return CssUnit.CSS_UNIT_VI;
+                case OpcodeUnit.VB: return CssUnit.CSS_UNIT_VB;
+                case OpcodeUnit.VMIN: return CssUnit.CSS_UNIT_VMIN;
+                case OpcodeUnit.VMAX: return CssUnit.CSS_UNIT_VMAX;
+                case OpcodeUnit.Q: return CssUnit.CSS_UNIT_Q;
+                case OpcodeUnit.PCT: return CssUnit.CSS_UNIT_PCT;
+                case OpcodeUnit.DEG: return CssUnit.CSS_UNIT_DEG;
+                case OpcodeUnit.GRAD: return CssUnit.CSS_UNIT_GRAD;
+                case OpcodeUnit.RAD: return CssUnit.CSS_UNIT_RAD;
+                case OpcodeUnit.MS: return CssUnit.CSS_UNIT_MS;
+                case OpcodeUnit.S: return CssUnit.CSS_UNIT_S;
+                case OpcodeUnit.HZ: return CssUnit.CSS_UNIT_HZ;
+                case OpcodeUnit.KHZ: return CssUnit.CSS_UNIT_KHZ;
+                default:
+                    return 0;
+            }
+        }
     }
 }
