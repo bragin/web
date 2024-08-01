@@ -1938,25 +1938,22 @@ namespace SkiaSharpOpenGLBenchmark
             uint bits = i.bits[CONTENT_INDEX];
 
             /* 2bits: type */
-            //oldcontent = style->content;
-
-            Log.Unimplemented("content needs testplementing");
-
             i.bits[CONTENT_INDEX] = (bits & ~CONTENT_MASK) | (((uint)type & 0x3) << CONTENT_SHIFT);
 
             //for (c = Content; c.Type != CssContent.CSS_COMPUTED_CONTENT_NONE; c++)
+            /*
             foreach (var c in content)
             {
                 switch (c.Type)
                 {
                     case CssComputedContentType.CSS_COMPUTED_CONTENT_STRING:
-                        //c.Name = lwc_string_ref(c->data.string);
+                        //c.Name = c->data.string;
                         break;
                     case CssComputedContentType.CSS_COMPUTED_CONTENT_URI:
-                        //c.Name = lwc_string_ref(c->data.uri);
+                        //c.Name = c->data.uri;
                         break;
                     case CssComputedContentType.CSS_COMPUTED_CONTENT_ATTR:
-                        //c.Name = lwc_string_ref(c->data.attr);
+                        //c.Name = c->data.attr;
                         break;
                     case CssComputedContentType.CSS_COMPUTED_CONTENT_COUNTER:
                         //c->data.counter.name = lwc_string_ref(c->data.counter.name);
@@ -1968,7 +1965,7 @@ namespace SkiaSharpOpenGLBenchmark
                     default:
                         break;
                 }
-            }
+            }*/
 
             Content = content;
         }
@@ -1987,7 +1984,12 @@ namespace SkiaSharpOpenGLBenchmark
         public void SetCounterIncrement(CssCounterIncrementEnum type, CssComputedCounter[] counterArr)
         {
             uint bits = i.bits[COUNTER_INCREMENT_INDEX];
-            Log.Unimplemented("set counter_increment");
+
+            /* 1bit: t : type */
+            i.bits[COUNTER_INCREMENT_INDEX] = (bits & ~COUNTER_INCREMENT_MASK) |
+                (((uint)type & 0x1) << COUNTER_INCREMENT_SHIFT);
+
+            CounterIncrement = counterArr;
         }
 
         public CssCounterResetEnum GetCounterReset(ref CssComputedCounter[] counterArr)
@@ -2004,7 +2006,12 @@ namespace SkiaSharpOpenGLBenchmark
         public void SetCounterReset(CssCounterResetEnum type, CssComputedCounter[] counterArr)
         {
             uint bits = i.bits[COUNTER_RESET_INDEX];
-            Log.Unimplemented("set counter_increment");
+
+            /* 1bit: t : type */
+            i.bits[COUNTER_RESET_INDEX] = (bits & ~COUNTER_RESET_MASK) |
+                (((uint)type & 0x1) << COUNTER_RESET_SHIFT);
+
+            CounterReset = counterArr;
         }
 
         public CssCursorEnum GetCursor(ref string[] stringArr)
@@ -2025,7 +2032,7 @@ namespace SkiaSharpOpenGLBenchmark
             /* 5bits: ttttt : type */
             i.bits[CURSOR_INDEX] = (bits & ~CURSOR_MASK) | (((uint)type & 0x1f) << CURSOR_SHIFT);
 
-            Log.Unimplemented();
+            Cursor = stringArr;
         }
 
         public CssDirectionEnum GetDirection()
@@ -3124,7 +3131,11 @@ namespace SkiaSharpOpenGLBenchmark
         public void SetQuotes(CssQuotesEnum type, string[] stringArr)
         {
             uint bits = i.bits[QUOTES_INDEX];
-            Log.Unimplemented();
+
+            /* 1bit: t : type */
+            i.bits[QUOTES_INDEX] = (bits & ~QUOTES_MASK) | (((uint)type & 0x1) << QUOTES_SHIFT);
+
+            Quotes = stringArr;
         }
 
         public CssRightEnum GetRight(ref Fixed length, ref CssUnit unit)
@@ -3561,112 +3572,81 @@ namespace SkiaSharpOpenGLBenchmark
 
             // Fix up background-position
             ComputeAbsoluteLengthPair(ex_size.Length, "background_position");
-            /*
-                        // Fix up background-color
-                        compute_absolute_color(style,
-                                get_background_color,
-                                set_background_color);
+            // Fix up background-color
+            //compute_absolute_color(get_background_color, set_background_color);
 
-                        // Fix up border-{top,right,bottom,left}-color
-                        compute_border_colors();
+            // Fix up border-{top,right,bottom,left}-color
+            //compute_border_colors();
 
-                        // Fix up border-{top,right,bottom,left}-width
-                        compute_absolute_border_width(style, &ex_size.data.length);
+            // Fix up border-{top,right,bottom,left}-width
+            //compute_absolute_border_width(ex_size.Length);
 
-                        // Fix up sides
-                        compute_absolute_sides(style, &ex_size.data.length);
+            // Fix up sides
+            //compute_absolute_sides(ex_size.Length);
 
-                        // Fix up height
-                        compute_absolute_length(style, &ex_size.data.length,
-                                get_height, set_height);
+            // Fix up height
+            ComputeAbsoluteLength(ex_size.Length, "height");
 
-                        // Fix up line-height (must be before vertical-align)
-                        compute_absolute_line_height(style, &ex_size.data.length);
+            // Fix up line-height (must be before vertical-align)
+            //compute_absolute_line_height(ex_size.Length);
 
-                        // Fix up margins
-                        compute_absolute_margins(style, &ex_size.data.length);
+            // Fix up margins
+            ComputeAbsoluteMargins(ex_size.Length);
 
-                        // Fix up max-height
-                        compute_absolute_length(style, &ex_size.data.length,
-                                get_max_height, set_max_height);
+            // Fix up max-height
+            ComputeAbsoluteLength(ex_size.Length, "max_height");
 
-                        // Fix up max-width
-                        compute_absolute_length(style, &ex_size.data.length,
-                                get_max_width, set_max_width);
+            // Fix up max-width
+            ComputeAbsoluteLength(ex_size.Length, "max_width");
 
-                        // Fix up min-height
-                        compute_absolute_length(style, &ex_size.data.length,
-                                get_min_height, set_min_height);
+            // Fix up min-height
+            ComputeAbsoluteLength(ex_size.Length, "min_height");
 
-                        // Fix up min-width
-                        compute_absolute_length(style, &ex_size.data.length,
-                                get_min_width, set_min_width);
+            // Fix up min-width
+            ComputeAbsoluteLength(ex_size.Length, "min_width");
 
-                        // Fix up padding
-                        compute_absolute_padding(style, &ex_size.data.length);
+            // Fix up padding
+            //compute_absolute_padding(style, &ex_size.data.length);
 
-                        // Fix up text-indent
-                        compute_absolute_length(style, &ex_size.data.length,
-                                get_text_indent, set_text_indent);
+            // Fix up text-indent
+            ComputeAbsoluteLength(ex_size.Length, "text_indent");
 
-                        // Fix up vertical-align
-                        compute_absolute_vertical_align(style, &ex_size.data.length);
+            // Fix up vertical-align
+            //compute_absolute_vertical_align(style, &ex_size.data.length);
 
-                        // Fix up width
-                        compute_absolute_length(style, &ex_size.data.length,
-                                get_width, set_width);
+            // Fix up width
+            ComputeAbsoluteLength(ex_size.Length, "width");
 
-                        // Fix up flex-basis
-                        compute_absolute_length(style, &ex_size.data.length,
-                                get_flex_basis, set_flex_basis);
-            */
+            // Fix up flex-basis
+            ComputeAbsoluteLength(ex_size.Length, "flex_basis");
+
             // Fix up border-spacing
             ComputeAbsoluteLengthPair(ex_size.Length, "border_spacing");
-            /*
-                        // Fix up clip
-                        compute_absolute_clip(style, &ex_size.data.length);
 
-                        // Fix up letter-spacing
-                        compute_absolute_length(style,
-                                &ex_size.data.length,
-                                get_letter_spacing,
-                                set_letter_spacing);
+            // Fix up clip
+            //compute_absolute_clip(style, &ex_size.data.length);
 
-                        // Fix up outline-color
-                        compute_absolute_color(style,
-                                get_outline_color,
-                                set_outline_color);
+            // Fix up letter-spacing
+            ComputeAbsoluteLength(ex_size.Length, "letter_spacing");
 
-                        // Fix up outline-width
-                        compute_absolute_border_side_width(style,
-                                &ex_size.data.length,
-                                get_outline_width,
-                            set_outline_width);
+            // Fix up outline-color
+            //compute_absolute_color(style, get_outline_color, set_outline_color);
 
-                        // Fix up word-spacing
-                        compute_absolute_length(style,
-                                &ex_size.data.length,
-                                get_word_spacing,
-                                set_word_spacing);
+            // Fix up outline-width
+            //compute_absolute_border_side_width(ex_size.Length, get_outline_width, set_outline_width);
 
-                        // Fix up column-rule-width
-                        compute_absolute_border_side_width(style,
-                                &ex_size.data.length,
-                                get_column_rule_width,
-                                set_column_rule_width);
+            // Fix up word-spacing
+            ComputeAbsoluteLength(ex_size.Length, "word_spacing");
 
-                        // Fix up column-width
-                        compute_absolute_length(style,
-                                &ex_size.data.length,
-                                get_column_width,
-                                set_column_width);
+            // Fix up column-rule-width
+            //compute_absolute_border_side_width(ex_size.Length, get_column_rule_width, set_column_rule_width);
 
-                        // Fix up column-gap
-                        compute_absolute_length(style,
-                                &ex_size.data.length,
-                                get_column_gap,
-                                set_column_gap);
-            */
+            // Fix up column-width
+            ComputeAbsoluteLength(ex_size.Length, "column_width");
+
+            // Fix up column-gap
+            ComputeAbsoluteLength(ex_size.Length, "column_gap");
+
             Log.Unimplemented("majority of properties fixups");
         }
 
@@ -4545,7 +4525,7 @@ namespace SkiaSharpOpenGLBenchmark
             return GetAlignContent();
         }
 
-        public CssAlignItemsEnum ComputedAlign_items()
+        public CssAlignItemsEnum ComputedAlignItems()
         {
             return GetAlignItems();
         }
@@ -4591,6 +4571,196 @@ namespace SkiaSharpOpenGLBenchmark
         }
         #endregion
 
+        byte GetPropertyByNameTwoParam(string propsName, ref Fixed length, ref CssUnit unit)
+        {
+            switch (propsName)
+            {
+                case "height":
+                    return (byte)GetHeight(ref length, ref unit);
+                case "max_height":
+                    return (byte)GetMaxHeight(ref length, ref unit);
+                case "max_width":
+                    return (byte)GetMaxWidth(ref length, ref unit);
+                case "min_height":
+                    return (byte)GetMinHeight(ref length, ref unit);
+                case "min_width":
+                    return (byte)GetMinWidth(ref length, ref unit);
+                case "text_indent":
+                    return (byte)GetTextIndent(ref length, ref unit);
+                case "width":
+                    return (byte)GetWidth(ref length, ref unit);
+                case "flex_basis":
+                    return (byte)GetFlexBasis(ref length, ref unit);
+                case "letter_spacing":
+                    return (byte)GetLetterSpacing(ref length, ref unit);
+                case "word_spacing":
+                    return (byte)GetWordSpacing(ref length, ref unit);
+                case "column_width":
+                    return (byte)GetColumnWidth(ref length, ref unit);
+                case "column_gap":
+                    return (byte)GetColumnGap(ref length, ref unit);
+                case "padding_top":
+                    return (byte)GetPaddingTop(ref length, ref unit);
+                case "padding_right":
+                    return (byte)GetPaddingRight(ref length, ref unit);
+                case "padding_bottom":
+                    return (byte)GetPaddingBottom(ref length, ref unit);
+                case "padding_left":
+                    return (byte)GetPaddingLeft(ref length, ref unit);
+                case "margin_top":
+                    return (byte)GetMarginTop(ref length, ref unit);
+                case "margin_right":
+                    return (byte)GetMarginRight(ref length, ref unit);
+                case "margin_bottom":
+                    return (byte)GetMarginBottom(ref length, ref unit);
+                case "margin_left":
+                    return (byte)GetMarginLeft(ref length, ref unit);
+                case "top":
+                    return (byte)GetTop(ref length, ref unit);
+                case "right":
+                    return (byte)GetRight(ref length, ref unit);
+                case "bottom":
+                    return (byte)GetBottom(ref length, ref unit);
+                case "left":
+                    return (byte)GetLeft(ref length, ref unit);
+                default:
+                    throw new Exception("Unsupported type");
+            }
+        }
+
+        void SetPropertyByNameTwoParam(string propsName, byte type, Fixed length, CssUnit unit)
+        {
+            switch (propsName)
+            {
+                case "height":
+                    SetHeight((CssHeightEnum)type, length, unit);
+                    break;
+                case "max_height":
+                    SetMaxHeight((CssMaxHeightEnum)type, length, unit);
+                    break;
+                case "max_width":
+                    SetMaxWidth((CssMaxWidthEnum)type, length, unit);
+                    break;
+                case "min_height":
+                    SetMinHeight((CssMinHeightEnum)type, length, unit);
+                    break;
+                case "min_width":
+                    SetMinWidth((CssMinWidthEnum)type, length, unit);
+                    break;
+                case "text_indent":
+                    SetTextIndent((CssTextIndentEnum)type, length, unit);
+                    break;
+                case "width":
+                    SetWidth((CssWidth)type, length, unit);
+                    break;
+                case "flex_basis":
+                    SetFlexBasis((CssFlexBasisEnum)type, length, unit);
+                    break;
+                case "letter_spacing":
+                    SetLetterSpacing((CssLetterSpacingEnum)type, length, unit);
+                    break;
+                case "word_spacing":
+                    SetWordSpacing((CssWordSpacingEnum)type, length, unit);
+                    break;
+                case "column_width":
+                    SetColumnWidth((CssColumnWidthEnum)type, length, unit);
+                    break;
+                case "column_gap":
+                    SetColumnGap((CssColumnGapEnum)type, length, unit);
+                    break;
+                case "padding_top":
+                    SetPaddingTop((CssPaddingEnum)type, length, unit);
+                    break;
+                case "padding_right":
+                    SetPaddingRight((CssPaddingEnum)type, length, unit);
+                    break;
+                case "padding_bottom":
+                    SetPaddingBottom((CssPaddingEnum)type, length, unit);
+                    break;
+                case "padding_left":
+                    SetPaddingLeft((CssPaddingEnum)type, length, unit);
+                    break;
+                case "margin_top":
+                    SetMarginTop((CssMarginEnum)type, length, unit);
+                    break;
+                case "margin_right":
+                    SetMarginRight((CssMarginEnum)type, length, unit);
+                    break;
+                case "margin_bottom":
+                    SetMarginBottom((CssMarginEnum)type, length, unit);
+                    break;
+                case "margin_left":
+                    SetMarginLeft((CssMarginEnum)type, length, unit);
+                    break;
+                case "top":
+                    SetTop((CssTopEnum)type, length, unit);
+                    break;
+                case "right":
+                    SetRight((CssRightEnum)type, length, unit);
+                    break;
+                case "bottom":
+                    SetBottom((CssBottomEnum)type, length, unit);
+                    break;
+                case "left":
+                    SetLeft((CssLeftEnum)type, length, unit);
+                    break;
+                default:
+                    throw new Exception("Unsupported type");
+            }
+        }
+
+        // commputed.c:1605
+        CssStatus ComputeAbsoluteMargins(CssHintLength ex_size)
+        {
+            CssStatus error;
+
+            error = ComputeAbsoluteLength(ex_size, "margin_top");
+            if (error != CssStatus.CSS_OK)
+                return error;
+
+            error = ComputeAbsoluteLength(ex_size, "margin_right");
+            if (error != CssStatus.CSS_OK)
+                return error;
+
+            error = ComputeAbsoluteLength(ex_size, "margin_bottom");
+            if (error != CssStatus.CSS_OK)
+                return error;
+
+            error = ComputeAbsoluteLength(ex_size, "margin_left");
+            if (error != CssStatus.CSS_OK)
+                return error;
+
+            return CssStatus.CSS_OK;
+        }
+
+        // computed.c:1712
+        /**
+         * Compute the absolute value of length
+         *
+         * \param style      Style to process
+         * \param ex_size    Ex size, in ems
+         * \param get        Function to read length
+         * \param set        Function to write length
+         * \return CSS_OK on success
+         */
+        CssStatus ComputeAbsoluteLength(CssHintLength ex_size, string propsName)
+        {
+            CssUnit unit = CssUnit.CSS_UNIT_PX;
+            Fixed length = Fixed.F_0;
+
+            var type = GetPropertyByNameTwoParam(propsName, ref length, ref unit);
+
+            if (type == (byte)CssWidth.CSS_WIDTH_SET && unit == CssUnit.CSS_UNIT_EX)
+            {
+                length = length * ex_size.Value;
+                unit = ex_size.Unit;
+
+                SetPropertyByNameTwoParam(propsName, type, length, unit);
+            }
+
+            return CssStatus.CSS_OK;
+        }
+
         // computed.c:1747
         void ComputeAbsoluteLengthPair(CssHintLength ex_size, string propsName)
         {
@@ -4599,16 +4769,14 @@ namespace SkiaSharpOpenGLBenchmark
 
             byte type;
 
-            // FIXME: This doesn't look good and needs to be done somehow differently
+            // FIXME: Not a perfect implementation, but it works
             switch (propsName)
             {
                 case "background_position":
                     type = (byte)GetBackgroundPosition(out length1, out unit1, out length2, out unit2);
                     break;
                 case "border_spacing":
-                    //type = GetBackgroundPosition(out length1, out unit1, out length2, out unit2);
-                    Log.Unimplemented("border_spacing");
-                    type = 0xff;
+                    type = (byte)GetBorderSpacing(ref length1, ref unit1, ref length2, ref unit2);
                     break;
                 default:
                     throw new Exception("Unsupported type");
@@ -4638,8 +4806,7 @@ namespace SkiaSharpOpenGLBenchmark
                     SetBackgroundPosition(type, length1, unit1, length2, unit2);
                     break;
                 case "border_spacing":
-                    //SetBorderSpacing(type, length1, unit1, length2, unit2);
-                    Log.Unimplemented("border_spacing");
+                    SetBorderSpacing((CssBorderSpacingEnum)type, length1, unit1, length2, unit2);
                     break;
                 default:
                     throw new Exception("Unsupported type");
