@@ -630,27 +630,22 @@ start:
                     return CssStatus.CSS_OK;
                 case '>':
                     // Check for >=
-                    Log.Unimplemented();
                     c = Source.Peek(BytesReadForToken);
-                    /*
-                    perror = parserutils_inputstream_peek(lexer->input,
-                            lexer->bytesReadForToken, &cptr, &clen);
-                    if (perror != PARSERUTILS_OK && perror != PARSERUTILS_EOF)
-                    {
-                        return css_error_from_parserutils_error(perror);
-                    }
 
-                    if (perror == PARSERUTILS_EOF)
+                    if (c == Symbols.EndOfFile)
                     {
-                        return emitToken(lexer, CSS_TOKEN_CHAR, token);
+                        token = EmitToken(CssTokenType.CSS_TOKEN_CHAR);
+                        return CssStatus.CSS_OK;
                     }
-
-                    c = *cptr;
 
                     if (c == '=')
                     {
-                        APPEND(lexer, cptr, clen);
-                    }*/
+                        //APPEND(lexer, cptr, clen);
+                        AppendToTokenData(c, 1);
+                        BytesReadForToken++;
+                        CurrentCol++;
+                    }
+
                     token = EmitToken(CssTokenType.CSS_TOKEN_CHAR);
                     return CssStatus.CSS_OK;
                 default:
