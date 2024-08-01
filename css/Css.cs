@@ -1870,6 +1870,8 @@ namespace SkiaSharpOpenGLBenchmark.css
                 }
             } while (index != prevIndex);
 
+            // No failure beyond this point possible
+
             if (style)
             {
                 style_style.AppendStyle(
@@ -1900,15 +1902,11 @@ namespace SkiaSharpOpenGLBenchmark.css
                 );
             }
 
-
             result.MergeStyle(color_style);
             result.MergeStyle(style_style);
             result.MergeStyle(width_style);
 
-            if (error != CssStatus.CSS_OK)
-                index = origIndex;
-
-            return error;
+            return CssStatus.CSS_OK;
         }
 
         // parse/properties/utils.c:368
@@ -2573,6 +2571,8 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             // Allocate style
             var style = new CssStyle(this);
+
+            //if (i == 0xa) Debug.Assert(false);
 
             // Get handler and call it
             ParseHandlers[i](tokens, ref index, style);
@@ -4563,7 +4563,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         public CssStatus Parse_text_decoration(List<CssToken> tokens, ref int index, CssStyle style)
         {
             int origIndex = index;
-            CssStatus error = CssStatus.CSS_INVALID;
+            //CssStatus error = CssStatus.CSS_INVALID;
 
             /* IDENT([ underline || overline || line-through || blink ])
              * | IDENT (none, inherit) */
@@ -4664,12 +4664,13 @@ namespace SkiaSharpOpenGLBenchmark.css
                         value)
                 );
 
+                //error = CssStatus.CSS_OK;
             }
 
-            if (error != CssStatus.CSS_OK)
-                index = origIndex;
+            //if (error != CssStatus.CSS_OK)
+                //index = origIndex;
 
-            return error;
+            return CssStatus.CSS_OK;
         }
         #endregion
     }
