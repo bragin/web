@@ -253,6 +253,7 @@ namespace SkiaSharpOpenGLBenchmark
             for (ident_count = 0; ident_count < IDENT.Count; ident_count++)
             {
                 var ckv = IDENT[ident_count];
+                var propname = ckv.Key.ToLower().Replace('_', '-');
 
                 sw.Write("if (");
                 if (!onlyIdent)
@@ -261,7 +262,7 @@ namespace SkiaSharpOpenGLBenchmark
                     "(token.Type == CssTokenType.CSS_TOKEN_IDENT) &&\r\n                ");
                 }
                 sw.WriteLine(
-                    $"System.String.Equals(token.iData, \"{ckv.Key.ToLower()}\", StringComparison.OrdinalIgnoreCase))\r\n            {{");
+                    $"System.String.Equals(token.iData, \"{propname}\", StringComparison.OrdinalIgnoreCase))\r\n            {{");
 
                 var enumPrefix = (parseId.Value == "op") ? "" : "CssPropertiesEnum.";
 
