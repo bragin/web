@@ -123,8 +123,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             // Get node's name
             Element = new CssQname();
             Element.Name = node.Name;
-            Element.Namespace = null; // FIXME: check if it's correct
-            Log.Unimplemented("Check Element.Namespace 127");
+            Element.Namespace = string.Empty; // No namespace
 
             // Get node's ID, if any
             Id = node.Attributes["id"] != null ? node.Attributes["id"].Value : null;
@@ -146,8 +145,25 @@ namespace SkiaSharpOpenGLBenchmark.css
                 NodeData.Flags =
                     (CssNodeFlags)((short)NodeData.Flags | (short)CssNodeFlags.CSS_NODE_FLAGS_PSEUDO_CLASS_LINK);
             }
+            if (node.IsVisited())
+            {
+                NodeData.Flags = (CssNodeFlags)((short)NodeData.Flags | (short)CssNodeFlags.CSS_NODE_FLAGS_PSEUDO_CLASS_VISITED);
+            }
 
-            Log.Unimplemented("Some node pseudo classes flags are missing");
+            if (node.IsHover())
+            {
+                NodeData.Flags = (CssNodeFlags)((short)NodeData.Flags | (short)CssNodeFlags.CSS_NODE_FLAGS_PSEUDO_CLASS_HOVER);
+            }
+
+            if (node.IsActive())
+            {
+                NodeData.Flags = (CssNodeFlags)((short)NodeData.Flags | (short)CssNodeFlags.CSS_NODE_FLAGS_PSEUDO_CLASS_ACTIVE);
+            }
+
+            if (node.IsFocus())
+            {
+                NodeData.Flags = (CssNodeFlags)((short)NodeData.Flags | (short)CssNodeFlags.CSS_NODE_FLAGS_PSEUDO_CLASS_FOCUS);
+            }
 
             // Props
             Props = new PropState[(int)CssPropertiesEnum.CSS_N_PROPERTIES][];
@@ -364,7 +380,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             req.NodeBloom = NodeData.Bloom;
             req.Uni = CssStrings.Universal;
 
-            Log.Unimplemented("Media and UnitCtx are copied into req instead of being ref'd");
+            //Log.Unimplemented("Media and UnitCtx are copied into req instead of being ref'd");
 
             CssSelector nodeSelectors;
             int nodeSelectorsIndex;
@@ -469,18 +485,18 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
 
             /*
-	        const css_selector *s = selector;
-	        void *node = state->node;
-	        const css_selector_detail *detail = &s->data;
+            const css_selector *s = selector;
+            void *node = state->node;
+            const css_selector_detail *detail = &s->data;
             */
 
             /* Match the details of the first selector in the chain.
-	         *
-	         * Note that pseudo elements will only appear as details of
-	         * the first selector in the chain, as the parser will reject
-	         * any selector chains containing pseudo elements anywhere
-	         * else.
-	         */
+             *
+             * Note that pseudo elements will only appear as details of
+             * the first selector in the chain, as the parser will reject
+             * any selector chains containing pseudo elements anywhere
+             * else.
+             */
             CssPseudoElement pseudo = CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE;
             var detailsEnum = selector.Data.GetEnumerator();
             var detailsNotEmpty = detailsEnum.MoveNext(); // Position it to the first element
@@ -643,165 +659,165 @@ namespace SkiaSharpOpenGLBenchmark.css
                     //error = state->handler->node_has_id(state->pw, node,
                     //detail->qname.name, match);
                     break;
-	            case CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS:
+                case CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS:
                     Log.Unimplemented();
                     /*
                     error = state->handler->node_is_root(state->pw, node, &is_root);
-		            if (error != CSS_OK)
-			            return error;
+                    if (error != CSS_OK)
+                        return error;
 
-		            if (is_root == false &&
-				            detail->qname.name == ctx->first_child) {
-			            int32_t num_before = 0;
+                    if (is_root == false &&
+                            detail->qname.name == ctx->first_child) {
+                        int32_t num_before = 0;
 
-			            error = state->handler->node_count_siblings(state->pw,
-					            node, false, false, &num_before);
-			            if (error == CSS_OK)
-				            *match = (num_before == 0);
-		            } else if (is_root == false &&
-				            detail->qname.name == ctx->nth_child) {
-			            int32_t num_before = 0;
+                        error = state->handler->node_count_siblings(state->pw,
+                                node, false, false, &num_before);
+                        if (error == CSS_OK)
+                            *match = (num_before == 0);
+                    } else if (is_root == false &&
+                            detail->qname.name == ctx->nth_child) {
+                        int32_t num_before = 0;
 
-			            error = state->handler->node_count_siblings(state->pw,
-					            node, false, false, &num_before);
-			            if (error == CSS_OK) {
-				            int32_t a = detail->value.nth.a;
-				            int32_t b = detail->value.nth.b;
+                        error = state->handler->node_count_siblings(state->pw,
+                                node, false, false, &num_before);
+                        if (error == CSS_OK) {
+                            int32_t a = detail->value.nth.a;
+                            int32_t b = detail->value.nth.b;
 
-				            *match = match_nth(a, b, num_before + 1);
-			            }
-		            } else if (is_root == false &&
-				            detail->qname.name == ctx->nth_last_child) {
-			            int32_t num_after = 0;
+                            *match = match_nth(a, b, num_before + 1);
+                        }
+                    } else if (is_root == false &&
+                            detail->qname.name == ctx->nth_last_child) {
+                        int32_t num_after = 0;
 
-			            error = state->handler->node_count_siblings(state->pw,
-					            node, false, true, &num_after);
-			            if (error == CSS_OK) {
-				            int32_t a = detail->value.nth.a;
-				            int32_t b = detail->value.nth.b;
+                        error = state->handler->node_count_siblings(state->pw,
+                                node, false, true, &num_after);
+                        if (error == CSS_OK) {
+                            int32_t a = detail->value.nth.a;
+                            int32_t b = detail->value.nth.b;
 
-				            *match = match_nth(a, b, num_after + 1);
-			            }
-		            } else if (is_root == false &&
-				            detail->qname.name == ctx->nth_of_type) {
-			            int32_t num_before = 0;
+                            *match = match_nth(a, b, num_after + 1);
+                        }
+                    } else if (is_root == false &&
+                            detail->qname.name == ctx->nth_of_type) {
+                        int32_t num_before = 0;
 
-			            error = state->handler->node_count_siblings(state->pw,
-					            node, true, false, &num_before);
-			            if (error == CSS_OK) {
-				            int32_t a = detail->value.nth.a;
-				            int32_t b = detail->value.nth.b;
+                        error = state->handler->node_count_siblings(state->pw,
+                                node, true, false, &num_before);
+                        if (error == CSS_OK) {
+                            int32_t a = detail->value.nth.a;
+                            int32_t b = detail->value.nth.b;
 
-				            *match = match_nth(a, b, num_before + 1);
-			            }
-		            } else if (is_root == false &&
-				            detail->qname.name == ctx->nth_last_of_type) {
-			            int32_t num_after = 0;
+                            *match = match_nth(a, b, num_before + 1);
+                        }
+                    } else if (is_root == false &&
+                            detail->qname.name == ctx->nth_last_of_type) {
+                        int32_t num_after = 0;
 
-			            error = state->handler->node_count_siblings(state->pw,
-					            node, true, true, &num_after);
-			            if (error == CSS_OK) {
-				            int32_t a = detail->value.nth.a;
-				            int32_t b = detail->value.nth.b;
+                        error = state->handler->node_count_siblings(state->pw,
+                                node, true, true, &num_after);
+                        if (error == CSS_OK) {
+                            int32_t a = detail->value.nth.a;
+                            int32_t b = detail->value.nth.b;
 
-				            *match = match_nth(a, b, num_after + 1);
-			            }
-		            } else if (is_root == false &&
-				            detail->qname.name == ctx->last_child) {
-			            int32_t num_after = 0;
+                            *match = match_nth(a, b, num_after + 1);
+                        }
+                    } else if (is_root == false &&
+                            detail->qname.name == ctx->last_child) {
+                        int32_t num_after = 0;
 
-			            error = state->handler->node_count_siblings(state->pw,
-					            node, false, true, &num_after);
-			            if (error == CSS_OK)
-				            *match = (num_after == 0);
-		            } else if (is_root == false &&
-				            detail->qname.name == ctx->first_of_type) {
-			            int32_t num_before = 0;
+                        error = state->handler->node_count_siblings(state->pw,
+                                node, false, true, &num_after);
+                        if (error == CSS_OK)
+                            *match = (num_after == 0);
+                    } else if (is_root == false &&
+                            detail->qname.name == ctx->first_of_type) {
+                        int32_t num_before = 0;
 
-			            error = state->handler->node_count_siblings(state->pw,
-					            node, true, false, &num_before);
-			            if (error == CSS_OK)
-				            *match = (num_before == 0);
-		            } else if (is_root == false &&
-				            detail->qname.name == ctx->last_of_type) {
-			            int32_t num_after = 0;
+                        error = state->handler->node_count_siblings(state->pw,
+                                node, true, false, &num_before);
+                        if (error == CSS_OK)
+                            *match = (num_before == 0);
+                    } else if (is_root == false &&
+                            detail->qname.name == ctx->last_of_type) {
+                        int32_t num_after = 0;
 
-			            error = state->handler->node_count_siblings(state->pw,
-					            node, true, true, &num_after);
-			            if (error == CSS_OK)
-				            *match = (num_after == 0);
-		            } else if (is_root == false &&
-				            detail->qname.name == ctx->only_child) {
-			            int32_t num_before = 0, num_after = 0;
+                        error = state->handler->node_count_siblings(state->pw,
+                                node, true, true, &num_after);
+                        if (error == CSS_OK)
+                            *match = (num_after == 0);
+                    } else if (is_root == false &&
+                            detail->qname.name == ctx->only_child) {
+                        int32_t num_before = 0, num_after = 0;
 
-			            error = state->handler->node_count_siblings(state->pw,
-					            node, false, false, &num_before);
-			            if (error == CSS_OK) {
-				            error = state->handler->node_count_siblings(
-						            state->pw, node, false, true,
-						            &num_after);
-				            if (error == CSS_OK)
-					            *match = (num_before == 0) &&
-							            (num_after == 0);
-			            }
-		            } else if (is_root == false &&
-				            detail->qname.name == ctx->only_of_type) {
-			            int32_t num_before = 0, num_after = 0;
+                        error = state->handler->node_count_siblings(state->pw,
+                                node, false, false, &num_before);
+                        if (error == CSS_OK) {
+                            error = state->handler->node_count_siblings(
+                                    state->pw, node, false, true,
+                                    &num_after);
+                            if (error == CSS_OK)
+                                *match = (num_before == 0) &&
+                                        (num_after == 0);
+                        }
+                    } else if (is_root == false &&
+                            detail->qname.name == ctx->only_of_type) {
+                        int32_t num_before = 0, num_after = 0;
 
-			            error = state->handler->node_count_siblings(state->pw,
-					            node, true, false, &num_before);
-			            if (error == CSS_OK) {
-				            error = state->handler->node_count_siblings(
-						            state->pw, node, true, true,
-						            &num_after);
-				            if (error == CSS_OK)
-					            *match = (num_before == 0) &&
-							            (num_after == 0);
-			            }
-		            } else if (detail->qname.name == ctx->root) {
-			            *match = is_root;
-		            } else if (detail->qname.name == ctx->empty) {
-			            error = state->handler->node_is_empty(state->pw,
-					            node, match);
-		            } else if (detail->qname.name == ctx->link) {
-			            error = state->handler->node_is_link(state->pw,
-					            node, match);
-			            flags = CSS_NODE_FLAGS_NONE;
-		            } else if (detail->qname.name == ctx->visited) {
-			            error = state->handler->node_is_visited(state->pw,
-					            node, match);
-			            flags = CSS_NODE_FLAGS_NONE;
-		            } else if (detail->qname.name == ctx->hover) {
-			            error = state->handler->node_is_hover(state->pw,
-					            node, match);
-			            flags = CSS_NODE_FLAGS_NONE;
-		            } else if (detail->qname.name == ctx->active) {
-			            error = state->handler->node_is_active(state->pw,
-					            node, match);
-			            flags = CSS_NODE_FLAGS_NONE;
-		            } else if (detail->qname.name == ctx->focus) {
-			            error = state->handler->node_is_focus(state->pw,
-					            node, match);
-			            flags = CSS_NODE_FLAGS_NONE;
-		            } else if (detail->qname.name == ctx->target) {
-			            error = state->handler->node_is_target(state->pw,
-					            node, match);
-		            } else if (detail->qname.name == ctx->lang) {
-			            error = state->handler->node_is_lang(state->pw,
-					            node, detail->value.string, match);
-		            } else if (detail->qname.name == ctx->enabled) {
-			            error = state->handler->node_is_enabled(state->pw,
-					            node, match);
-		            } else if (detail->qname.name == ctx->disabled) {
-			            error = state->handler->node_is_disabled(state->pw,
-					            node, match);
-		            } else if (detail->qname.name == ctx->checked) {
-			            error = state->handler->node_is_checked(state->pw,
-					            node, match);
-		            } else {
-			            *match = false;
-		            }
-		            add_node_flags(node, state, flags);*/
+                        error = state->handler->node_count_siblings(state->pw,
+                                node, true, false, &num_before);
+                        if (error == CSS_OK) {
+                            error = state->handler->node_count_siblings(
+                                    state->pw, node, true, true,
+                                    &num_after);
+                            if (error == CSS_OK)
+                                *match = (num_before == 0) &&
+                                        (num_after == 0);
+                        }
+                    } else if (detail->qname.name == ctx->root) {
+                        *match = is_root;
+                    } else if (detail->qname.name == ctx->empty) {
+                        error = state->handler->node_is_empty(state->pw,
+                                node, match);
+                    } else if (detail->qname.name == ctx->link) {
+                        error = state->handler->node_is_link(state->pw,
+                                node, match);
+                        flags = CSS_NODE_FLAGS_NONE;
+                    } else if (detail->qname.name == ctx->visited) {
+                        error = state->handler->node_is_visited(state->pw,
+                                node, match);
+                        flags = CSS_NODE_FLAGS_NONE;
+                    } else if (detail->qname.name == ctx->hover) {
+                        error = state->handler->node_is_hover(state->pw,
+                                node, match);
+                        flags = CSS_NODE_FLAGS_NONE;
+                    } else if (detail->qname.name == ctx->active) {
+                        error = state->handler->node_is_active(state->pw,
+                                node, match);
+                        flags = CSS_NODE_FLAGS_NONE;
+                    } else if (detail->qname.name == ctx->focus) {
+                        error = state->handler->node_is_focus(state->pw,
+                                node, match);
+                        flags = CSS_NODE_FLAGS_NONE;
+                    } else if (detail->qname.name == ctx->target) {
+                        error = state->handler->node_is_target(state->pw,
+                                node, match);
+                    } else if (detail->qname.name == ctx->lang) {
+                        error = state->handler->node_is_lang(state->pw,
+                                node, detail->value.string, match);
+                    } else if (detail->qname.name == ctx->enabled) {
+                        error = state->handler->node_is_enabled(state->pw,
+                                node, match);
+                    } else if (detail->qname.name == ctx->disabled) {
+                        error = state->handler->node_is_disabled(state->pw,
+                                node, match);
+                    } else if (detail->qname.name == ctx->checked) {
+                        error = state->handler->node_is_checked(state->pw,
+                                node, match);
+                    } else {
+                        *match = false;
+                    }
+                    add_node_flags(node, state, flags);*/
                     break;
                 case CssSelectorType.CSS_SELECTOR_PSEUDO_ELEMENT:
                     match = true;
@@ -835,9 +851,9 @@ namespace SkiaSharpOpenGLBenchmark.css
                     Log.Unimplemented();
                     /*
                     error = state->handler->node_has_attribute_dashmatch(state->pw,
-    				node, &detail->qname, detail->value.string,
-	    			match);
-		            add_node_flags(node, state, CSS_NODE_FLAGS_TAINT_ATTRIBUTE);*/
+                    node, &detail->qname, detail->value.string,
+                    match);
+                    add_node_flags(node, state, CSS_NODE_FLAGS_TAINT_ATTRIBUTE);*/
                     break;
                 case CssSelectorType.CSS_SELECTOR_ATTRIBUTE_INCLUDES:
                     Log.Unimplemented();

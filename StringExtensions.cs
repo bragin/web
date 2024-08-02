@@ -4,6 +4,7 @@ using System.Linq;
 using static System.Net.WebRequestMethods;
 using System.Runtime.Intrinsics.X86;
 using System.Security.Cryptography;
+using System.Text;
 
 // THis file comes from ExCSS almost unmodified
 
@@ -19,6 +20,32 @@ namespace SkiaSharpOpenGLBenchmark
                 case "": throw new ArgumentException($"{nameof(input)} cannot be empty", nameof(input));
                 default: return input[0].ToString().ToUpper() + input.Substring(1);
             }
+        }
+
+        public static string SquashWhitespace(this string s)
+        {
+            StringBuilder result = new StringBuilder();
+            bool inWhitespace = false;
+
+            foreach (char ch in s)
+            {
+                if (char.IsWhiteSpace(ch))
+                {
+                    if (!inWhitespace)
+                    {
+                        // Append a single space if encountering the first whitespace character
+                        result.Append(' ');
+                        inWhitespace = true;
+                    }
+                }
+                else
+                {
+                    result.Append(ch);
+                    inWhitespace = false;
+                }
+            }
+
+            return result.ToString();
         }
 
         public static bool Has(this string value, char chr, int index = 0)

@@ -97,7 +97,7 @@ namespace SkiaSharpOpenGLBenchmark
         public ComputedStyle Style;
 
         // value of id attribute (or name for anchors)
-        string Id;
+        public string Id;
 
         // Next sibling box, or NULL.
         Box Next;
@@ -116,7 +116,7 @@ namespace SkiaSharpOpenGLBenchmark
 
         // INLINE_END box corresponding to this INLINE box, or INLINE
         // box corresponding to this INLINE_END box.
-        Box InlineEnd;
+        public Box InlineEnd;
 
 
         // First float child box, or NULL. Float boxes are in the tree
@@ -196,7 +196,7 @@ namespace SkiaSharpOpenGLBenchmark
         public int Length;
 
         // Width of space after current text (depends on font and size).
-        int Space;
+        public int Space;
 
         // Byte offset within a textual representation of this content.
         //size_t byte_offset;
@@ -206,10 +206,10 @@ namespace SkiaSharpOpenGLBenchmark
         //struct nsurl *href;
 
         // Link target, or NULL.
-        string Target;
+        public string Target;
 
         // Title, or NULL.
-        string Title;
+        public string Title;
 
 
         // Number of columns for TABLE / TABLE_CELL.
@@ -569,7 +569,7 @@ namespace SkiaSharpOpenGLBenchmark
             if (Id != null)
                 sw.Write($" ID:{Id}");
             if (Type == BoxType.BOX_INLINE || Type == BoxType.BOX_INLINE_END)
-                sw.Write($" inline_end {InlineEnd.GetHashCode()}");
+                sw.Write($" inline_end {(InlineEnd == null ? "null" : InlineEnd.GetHashCode())}");
             /*if (box->float_children)
                 fprintf(stream, " float_children %p", box->float_children);
             if (box->next_float)
@@ -1322,54 +1322,38 @@ namespace SkiaSharpOpenGLBenchmark
 
             if (box.Type == BoxType.BOX_INLINE || box.Type == BoxType.BOX_BR)
             {
-                Log.Unimplemented();
-                /*
-		        // Insert INLINE_END into containing block
-		        struct box *inline_end;
-		        bool has_children;
-                dom_exception err;
-
-                err = dom_node_has_child_nodes(n, &has_children);
-		        if (err != DOM_NO_ERR)
-			        return;
-
-		        if (has_children == false || (box->flags & CONVERT_CHILDREN) == 0)
+                // Insert INLINE_END into containing block
+                if (n.ChildNodes.Count == 0 || (box.Flags & BoxFlags.CONVERT_CHILDREN) == 0)
                 {
-			        // No children, or didn't want children converted
-			        return;
-		        }
-
-		        if (props.inline_container == NULL)
-                {
-			        // Create inline container if we don't have one
-			        props.inline_container = box_create(NULL, NULL, false,
-                            NULL, NULL, NULL, NULL, content->bctx);
-			        if (props.inline_container == NULL)
-				        return;
-
-			        props.inline_container->type = BOX_INLINE_CONTAINER;
-
-			        box_add_child(props.containing_block,
-                            props.inline_container);
+                    // No children, or didn't want children converted
+                    return;
                 }
 
-                inline_end = box_create(NULL, box->style, false,
-                        box->href, box->target, box->title,
-                        box->id == NULL? NULL :
-
-                        lwc_string_ref(box->id), content->bctx);
-
-                if (inline_end != NULL)
+                if (props.InlineContainer == null)
                 {
-                    inline_end->type = BOX_INLINE_END;
+                    // Create inline container if we don't have one
+                    /*
+                    props.inline_container = box_create(NULL, NULL, false,
+                            NULL, NULL, NULL, NULL, content->bctx);
+                    if (props.inline_container == NULL)
+                        return;
 
-			        assert(props.inline_container != NULL);
+                    props.inline_container->type = BOX_INLINE_CONTAINER;
 
-                    box_add_child(props.inline_container, inline_end);
+                    box_add_child(props.containing_block,
+                            props.inline_container);
+                    */
+                    Log.Unimplemented();
+                }
 
-                    box->inline_end = inline_end;
-	                inline_end->inline_end = box;
-	            }*/
+                var inlineEnd = new Box(null, box.Style, false, /*box.Href*/0, box.Target, box.Title, box.Id);
+
+                inlineEnd.Type = BoxType.BOX_INLINE_END;
+
+			    Debug.Assert(props.InlineContainer != null);
+                props.InlineContainer.AddChild(inlineEnd);
+                box.InlineEnd = inlineEnd;
+	            inlineEnd.InlineEnd = box;
             }
             else if (((int)box.Flags & (int)BoxFlags.IS_REPLACED) == 0)
             {
@@ -1400,38 +1384,29 @@ namespace SkiaSharpOpenGLBenchmark
             if (props.ParentStyle.ComputedWhitespace() == CssWhiteSpaceEnum.CSS_WHITE_SPACE_NORMAL ||
                 props.ParentStyle.ComputedWhitespace() == CssWhiteSpaceEnum.CSS_WHITE_SPACE_NOWRAP)
             {
-                Log.Unimplemented();
-                /*
-		        char* text;
-
-                text = squash_whitespace(dom_string_data(content));
-
-                dom_string_unref(content);
-
-		        if (text == NULL)
-			        return false;
-
-		        // if the text is just a space, combine it with the preceding
-		         // text node, if any
-		        if (text[0] == ' ' && text[1] == 0)
+                var text = content.SquashWhitespace();
+                if (string.IsNullOrEmpty(text))
+                    return false;
+                // if the text is just a space, combine it with the preceding
+                // text node, if any
+                if (text == " ")
                 {
-			        if (props.inline_container != NULL)
+                    if (props.InlineContainer != null)
                     {
-				        assert(props.inline_container->last != NULL);
+                        //assert(props.inline_container->last != NULL);
 
-                        props.inline_container->last->space = UNKNOWN_WIDTH;
-			        }
+                        props.InlineContainer.Last.Space = int.MaxValue; //UNKNOWN_WIDTH;
+                    }
 
-                    free(text);
+                    return true;
+                }
 
-			        return true;
-		        }
-
-                if (props.inline_container == NULL)
+                if (props.InlineContainer == null)
                 {
                     // Child of a block without a current container
                     // (i.e. this box is the first child of its parent, or
                     // was preceded by block-level siblings)
+                    /*
                     props.inline_container = box_create(NULL, NULL, false,
                             NULL, NULL, NULL, NULL, ctx->bctx);
                     if (props.inline_container == NULL)
@@ -1444,53 +1419,39 @@ namespace SkiaSharpOpenGLBenchmark
 
                     box_add_child(props.containing_block,
                             props.inline_container);
+                    */
+                    Log.Unimplemented();
                 }
 
                 // \todo Dropping const here is not clever
-                box = box_create(NULL,
-                        (css_computed_style*)props.parent_style,
-                        false, props.href, props.target, props.title,
-                        NULL, ctx->bctx);
-                if (box == NULL)
-                {
-                    free(text);
-                    return false;
-                }
-
-                box->type = BOX_TEXT;
-
-                box->text = talloc_strdup(ctx->bctx, text);
-                free(text);
-                if (box->text == NULL)
-                    return false;
-
-                box->length = strlen(box->text);
+                var box = new Box(null, props.ParentStyle, false, /*props.href*/0, props.Target, props.Title, string.Empty);
+                box.Type = BoxType.BOX_TEXT;
+                box.Text = text;
+                box.Length = box.Text.Length;
 
                 // strip ending space char off
-                if (box->length > 1 && box->text[box->length - 1] == ' ')
+                if (box.Length > 1 && box.Text[box.Length - 1] == ' ')
                 {
-                    box->space = UNKNOWN_WIDTH;
-                    box->length--;
+                    box.Space = int.MaxValue;//UNKNOWN_WIDTH;
+                    box.Length--;
+                    box.Text = box.Text.Substring(0, box.Length - 1);
                 }
 
-                if (css_computed_text_transform(props.parent_style) !=
-                        CSS_TEXT_TRANSFORM_NONE)
-                    box_text_transform(box->text, box->length,
-                        css_computed_text_transform(
-                            props.parent_style));
+                if (props.ParentStyle.ComputedTextTransform() != CssTextTransformEnum.CSS_TEXT_TRANSFORM_NONE)
+                    box.Text = TextTransform(box.Text, props.ParentStyle.ComputedTextTransform());
 
-                box_add_child(props.inline_container, box);
+                props.InlineContainer.AddChild(box);
 
-                if (box->text[0] == ' ')
+                if (box.Text[0] == ' ')
                 {
-                    box->length--;
+                    box.Length--;
 
-                    memmove(box->text, &box->text[1], box->length);
+                    Log.Unimplemented();
+                    //memmove(box->text, &box->text[1], box->length);
 
-                    if (box->prev != NULL)
-                        box->prev->space = UNKNOWN_WIDTH;
+                    //if (box->prev != NULL)
+                    //  box->prev->space = UNKNOWN_WIDTH;
                 }
-                */
             }
             else
             {
@@ -1681,10 +1642,45 @@ namespace SkiaSharpOpenGLBenchmark
             return next;
         }
 
-        // box_construct.c:1193 - convert_xml_to_box()
-        // Convert an ELEMENT node to a box tree fragment,
-        // then schedule conversion of the next ELEMENT node
-        void ConvertXmlToBox()
+		// box_construct.c:917
+		string TextTransform(string s, CssTextTransformEnum tt)
+        {
+			switch (tt)
+			{
+				case CssTextTransformEnum.CSS_TEXT_TRANSFORM_UPPERCASE:
+					/*for (i = 0; i < len; ++i)
+						if ((unsigned char) s[i] < 0x80)
+					s[i] = ascii_to_upper(s[i]);
+					break;*/
+					Log.Unimplemented();
+					return s;
+				case CssTextTransformEnum.CSS_TEXT_TRANSFORM_LOWERCASE:
+					/*for (i = 0; i < len; ++i)
+						if ((unsigned char) s[i] < 0x80)
+					s[i] = ascii_to_lower(s[i]);
+					break;*/
+					Log.Unimplemented();
+					return s;
+				case CssTextTransformEnum.CSS_TEXT_TRANSFORM_CAPITALIZE:
+                    /*
+					if ((unsigned char) s[0] < 0x80)
+				s[0] = ascii_to_upper(s[0]);
+					for (i = 1; i < len; ++i)
+						if ((unsigned char) s[i] < 0x80 &&
+								ascii_is_space(s[i - 1]))
+					s[i] = ascii_to_upper(s[i]);
+					break;*/
+                    Log.Unimplemented();
+                    return s;
+				default:
+                    return s;
+			}
+		}
+
+		// box_construct.c:1193 - convert_xml_to_box()
+		// Convert an ELEMENT node to a box tree fragment,
+		// then schedule conversion of the next ELEMENT node
+		void ConvertXmlToBox()
         {
             XmlNode next;
             bool convert_children;

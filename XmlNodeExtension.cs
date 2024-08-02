@@ -63,6 +63,22 @@ namespace SkiaSharpOpenGLBenchmark
         {
             return string.Equals(node.Name, "a", StringComparison.OrdinalIgnoreCase);
         }
+        public static bool IsVisited(this XmlNode node)
+        {
+            return false;
+        }
+        public static bool IsHover(this XmlNode node)
+        {
+            return false;
+        }
+        public static bool IsActive(this XmlNode node)
+        {
+            return false;
+        }
+        public static bool IsFocus(this XmlNode node)
+        {
+            return false;
+        }
 
         // Just for debugging
         public static void Dump(this XmlNode node)

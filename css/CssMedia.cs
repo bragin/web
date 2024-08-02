@@ -110,7 +110,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         // libcss/src/select/mq.h:207
         public bool RuleGoodForMedia(CssRule rule, CssUnitCtx unitCtx)
         {
-            Log.Unimplemented("Media queries are ignored for now");
+            //Log.Unimplemented("Media queries are ignored for now");
             return true;
         }
     }

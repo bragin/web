@@ -299,6 +299,8 @@ namespace SkiaSharpOpenGLBenchmark.css
             // the inputstream's buffer may have moved under us.
             if (EscapeSeen)
             {
+                // This can be ignored as EscapeData is handled below in
+                // case CssTokenType.CSS_TOKEN_STRING
                 Log.Unimplemented("EscapeSeen");
             }
             else
