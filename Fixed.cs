@@ -93,6 +93,21 @@ namespace SkiaSharpOpenGLBenchmark
             return $"{iPart}.{fPart}";
         }
 
+        public Fixed Truncate()
+        {
+            int a = RawValue;
+            int raw = (a & ~((1 << CSS_RADIX_POINT) - 1));
+            return new Fixed(raw, true);
+        }
+
+        // Fixed point percentage (a) of an integer (b), to an integer
+        // FPCT_OF_INT_TOINT()
+        public int PercentageToInt(int b)
+        {
+            Fixed r = (this * b) / F_100;
+            return r.ToInt();
+        }
+
         #region +
         public static Fixed operator +(Fixed one, Fixed other)
         {
@@ -136,6 +151,22 @@ namespace SkiaSharpOpenGLBenchmark
             fInt.RawValue = (int)xx;
             return fInt;
         }
+        public static Fixed operator *(Fixed one, int other)
+        {
+            long orv = ((long)other) * (1 << CSS_RADIX_POINT);
+            long xx = ((long)one.RawValue * orv) >> CSS_RADIX_POINT;
+
+            if (xx < Int32.MinValue)
+                xx = Int32.MinValue;
+
+            if (xx > Int32.MaxValue)
+                xx = Int32.MaxValue;
+
+            Fixed fInt;
+            fInt.RawValue = (int)xx;
+            return fInt;
+        }
+
         #endregion
 
         #region /

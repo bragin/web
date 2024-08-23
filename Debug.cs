@@ -4,6 +4,12 @@ using System.Runtime.CompilerServices;
 
 namespace SkiaSharpOpenGLBenchmark
 {
+    public enum LogChannel
+    {
+        Events,
+        Layout
+    }
+
     public static class Log {
         public static void Unimplemented(
             string message = "",
@@ -17,5 +23,19 @@ namespace SkiaSharpOpenGLBenchmark
             // System.Diagnostics.Trace.WriteLine("source file path: " + sourceFilePath);
             // System.Diagnostics.Trace.WriteLine("source line number: " + sourceLineNumber);
         }
-    }
+
+        public static void Print(
+            LogChannel channel,
+			string message = "",
+			[System.Runtime.CompilerServices.CallerMemberName] string memberName = "",
+			[System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "",
+			[System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = 0
+            )
+        {
+            // Skip events
+            if (channel == LogChannel.Events) return;
+
+            Console.WriteLine($"{channel.ToString()} {sourceFilePath}:{sourceLineNumber} {memberName}(): {message}");
+        }
+}
 }

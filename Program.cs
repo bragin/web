@@ -1,8 +1,9 @@
-﻿// See https://aka.ms/new-console-template for more information
-using SkiaSharpOpenGLBenchmark;
-using static System.Net.Mime.MediaTypeNames;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 /*
 
@@ -36,29 +37,29 @@ Useful links:
         https://stackoverflow.com/questions/5678216/all-possible-array-initialization-syntaxes
  */
 
-internal static class Program
+
+namespace SkiaSharpOpenGLBenchmark
 {
-    /// <summary>
-    /// The main entry point for the application.
-    /// </summary>
-    [STAThread]
-    static void Main()
+    internal static class Program
     {
-        Console.WriteLine("Hello, World!");
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new Form1());
+        }
 
-        //CodeGenerator.GeneratePropertyParsers();
-        //CodeGenerator.GenerateCodeStubs2();
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static string GetCurrentMethod()
+        {
+            var st = new StackTrace();
+            var sf = st.GetFrame(1);
 
-        var c = new HtmlContent();
-        c.LoadDocument();
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    public static string GetCurrentMethod()
-    {
-        var st = new StackTrace();
-        var sf = st.GetFrame(1);
-
-        return sf.GetMethod().Name;
+            return sf.GetMethod().Name;
+        }
     }
 }

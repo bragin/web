@@ -57,6 +57,12 @@ namespace SkiaSharpOpenGLBenchmark
         {
             rawValue = nv;
         }
+
+        // Determine if a CSS color primitive is transparent
+        public bool IsTransparent()
+        {
+            return (rawValue >> 24) == 0;
+        }
     }
 
     // computed.h:27
@@ -471,11 +477,48 @@ namespace SkiaSharpOpenGLBenchmark
             Cursor = new string[0];
             FontFamily = new string[0];
             Quotes = new string[0];
-        }
 
-        // css_computed_style_compose
-        // computed.c:253
-        public ComputedStyle(ComputedStyle parent, ComputedStyle child, CssUnitCtx unitCtx)
+            ComputedMarginSides = new ComputedMarginSideFunc[4] {
+                ComputedMarginTop,
+                ComputedMarginRight,
+                ComputedMarginBottom,
+                ComputedMarginLeft
+            };
+
+            ComputedBorderSideColor = new ComputedBorderSideColorFunc[4]
+            {
+                ComputedBorderTopColor,
+                ComputedBorderRightColor,
+                ComputedBorderBottomColor,
+                ComputedBorderLeftColor
+            };
+
+            ComputedBorderSideWidth = new ComputedBorderSideWidthFunc[4] {
+                ComputedBorderTopWidth,
+                ComputedBorderRightWidth,
+                ComputedBorderBottomWidth,
+                ComputedBorderLeftWidth,
+            };
+
+            ComputedBorderSideStyle = new ComputedBorderSideStyleFunc[4] {
+                ComputedBorderTopStyle,
+                ComputedBorderRightStyle,
+                ComputedBorderBottomStyle,
+                ComputedBorderLeftStyle
+            };
+
+            ComputedPaddingSide = new ComputedPaddingSideFunc[4]
+            {
+                ComputedPaddingTop,
+                ComputedPaddingRight,
+                ComputedPaddingBottom,
+                ComputedPaddingLeft
+            };
+    }
+
+    // css_computed_style_compose
+    // computed.c:253
+    public ComputedStyle(ComputedStyle parent, ComputedStyle child, CssUnitCtx unitCtx)
         {
             CssStatus error;
             //ComputedStyle composed = new ComputedStyle();
@@ -493,6 +536,42 @@ namespace SkiaSharpOpenGLBenchmark
             Cursor = new string[0];
             FontFamily = new string[0];
             Quotes = new string[0];
+
+            ComputedMarginSides = new ComputedMarginSideFunc[4] {
+                ComputedMarginTop,
+                ComputedMarginRight,
+                ComputedMarginBottom,
+                ComputedMarginLeft
+            };
+
+            ComputedBorderSideColor = new ComputedBorderSideColorFunc[4] {
+                ComputedBorderTopColor,
+                ComputedBorderRightColor,
+                ComputedBorderBottomColor,
+                ComputedBorderLeftColor
+            };
+
+            ComputedBorderSideWidth = new ComputedBorderSideWidthFunc[4] {
+                ComputedBorderTopWidth,
+                ComputedBorderRightWidth,
+                ComputedBorderBottomWidth,
+                ComputedBorderLeftWidth,
+            };
+
+            ComputedBorderSideStyle = new ComputedBorderSideStyleFunc[4] {
+                ComputedBorderTopStyle,
+                ComputedBorderRightStyle,
+                ComputedBorderBottomStyle,
+                ComputedBorderLeftStyle
+            };
+
+            ComputedPaddingSide = new ComputedPaddingSideFunc[4]
+            {
+                ComputedPaddingTop,
+                ComputedPaddingRight,
+                ComputedPaddingBottom,
+                ComputedPaddingLeft
+            };
 
             // Iterate through the properties
             for (int i = 0; i < (int)CssPropertiesEnum.CSS_N_PROPERTIES; i++)
@@ -3572,8 +3651,9 @@ namespace SkiaSharpOpenGLBenchmark
 
             // Fix up background-position
             ComputeAbsoluteLengthPair(ex_size.Length, "background_position");
+
             // Fix up background-color
-            //compute_absolute_color(get_background_color, set_background_color);
+            ComputeAbsoluteColor("background_color");
 
             // Fix up border-{top,right,bottom,left}-color
             //compute_border_colors();
@@ -3629,14 +3709,14 @@ namespace SkiaSharpOpenGLBenchmark
             // Fix up letter-spacing
             ComputeAbsoluteLength(ex_size.Length, "letter_spacing");
 
-            // Fix up outline-color
-            //compute_absolute_color(style, get_outline_color, set_outline_color);
+			// Fix up outline-color
+			ComputeAbsoluteColor("outline_color");
 
-            // Fix up outline-width
-            //compute_absolute_border_side_width(ex_size.Length, get_outline_width, set_outline_width);
+			// Fix up outline-width
+			//compute_absolute_border_side_width(ex_size.Length, get_outline_width, set_outline_width);
 
-            // Fix up word-spacing
-            ComputeAbsoluteLength(ex_size.Length, "word_spacing");
+			// Fix up word-spacing
+			ComputeAbsoluteLength(ex_size.Length, "word_spacing");
 
             // Fix up column-rule-width
             //compute_absolute_border_side_width(ex_size.Length, get_column_rule_width, set_column_rule_width);
@@ -3748,7 +3828,9 @@ namespace SkiaSharpOpenGLBenchmark
                         case CssUnit.CSS_UNIT_REM:
                             {
                                 // Root element relative units.
-                                //refLen = CssUnitgGetFontSize(rootStyle, fontSizeDefault); // unit.c:374
+                                // unit.c:374
+                                // css_unit__get_font_size()
+                                //refLen = CssUnitgGetFontSize(rootStyle, fontSizeDefault);
                                 //var fs = new CssHintLength(fontSizeDefault, CssUnit.CSS_UNIT_PX);
                                 refLen.Value = fontSizeDefault;
                                 refLen.Unit = CssUnit.CSS_UNIT_PX;
@@ -4709,8 +4791,65 @@ namespace SkiaSharpOpenGLBenchmark
             }
         }
 
-        // commputed.c:1605
-        CssStatus ComputeAbsoluteMargins(CssHintLength ex_size)
+        #region Absolute value calculators
+
+        // computed.c:1334
+        /**
+         * Compute colour values, replacing any set to currentColor with
+         * the computed value of color.
+         *
+         * \param style  The style to process
+         * \param get    Accessor for colour value
+         * \param set    Mutator for colour value
+         * \return CSS_OK on success
+         */
+        CssStatus ComputeAbsoluteColor(string type)
+        {
+            Color color = new Color();
+            CssStatus error = CssStatus.CSS_OK;
+
+            byte colorType = 0;
+
+            switch (type)
+            {
+                case "background_color":
+                    colorType = (byte)GetBackgroundColor(out color);
+                    break;
+                case "outline_color":
+                    colorType = (byte)GetOutlineColor(ref color);
+                    break;
+                default:
+                    Log.Unimplemented();
+                    break;
+            }
+
+            if (colorType == (byte)CssBackgroundColorEnum.CSS_BACKGROUND_COLOR_CURRENT_COLOR)
+            {
+		        Color computed_color;
+
+		        ComputedColor(out computed_color);
+
+                switch (type)
+                {
+                    case "background_color":
+                        SetBackgroundColor(CssBackgroundColorEnum.CSS_BACKGROUND_COLOR_COLOR, computed_color);
+                        break;
+                    case "outline_color":
+                        SetOutlineColor((CssOutlineColorEnum)CssBackgroundColorEnum.CSS_BACKGROUND_COLOR_COLOR, computed_color);
+                        break;
+                    default:
+                        Log.Unimplemented();
+                        break;
+                }
+
+            }
+
+            return error;
+        }
+
+
+		// computed.c:1605
+		CssStatus ComputeAbsoluteMargins(CssHintLength ex_size)
         {
             CssStatus error;
 
@@ -4812,6 +4951,83 @@ namespace SkiaSharpOpenGLBenchmark
                     throw new Exception("Unsupported type");
             }
         }
+        #endregion
+
+        // Arrays of functions
+        public delegate CssMarginEnum ComputedMarginSideFunc(ref Fixed length, ref CssUnit unit);
+        public delegate CssBorderColorEnum ComputedBorderSideColorFunc(out Color color);
+		public delegate CssBorderWidthEnum ComputedBorderSideWidthFunc(ref Fixed length, ref CssUnit unit);
+        public delegate CssBorderStyleEnum ComputedBorderSideStyleFunc();
+        public delegate CssPaddingEnum ComputedPaddingSideFunc(ref Fixed length, ref CssUnit unit);
+
+        public ComputedMarginSideFunc[] ComputedMarginSides;
+        public ComputedBorderSideWidthFunc[] ComputedBorderSideWidth;
+        public ComputedBorderSideStyleFunc[] ComputedBorderSideStyle;
+		public ComputedBorderSideColorFunc[] ComputedBorderSideColor;
+		public ComputedPaddingSideFunc[] ComputedPaddingSide;
+
+        // font_plot_style_from_css()
+        // font.c:139
+        public PlotFontStyle FontPlotStyle(CssUnitCtx unit_len_ctx)
+        {
+	        string[] families;
+	        Fixed length = Fixed.F_0;
+	        CssUnit unit = CssUnit.CSS_UNIT_PX;
+	        Color col;
+
+            var fstyle = new PlotFontStyle();
+
+            fstyle.Family = Plotter.FontGenericFamily(ComputedFontFamily(out families));
+	        fstyle.Families = families;
+
+	        ComputedFontSize(ref length, ref unit);
+	        fstyle.Size = (unit_len_ctx.FontSizeLen2pt(this, length, unit) * new Fixed(Plotter.PlotStyleScale)).ToInt();
+
+	        /* Clamp font size to configured minimum */
+	        if (fstyle.Size < (/*nsoption_int(font_min_size)*/85 * Plotter.PlotStyleScale) / 10)
+		        fstyle.Size = (/*nsoption_int(font_min_size)*/85 * Plotter.PlotStyleScale) / 10;
+
+	        fstyle.Weight = Plotter.FontWeight(ComputedFontWeight());
+	        fstyle.Flags = Plotter.FontFlags(ComputedFontStyle(), ComputedFontVariant());
+
+	        ComputedColor(out col);
+            fstyle.Foreground = col.Value; //nscss_color_to_ns(col);
+	        fstyle.Background = 0;
+
+            return fstyle;
+        }
+
+        // line_height
+        // layout.c:3087
+        public int LineHeight(CssUnitCtx unitLenCtx)
+        {
+	        CssLineHeightEnum lhtype;
+	        Fixed lhvalue = Fixed.F_0;
+	        CssUnit lhunit = CssUnit.CSS_UNIT_PX;
+	        Fixed line_height;
+
+	        lhtype = ComputedLineHeight(ref lhvalue, ref lhunit);
+	        if (lhtype == CssLineHeightEnum.CSS_LINE_HEIGHT_NORMAL) {
+		        /* Normal => use a constant of 1.3 * font-size */
+		        lhvalue = new Fixed(1.3);
+		        lhtype = CssLineHeightEnum.CSS_LINE_HEIGHT_NUMBER;
+	        }
+
+	        if (lhtype == CssLineHeightEnum.CSS_LINE_HEIGHT_NUMBER || lhunit == CssUnit.CSS_UNIT_PCT) {
+		        line_height = unitLenCtx.Len2DevicePx(this, lhvalue, CssUnit.CSS_UNIT_EM);
+
+		        if (lhtype != CssLineHeightEnum.CSS_LINE_HEIGHT_NUMBER)
+			        line_height = line_height / Fixed.F_100;
+	        } else {
+		        Debug.Assert(lhunit != CssUnit.CSS_UNIT_PCT);
+
+		        line_height = unitLenCtx.Len2DevicePx(this, lhvalue, lhunit);
+	        }
+
+	        return line_height.ToInt();
+        }
+
+        #region Dump
 
         // dump.c:49
         static string DumpCssNumber(Fixed val)
@@ -6583,6 +6799,7 @@ namespace SkiaSharpOpenGLBenchmark
             }
             sw.Write("}");
         }
+        #endregion
     }
 
     public class CssSelectResults

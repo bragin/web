@@ -1,8 +1,4 @@
-﻿using AngleSharp;
-using AngleSharp.Dom;
-using AngleSharp.Io;
-using OpenTK.Graphics.ES20;
-using SkiaSharp;
+﻿using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,6 +6,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -18,43 +15,28 @@ namespace SkiaSharpOpenGLBenchmark
 {
     public partial class Form1 : Form
     {
-        public async Task Run()
-        {
-            // We require a custom configuration with JavaScript, CSS and the default loader
-            var config = Configuration.Default
-                                      //.WithJs()
-                                      .WithCss()
-                                      .WithDefaultLoader();
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool AllocConsole();
 
-            // We create a new context
-            var context = BrowsingContext.New(config);
 
-            // The address we want to use
-            //var address = Url.Create("http://html5test.com");
-            var address = Url.Create("http://nginx.org");
-
-            // Load the document
-            var document = await context.OpenAsync(address);
-
-            // Get the scored points
-            var points = document.QuerySelector("#score > .pointsPanel > h2 > strong").TextContent;
-
-            // Print it out
-            Console.WriteLine("AngleSharp received {0} points form HTML5Test.com", points);
-        }
+        HtmlContent content;
+        Plotter Plot;
 
         public Form1()
         {
             InitializeComponent();
 
-            var c = new HtmlContent();
-            c.LoadDocument();
+            //CodeGenerator.GeneratePropertyParsers();
+            //CodeGenerator.GenerateCodeStubs2();
         }
 
         Random rand = new Random(0);
         private void skglControl1_PaintSurface(object sender, SkiaSharp.Views.Desktop.SKPaintGLSurfaceEventArgs e)
         {
             var surface = e.Surface;
+            Plot.Surface.Draw(surface.Canvas, 0, 0, null);
+            /*
             surface.Canvas.Clear(SKColor.Parse("#003366"));
             for (int i = 0; i < lineCount; i++)
             {
@@ -102,6 +84,7 @@ namespace SkiaSharpOpenGLBenchmark
 
             SKRect bounds = new SKRect();
             float textWidth = paint3.MeasureText(s1, ref bounds);
+            */
         }
 
         int lineCount;
@@ -144,7 +127,19 @@ namespace SkiaSharpOpenGLBenchmark
 
         private void button4_Click(object sender, EventArgs e)
         {
-            Benchmark(100_000);
+            //Benchmark(100_000);
+
+
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            AllocConsole();
+
+            Plot = new Plotter();
+
+            content = new HtmlContent(Plot);
+            content.LoadDocument();
         }
     }
 }

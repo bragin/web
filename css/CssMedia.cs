@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -143,13 +144,15 @@ namespace SkiaSharpOpenGLBenchmark.css
          */
         public ComputedStyle RootStyle;
 
-        // Optional client private word for measure callback.
-        //void* pw;
+		// Optional client private word for measure callback.
+		//void* pw;
 
-        //Optional client callback for font measuring.
-        //const css_unit_len_measure measure;
+		//Optional client callback for font measuring.
+		//const css_unit_len_measure measure;
 
-        static public CssUnit FromOpcodeUnit(OpcodeUnit unit)
+		// css__to_css_unit
+        // helpers.h:15
+		static public CssUnit FromOpcodeUnit(OpcodeUnit unit)
         {
             switch (unit)
             {
@@ -183,5 +186,304 @@ namespace SkiaSharpOpenGLBenchmark.css
                     return 0;
             }
         }
+
+        // css_unit__map_viewport_units()
+        // unit.c:32
+        /**
+         * Map viewport-relative length units to either vh or vw.
+         *
+         * Non-viewport-relative units are unchanged.
+         *
+         * \param[in] style            Reference style.
+         * \param[in] viewport_height  Viewport height in px.
+         * \param[in] viewport_width   Viewport width in px.
+         * \param[in] unit             Unit to map.
+         * \return the mapped unit.
+         */
+        static CssUnit MapViewportUnits(
+                ComputedStyle style,
+                Fixed viewport_height,
+                Fixed viewport_width,
+                CssUnit unit)
+        {
+            switch (unit)
+            {
+                case CssUnit.CSS_UNIT_VI:
+                    return (style != null && style.GetWritingMode() !=
+                            CssWritingModeEnum.CSS_WRITING_MODE_HORIZONTAL_TB) ?
+                            CssUnit.CSS_UNIT_VH : CssUnit.CSS_UNIT_VW;
+
+                case CssUnit.CSS_UNIT_VB:
+                    return (style != null && style.GetWritingMode() !=
+                            CssWritingModeEnum.CSS_WRITING_MODE_HORIZONTAL_TB) ?
+                            CssUnit.CSS_UNIT_VW : CssUnit.CSS_UNIT_VH;
+
+                case CssUnit.CSS_UNIT_VMIN:
+                    return (viewport_height < viewport_width) ?
+                            CssUnit.CSS_UNIT_VH : CssUnit.CSS_UNIT_VW;
+
+                case CssUnit.CSS_UNIT_VMAX:
+                    return (viewport_height > viewport_width) ?
+                            CssUnit.CSS_UNIT_VH : CssUnit.CSS_UNIT_VW;
+
+                default:
+                    return unit;
+            }
+        }
+
+        // css_unit__absolute_len2pt()
+        // unit.c:73
+        /**
+         * Convert an absolute length to points (pt).
+         *
+         * \param[in] style            Style to get font-size from, or NULL.
+         * \param[in] viewport_height  Client viewport height.
+         * \param[in] viewport_width   Client viewport width.
+         * \param[in] length           Length to convert.
+         * \param[in] unit             Current unit of length.
+         * \return length in points (pt).
+         */
+        static Fixed AbsoluteLen2pt(
+                ComputedStyle style,
+                Fixed viewport_height,
+                Fixed viewport_width,
+                Fixed length,
+                CssUnit unit)
+        {
+            // Length must not be relative
+            Debug.Assert(unit != CssUnit.CSS_UNIT_EM &&
+                   unit != CssUnit.CSS_UNIT_EX &&
+                   unit != CssUnit.CSS_UNIT_CH &&
+                   unit != CssUnit.CSS_UNIT_REM);
+
+            switch (MapViewportUnits(style,
+                    viewport_height,
+                    viewport_width,
+                    unit))
+            {
+                case CssUnit.CSS_UNIT_PX:
+                    return (length * Fixed.F_72) / Fixed.F_96;
+
+                case CssUnit.CSS_UNIT_IN:
+                    return length * Fixed.F_72;
+
+                case CssUnit.CSS_UNIT_CM:
+                    return length * (Fixed.F_72 / new Fixed(2.54));
+
+                case CssUnit.CSS_UNIT_MM:
+                    return length * (Fixed.F_72 / new Fixed(25.4));
+
+                case CssUnit.CSS_UNIT_Q:
+                    return length * (Fixed.F_72 / new Fixed(101.6));
+
+                case CssUnit.CSS_UNIT_PT:
+                    return length;
+
+                case CssUnit.CSS_UNIT_PC:
+                    return length * new Fixed(12);
+
+                case CssUnit.CSS_UNIT_VH:
+                    return (((length * viewport_height) / Fixed.F_100) * Fixed.F_72) / Fixed.F_96;
+
+                case CssUnit.CSS_UNIT_VW:
+                    return (((length * viewport_width) / Fixed.F_100) * Fixed.F_72) / Fixed.F_96;
+
+                default:
+                    return Fixed.F_0;
+            }
+        }
+
+        // css_unit_font_size_len2pt()
+        // unit.c:123
+        public Fixed FontSizeLen2pt(ComputedStyle style, Fixed length, CssUnit unit)
+        {
+	        return AbsoluteLen2pt(
+			        style,
+			        ViewportHeight,
+			        ViewportWidth,
+			        length,
+			        unit);
+        }
+
+        // css_unit__font_size_px()
+        // unit.c:151
+        /**
+         * Get font size from a style in CSS pixels.
+         *
+         * The style should have font size in absolute units.
+         *
+         * \param[in] style              Style to get font-size from, or NULL.
+         * \param[in] font_size_default  Client font size for NULL style.
+         * \param[in] font_size_minimum  Client minimum font size clamp.
+         * \param[in] viewport_height    Client viewport height.
+         * \param[in] viewport_width     Client viewport width.
+         * \return font-size in CSS pixels.
+         */
+        static Fixed FontSizePx(
+                ComputedStyle style,
+                Fixed font_size_default,
+                Fixed font_size_minimum,
+                Fixed viewport_height,
+                Fixed viewport_width)
+        {
+            Fixed font_length = Fixed.F_0;
+            CssUnit font_unit = CssUnit.CSS_UNIT_PT;
+
+            if (style == null)
+            {
+                return font_size_default;
+            }
+
+            style.GetFontSize(ref font_length, ref font_unit);
+
+            if (font_unit != CssUnit.CSS_UNIT_PX)
+            {
+                font_length = AbsoluteLen2pt(style,
+                        viewport_height,
+                        viewport_width,
+                        font_length,
+                        font_unit);
+
+                /* Convert from pt to CSS pixels.*/
+                font_length = font_length * Fixed.F_96 / Fixed.F_72;
+            }
+
+            /* Clamp to configured minimum */
+            if (font_length < font_size_minimum)
+            {
+                font_length = font_size_minimum;
+            }
+
+            return font_length;
+        }
+
+
+        // css_unit__px_per_unit()
+        // unit.c:204
+        /**
+         * Get the number of CSS pixels for a given unit.
+         *
+         * \param[in] measure            Client callback for font measuring.
+         * \param[in] ref_style          Reference style.  (Element or parent, or NULL).
+         * \param[in] root_style         Root element style or NULL.
+         * \param[in] font_size_default  Client default font size in CSS pixels.
+         * \param[in] font_size_minimum  Client minimum font size in CSS pixels.
+         * \param[in] viewport_height    Viewport height in CSS pixels.
+         * \param[in] viewport_width     Viewport width in CSS pixels.
+         * \param[in] unit               The unit to convert from.
+         * \param[in] pw                 Client private word for measure callback.
+         * \return Number of CSS pixels equivalent to the given unit.
+         */
+        static Fixed PixelPerUnit(
+                /*CssUnitLenMeasure measure,*/
+                ComputedStyle ref_style,
+                ComputedStyle root_style,
+                Fixed font_size_default,
+                Fixed font_size_minimum,
+                Fixed viewport_height,
+                Fixed viewport_width,
+                CssUnit unit)
+        {
+            var vunit = MapViewportUnits(
+                    ref_style,
+                    viewport_height,
+                    viewport_width,
+                    unit);
+            switch (vunit)
+            {
+                case CssUnit.CSS_UNIT_EM:
+                    return FontSizePx(
+                            ref_style,
+                            font_size_default,
+                            font_size_minimum,
+                            viewport_height,
+                            viewport_width);
+                /*
+                case CSS_UNIT_EX:
+                    if (measure != NULL) {
+                        return measure(pw, ref_style, CSS_UNIT_EX);
+                    }
+                    return FMUL(FontSizePx(
+                            ref_style,
+                            font_size_default,
+                            font_size_minimum,
+                            viewport_height,
+                            viewport_width), FLTTOFIX(0.6));
+
+                case CSS_UNIT_CH:
+                    if (measure != NULL) {
+                        return measure(pw, ref_style, CSS_UNIT_CH);
+                    }
+                    return FMUL(FontSizePx(
+                            ref_style,
+                            font_size_default,
+                            font_size_minimum,
+                            viewport_height,
+                            viewport_width), FLTTOFIX(0.4));
+                */
+                case CssUnit.CSS_UNIT_PX:
+                    return Fixed.F_1;
+
+                case CssUnit.CSS_UNIT_IN:
+                    return Fixed.F_96;
+
+                case CssUnit.CSS_UNIT_CM:
+                    return Fixed.F_96 / new Fixed(2.54);
+
+                case CssUnit.CSS_UNIT_MM:
+                    return Fixed.F_96 / new Fixed(25.4);
+
+                case CssUnit.CSS_UNIT_Q:
+                    return Fixed.F_96 / new Fixed(101.6);
+
+                case CssUnit.CSS_UNIT_PT:
+                    return Fixed.F_96 / Fixed.F_72;
+
+                case CssUnit.CSS_UNIT_PC:
+                    return Fixed.F_96 / new Fixed(6);
+                case CssUnit.CSS_UNIT_REM:
+                    return FontSizePx(
+                            root_style,
+                            font_size_default,
+                            font_size_minimum,
+                            viewport_height,
+                            viewport_width);
+
+                case CssUnit.CSS_UNIT_VH:
+                    return viewport_width / Fixed.F_100;
+
+                case CssUnit.CSS_UNIT_VW:
+                    return viewport_height / Fixed.F_100;
+                default:
+                    Log.Unimplemented($"Unimplemented case {vunit.ToString()} in CssUnit__PixelPerUnit()");
+                    return Fixed.F_0;
+            }
+        }
+
+        // css_unit_len2device_px()
+        // unit.c:339
+        public Fixed Len2DevicePx(ComputedStyle style, Fixed length, CssUnit unit)
+        {
+            Fixed px_per_unit =
+                PixelPerUnit(/*ctx->measure,*/
+                    style,
+                    RootStyle,
+                    FontSizeDefault,
+                    FontSizeMinimum,
+                    ViewportHeight,
+                    ViewportWidth,
+                    unit/*,
+                    ctx->pw*/);
+
+            px_per_unit = HtmlContent.Css2DevicePixel(px_per_unit, DeviceDpi);
+
+            /* Ensure we round px_per_unit to the nearest whole number of pixels:
+             * the use of FIXTOINT() below will truncate. */
+            px_per_unit += Fixed.F_0_5;
+
+            /* Calculate total number of pixels */
+            return length * px_per_unit.Truncate();
+        }
+
     }
 }

@@ -11,8 +11,9 @@ namespace SkiaSharpOpenGLBenchmark.css
     public class CssStyle
     {
         public OpCode[] Bytecode; // Pointer to bytecode
+        //public int BytecodeIndex; // Pointer to bytecode
         public int Used; // number of code entries used
-        int Allocated; // number of allocated code entries
+        //int Allocated; // number of allocated code entries
         CssStylesheet? Sheet; // Reference to containing sheet
 
         /* Note, CSS_STYLE_DEFAULT_SIZE must be a power of 2 */
@@ -29,7 +30,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             // FIXME: Sheet CachedStyle is not supported
 
             Bytecode = new OpCode[CSS_STYLE_DEFAULT_SIZE];
-            Allocated = CSS_STYLE_DEFAULT_SIZE;
+            //Allocated = CSS_STYLE_DEFAULT_SIZE;
             Used = 0;
         }
 
@@ -39,7 +40,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             // FIXME: Sheet CachedStyle is not supported
 
             Bytecode = new OpCode[CSS_STYLE_DEFAULT_SIZE];
-            Allocated = CSS_STYLE_DEFAULT_SIZE;
+            //Allocated = CSS_STYLE_DEFAULT_SIZE;
             Used = 0;
         }
 
@@ -47,11 +48,11 @@ namespace SkiaSharpOpenGLBenchmark.css
         // stylesheet.c:723
         public void AppendStyle(OpCode opcode)
         {
-            if (Allocated == Used)
+            if (Bytecode.Length == Used)
             {
                 // space not available to append, extend allocation
                 Array.Resize(ref Bytecode, Bytecode.Length * 2);
-                Allocated = Bytecode.Length;
+                //Allocated = Bytecode.Length;
             }
 
             Bytecode[Used] = opcode;
@@ -63,12 +64,12 @@ namespace SkiaSharpOpenGLBenchmark.css
         {
             int NewcodeLen = Used + style.Used;
 
-            if (NewcodeLen > Allocated)
+            if (NewcodeLen > Bytecode.Length)
             {
                 NewcodeLen += CSS_STYLE_DEFAULT_SIZE - 1;
                 NewcodeLen &= ~(CSS_STYLE_DEFAULT_SIZE - 1);
                 Array.Resize(ref Bytecode, NewcodeLen);
-                Allocated = NewcodeLen;
+                //Allocated = NewcodeLen;
             }
 
             Array.Copy(style.Bytecode, 0, Bytecode, Used, style.Used);
@@ -78,6 +79,13 @@ namespace SkiaSharpOpenGLBenchmark.css
         public void Inherit(ushort op)
         {
             AppendStyle(new OpCode(op, (byte)OpCodeFlag.FLAG_INHERIT, 0));
+        }
+
+        public void AdvanceBytecode(int nBytes)
+        {
+            Used -= nBytes;
+            OpCode[] newCode = new OpCode[Used];
+            Array.Copy(Bytecode, nBytes, newCode, 0, Used);
         }
     }
 }

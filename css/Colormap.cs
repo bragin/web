@@ -160,5 +160,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 		0xffffff00, /* YELLOW */
 		0xff9acd32  /* YELLOWGREEN */
 	};
+
+		public static uint Transparent = 0x01000000; // Not a CSS Color!
     }
 }

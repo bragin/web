@@ -101,7 +101,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
 
         // Debug flags
-        bool DebugStack = true;
+        bool DebugStack = false;
 
         // Event callback
         Action<CssParserEvent, bool> Event;
@@ -349,7 +349,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     /* We don't want to emit the brace, so push it back */
                     PushBack(token);
 
-                    Console.WriteLine("Begin ruleset");
+                    Log.Print(LogChannel.Events, "Begin ruleset");
                     //parserutils_vector_dump(parser->tokens, __func__, tprinter);
                     /*
 		            if (parser->parseError == false && parser->event != NULL) {
@@ -464,9 +464,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     break;
             }
 
-            //#if !defined(NDEBUG) && defined(DEBUG_EVENTS)
-            Console.WriteLine("End ruleset");
-            //#endif
+            Log.Print(LogChannel.Events, "End ruleset");
             //if (parser->event != NULL) {
             //parser->event(CSS_PARSER_END_RULESET, NULL, parser->event_pw);
             //}
@@ -1379,7 +1377,6 @@ namespace SkiaSharpOpenGLBenchmark.css
                  */
                 if (token.Type < CssTokenType.CSS_TOKEN_LAST_INTERN && token.DataLen > 0)
                 {
-                    Console.WriteLine("Token data needs interning");
                     // Insert token text into the dictionary
                     token.iData = Source.GetContents(token.DataIndex, token.DataLen);
                     /*

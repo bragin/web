@@ -5,7 +5,7 @@ VisualStudioVersion = 17.7.34031.279
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "web", "web.csproj", "{5E70E1CB-9D88-41F7-9F62-3B288851E110}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "codegenerator", "..\codegenerator\codegenerator.csproj", "{FF10E53F-AA77-413B-BA22-91A2A10CF050}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "codegenerator", "..\codegenerator\codegenerator.csproj", "{FF10E53F-AA77-413B-BA22-91A2A10CF050}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

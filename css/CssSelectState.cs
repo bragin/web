@@ -473,6 +473,7 @@ namespace SkiaSharpOpenGLBenchmark.css
             bool match = false, may_optimise = true;
             //bool rejectedByCache;
 
+            /*
             using (MemoryStream stream = new MemoryStream())
             {
                 using (StreamWriter sw = new StreamWriter(stream))
@@ -482,7 +483,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                     sw.WriteLine();
                 }
                 Console.Write(Encoding.UTF8.GetString(stream.ToArray()));
-            }
+            }*/
 
             /*
             const css_selector *s = selector;
@@ -1025,13 +1026,13 @@ namespace SkiaSharpOpenGLBenchmark.css
 
             if (outranks)
             {
-                /* The new property is about to replace the old one.
+				/* The new property is about to replace the old one.
                  * Update our state to reflect this. */
-                existing.Set = true;
-                existing.Specificity = CurrentSpecificity;
-                existing.Origin = CurrentOrigin;
-                existing.Important = important;
-                existing.Inherit = inherit;
+				Props[(int)op.GetOpcode()][(int)CurrentPseudo].Set = true;
+				Props[(int)op.GetOpcode()][(int)CurrentPseudo].Specificity = CurrentSpecificity;
+				Props[(int)op.GetOpcode()][(int)CurrentPseudo].Origin = CurrentOrigin;
+				Props[(int)op.GetOpcode()][(int)CurrentPseudo].Important = important;
+				Props[(int)op.GetOpcode()][(int)CurrentPseudo].Inherit = inherit;
             }
 
             return outranks;

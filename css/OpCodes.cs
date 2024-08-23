@@ -1,14 +1,53 @@
 ﻿namespace SkiaSharpOpenGLBenchmark.css
 {
-    public enum OpColor : ushort
+    // opcodes.h:128
+    public enum OpBottom : ushort
+    {
+		BOTTOM_SET = 0x0080,
+		BOTTOM_AUTO = 0x0000
+	}
+
+	// opcodes.h:193
+	public enum OpColor : ushort
     {
         COLOR_TRANSPARENT = 0x0000,
         COLOR_CURRENT_COLOR = 0x0001,
         COLOR_SET = 0x0080
     }
 
-    // bytecode.h:21
-    public enum OpCodeFlag : byte
+    // opcodes.h:317
+	public enum OpDisplay : ushort
+    {
+		DISPLAY_INLINE = 0x0000,
+		DISPLAY_BLOCK = 0x0001,
+		DISPLAY_LIST_ITEM = 0x0002,
+		DISPLAY_RUN_IN = 0x0003,
+		DISPLAY_INLINE_BLOCK = 0x0004,
+		DISPLAY_TABLE = 0x0005,
+		DISPLAY_INLINE_TABLE = 0x0006,
+		DISPLAY_TABLE_ROW_GROUP = 0x0007,
+		DISPLAY_TABLE_HEADER_GROUP = 0x0008,
+		DISPLAY_TABLE_FOOTER_GROUP = 0x0009,
+		DISPLAY_TABLE_ROW = 0x000a,
+		DISPLAY_TABLE_COLUMN_GROUP = 0x000b,
+		DISPLAY_TABLE_COLUMN = 0x000c,
+		DISPLAY_TABLE_CELL = 0x000d,
+		DISPLAY_TABLE_CAPTION = 0x000e,
+		DISPLAY_NONE = 0x000f,
+		DISPLAY_FLEX = 0x0010,
+		DISPLAY_INLINE_FLEX = 0x0011
+	}
+
+    // opcodes.h:463
+	public enum OpLineHeight : ushort
+	{
+		LINE_HEIGHT_NUMBER = 0x0080,
+		LINE_HEIGHT_DIMENSION = 0x0081,
+		LINE_HEIGHT_NORMAL = 0x0000
+	}
+
+	// bytecode.h:21
+	public enum OpCodeFlag : byte
     {
         FLAG_IMPORTANT = (1 << 0),
         FLAG_INHERIT = (1 << 1)
