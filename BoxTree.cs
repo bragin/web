@@ -3664,7 +3664,7 @@ namespace SkiaSharpOpenGLBenchmark
                 {
                     box.Space = int.MaxValue;//UNKNOWN_WIDTH;
                     box.Length--;
-                    box.Text = box.Text.Substring(0, box.Length - 1);
+                    box.Text = box.Text.Substring(0, box.Length);
                 }
 
                 if (props.ParentStyle.ComputedTextTransform() != CssTextTransformEnum.CSS_TEXT_TRANSFORM_NONE)
