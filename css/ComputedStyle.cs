@@ -1559,7 +1559,7 @@ namespace SkiaSharpOpenGLBenchmark
             var bw = (CssBorderWidthEnum)(bits & 0x7);
             if (bw == CssBorderWidthEnum.CSS_BORDER_WIDTH_WIDTH)
             {
-                length = i.border_right_width;
+                length = i.border_top_width;
                 unit = (CssUnit)(bits >> 3);
             }
 
@@ -3049,7 +3049,7 @@ namespace SkiaSharpOpenGLBenchmark
             var val = (CssPaddingEnum)(bits & 0x1);
             if (val == CssPaddingEnum.CSS_PADDING_SET)
             {
-                length = i.padding_bottom;
+                length = i.padding_left;
                 unit = (CssUnit)(bits >> 1);
             }
 
@@ -3076,7 +3076,7 @@ namespace SkiaSharpOpenGLBenchmark
             var val = (CssPaddingEnum)(bits & 0x1);
             if (val == CssPaddingEnum.CSS_PADDING_SET)
             {
-                length = i.padding_bottom;
+                length = i.padding_right;
                 unit = (CssUnit)(bits >> 1);
             }
 
@@ -3103,7 +3103,7 @@ namespace SkiaSharpOpenGLBenchmark
             var val = (CssPaddingEnum)(bits & 0x1);
             if (val == CssPaddingEnum.CSS_PADDING_SET)
             {
-                length = i.padding_bottom;
+                length = i.padding_top;
                 unit = (CssUnit)(bits >> 1);
             }
 
@@ -3493,8 +3493,7 @@ namespace SkiaSharpOpenGLBenchmark
             uint bits = i.bits[WIDOWS_INDEX];
 
             /* 1bit: t : type */
-            i.bits[WIDOWS_INDEX] = (bits & ~WIDOWS_MASK) | (((uint)type & 0x1) <<
-                    WIDOWS_SHIFT);
+            i.bits[WIDOWS_INDEX] = (bits & ~WIDOWS_MASK) | (((uint)type & 0x1) << WIDOWS_SHIFT);
 
             i.widows = value;
         }
@@ -3568,8 +3567,7 @@ namespace SkiaSharpOpenGLBenchmark
             uint bits = i.bits[WRITING_MODE_INDEX];
 
             /* 2bits: tt : type */
-            i.bits[WRITING_MODE_INDEX] = (bits & ~WRITING_MODE_MASK) | (((uint)type & 0x3) <<
-                    WRITING_MODE_SHIFT);
+            i.bits[WRITING_MODE_INDEX] = (bits & ~WRITING_MODE_MASK) | (((uint)type & 0x3) << WRITING_MODE_SHIFT);
         }
         public CssZindexEnum GetZIndex(ref int value)
         {
@@ -3587,8 +3585,7 @@ namespace SkiaSharpOpenGLBenchmark
             uint bits = i.bits[Z_INDEX_INDEX];
 
             /* 2bits: tt : type */
-            i.bits[Z_INDEX_INDEX] = (bits & ~Z_INDEX_MASK) | (((uint)type & 0x3) <<
-                    Z_INDEX_SHIFT);
+            i.bits[Z_INDEX_INDEX] = (bits & ~Z_INDEX_MASK) | (((uint)type & 0x3) << Z_INDEX_SHIFT);
 
             i.z_index = value;
         }
