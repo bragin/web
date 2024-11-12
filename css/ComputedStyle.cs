@@ -3522,7 +3522,7 @@ namespace SkiaSharpOpenGLBenchmark
             uint bits = i.bits[WIDTH_INDEX];
 
             /* 7bits: uuuuutt : unit | type */
-            i.bits[WHITE_SPACE_INDEX] = (bits & ~WIDTH_MASK) | ((((uint)type & 0x3) | ((uint)unit << 2)) << WIDTH_SHIFT);
+            i.bits[WIDTH_INDEX] = (bits & ~WIDTH_MASK) | ((((uint)type & 0x3) | ((uint)unit << 2)) << WIDTH_SHIFT);
 
             i.width = length;
         }
@@ -3659,16 +3659,16 @@ namespace SkiaSharpOpenGLBenchmark
             //compute_border_colors();
 
             // Fix up border-{top,right,bottom,left}-width
-            //compute_absolute_border_width(ex_size.Length);
+            ComputeAbsoluteBorderWidth(ex_size.Length);
 
             // Fix up sides
-            //compute_absolute_sides(ex_size.Length);
+            ComputeAbsoluteSides(ex_size.Length);
 
             // Fix up height
             ComputeAbsoluteLength(ex_size.Length, "height");
 
             // Fix up line-height (must be before vertical-align)
-            //compute_absolute_line_height(ex_size.Length);
+            ComputeAbsoluteLineHeight(ex_size.Length);
 
             // Fix up margins
             ComputeAbsoluteMargins(ex_size.Length);
@@ -3686,7 +3686,7 @@ namespace SkiaSharpOpenGLBenchmark
             ComputeAbsoluteLength(ex_size.Length, "min_width");
 
             // Fix up padding
-            //compute_absolute_padding(style, &ex_size.data.length);
+            ComputeAbsolutePadding(ex_size.Length);
 
             // Fix up text-indent
             ComputeAbsoluteLength(ex_size.Length, "text_indent");
@@ -3713,13 +3713,13 @@ namespace SkiaSharpOpenGLBenchmark
 			ComputeAbsoluteColor("outline_color");
 
 			// Fix up outline-width
-			//compute_absolute_border_side_width(ex_size.Length, get_outline_width, set_outline_width);
+			ComputeAbsoluteBorderSideWidth(ex_size.Length, "outline_width");
 
 			// Fix up word-spacing
 			ComputeAbsoluteLength(ex_size.Length, "word_spacing");
 
             // Fix up column-rule-width
-            //compute_absolute_border_side_width(ex_size.Length, get_column_rule_width, set_column_rule_width);
+            ComputeAbsoluteBorderSideWidth(ex_size.Length, "column_rule_width");
 
             // Fix up column-width
             ComputeAbsoluteLength(ex_size.Length, "column_width");
@@ -4677,10 +4677,20 @@ namespace SkiaSharpOpenGLBenchmark
                     return (byte)GetLetterSpacing(ref length, ref unit);
                 case "word_spacing":
                     return (byte)GetWordSpacing(ref length, ref unit);
+                case "column_rule_width":
+                    return (byte)GetColumnRuleWidth(ref length, ref unit);
                 case "column_width":
                     return (byte)GetColumnWidth(ref length, ref unit);
                 case "column_gap":
                     return (byte)GetColumnGap(ref length, ref unit);
+                case "border_top_width":
+                    return (byte)GetBorderTopWidth(ref length, ref unit);
+                case "border_right_width":
+                    return (byte)GetBorderRightWidth(ref length, ref unit);
+                case "border_bottom_width":
+                    return (byte)GetBorderBottomWidth(ref length, ref unit);
+                case "border_left_width":
+                    return (byte)GetBorderLeftWidth(ref length, ref unit);
                 case "padding_top":
                     return (byte)GetPaddingTop(ref length, ref unit);
                 case "padding_right":
@@ -4705,6 +4715,8 @@ namespace SkiaSharpOpenGLBenchmark
                     return (byte)GetBottom(ref length, ref unit);
                 case "left":
                     return (byte)GetLeft(ref length, ref unit);
+                case "outline_width":
+                    return (byte)GetOutlineWidth(ref length, ref unit);
                 default:
                     throw new Exception("Unsupported type");
             }
@@ -4744,11 +4756,26 @@ namespace SkiaSharpOpenGLBenchmark
                 case "word_spacing":
                     SetWordSpacing((CssWordSpacingEnum)type, length, unit);
                     break;
+                case "column_rule_width":
+                    SetColumnRuleWidth((CssColumnRuleWidthEnum)type, length, unit);
+                    break;
                 case "column_width":
                     SetColumnWidth((CssColumnWidthEnum)type, length, unit);
                     break;
                 case "column_gap":
                     SetColumnGap((CssColumnGapEnum)type, length, unit);
+                    break;
+                case "border_top_width":
+                    SetBorderTopWidth((CssBorderWidthEnum)type, length, unit);
+                    break;
+                case "border_right_width":
+                    SetBorderRightWidth((CssBorderWidthEnum)type, length, unit);
+                    break;
+                case "border_bottom_width":
+                    SetBorderBottomWidth((CssBorderWidthEnum)type, length, unit);
+                    break;
+                case "border_left_width":
+                    SetBorderLeftWidth((CssBorderWidthEnum)type, length, unit);
                     break;
                 case "padding_top":
                     SetPaddingTop((CssPaddingEnum)type, length, unit);
@@ -4785,6 +4812,9 @@ namespace SkiaSharpOpenGLBenchmark
                     break;
                 case "left":
                     SetLeft((CssLeftEnum)type, length, unit);
+                    break;
+                case "outline_width":
+                    SetOutlineWidth((CssOutlineWidthEnum)type, length, unit);
                     break;
                 default:
                     throw new Exception("Unsupported type");
@@ -4847,9 +4877,152 @@ namespace SkiaSharpOpenGLBenchmark
             return error;
         }
 
+        // computed.c:1402
+        
+        /**
+         * Compute absolute border widths
+         *
+         * \param style      Style to process
+         * \param ex_size    Ex size in ems
+         * \return CSS_OK on success
+         */
+        CssStatus ComputeAbsoluteBorderWidth(CssHintLength ex_size)
+        {
 
-		// computed.c:1605
-		CssStatus ComputeAbsoluteMargins(CssHintLength ex_size)
+            CssStatus error;
+
+	        error = ComputeAbsoluteBorderSideWidth(ex_size,
+			        "border_top_width");
+	        if (error != CssStatus.CSS_OK)
+		        return error;
+
+	        error = ComputeAbsoluteBorderSideWidth(ex_size,
+			        "border_right_width");
+	        if (error != CssStatus.CSS_OK)
+		        return error;
+
+	        error = ComputeAbsoluteBorderSideWidth(ex_size,
+			        "border_bottom_width");
+	        if (error != CssStatus.CSS_OK)
+		        return error;
+
+	        error = ComputeAbsoluteBorderSideWidth(ex_size,
+			        "border_left_width");
+	        if (error != CssStatus.CSS_OK)
+		        return error;
+
+	        return CssStatus.CSS_OK;
+        }
+
+
+        // computed.c:1448
+        /**
+         * Compute an absolute border side width
+         *
+         * \param style      Style to process
+         * \param ex_size    Ex size, in ems
+         * \param get        Function to read length
+         * \param set        Function to write length
+         * \return CSS_OK on success
+         */
+        CssStatus ComputeAbsoluteBorderSideWidth(
+                CssHintLength ex_size, string propName)
+        {
+	        Fixed length = Fixed.F_0;
+	        CssUnit unit = CssUnit.CSS_UNIT_EX;
+
+            var type = (CssBorderWidthEnum)GetPropertyByNameTwoParam(propName, ref length, ref unit);
+
+	        switch (type)
+            {
+	        case CssBorderWidthEnum.CSS_BORDER_WIDTH_THIN:
+		        length = Fixed.F_1;
+		        unit = CssUnit.CSS_UNIT_PX;
+		        break;
+	        case CssBorderWidthEnum.CSS_BORDER_WIDTH_MEDIUM:
+		        length = new Fixed(2);
+		        unit = CssUnit.CSS_UNIT_PX;
+		        break;
+	        case CssBorderWidthEnum.CSS_BORDER_WIDTH_THICK:
+		        length = new Fixed(4);
+		        unit = CssUnit.CSS_UNIT_PX;
+		        break;
+	        case CssBorderWidthEnum.CSS_BORDER_WIDTH_WIDTH:
+		        if (unit == CssUnit.CSS_UNIT_EX)
+                    {
+			        length = length * ex_size.Value;
+			        unit = ex_size.Unit;
+		        }
+		        break;
+	        default:
+		        return CssStatus.CSS_INVALID;
+	        }
+
+            SetPropertyByNameTwoParam(propName, (byte)CssBorderWidthEnum.CSS_BORDER_WIDTH_WIDTH, length, unit);
+            return CssStatus.CSS_OK;
+        }
+
+        // computed.c:1537
+        /**
+         * Compute absolute line-height
+         *
+         * \param style      Style to process
+         * \param ex_size    Ex size, in ems
+         * \return CSS_OK on success
+         */
+        void ComputeAbsoluteLineHeight(CssHintLength exSize)
+        {
+            Fixed length = Fixed.F_0;
+            CssUnit unit = CssUnit.CSS_UNIT_PX;
+
+            var type = GetLineHeight(ref length, ref unit);
+
+            if (type == CssLineHeightEnum.CSS_LINE_HEIGHT_DIMENSION)
+            {
+                if (unit == CssUnit.CSS_UNIT_EX)
+                {
+                    length = length * exSize.Value;
+                    unit = exSize.Unit;
+                }
+
+                SetLineHeight(type, length, unit);
+            }
+        }
+
+        // computed.c:1568
+        /**
+         * Compute the absolute values of {top,right,bottom,left}
+         *
+         * \param style      Style to process
+         * \param ex_size    Ex size, in ems
+         * \return CSS_OK on success
+         */
+        CssStatus ComputeAbsoluteSides(CssHintLength ex_size)
+        {
+            CssStatus error;
+
+	        // Calculate absolute lengths for sides
+	        error = ComputeAbsoluteLength(ex_size, "top");
+	        if (error != CssStatus.CSS_OK)
+		        return error;
+
+	        error = ComputeAbsoluteLength(ex_size, "right");
+	        if (error != CssStatus.CSS_OK)
+		        return error;
+
+	        error = ComputeAbsoluteLength(ex_size, "bottom");
+	        if (error != CssStatus.CSS_OK)
+		        return error;
+
+	        error = ComputeAbsoluteLength(ex_size, "left");
+	        if (error != CssStatus.CSS_OK)
+		        return error;
+
+	        return CssStatus.CSS_OK;
+        }
+
+        // computed.c:1605
+        CssStatus ComputeAbsoluteMargins(CssHintLength ex_size)
         {
             CssStatus error;
 
@@ -4866,6 +5039,37 @@ namespace SkiaSharpOpenGLBenchmark
                 return error;
 
             error = ComputeAbsoluteLength(ex_size, "margin_left");
+            if (error != CssStatus.CSS_OK)
+                return error;
+
+            return CssStatus.CSS_OK;
+        }
+
+        // computed.c:1639
+        /**
+         * Compute absolute padding
+         *
+         * \param style      Style to process
+         * \param ex_size    Ex size, in ems
+         * \return CSS_OK on success
+         */
+        CssStatus ComputeAbsolutePadding(CssHintLength ex_size)
+        {
+            CssStatus error;
+
+            error = ComputeAbsoluteLength(ex_size, "padding_top");
+            if (error != CssStatus.CSS_OK)
+                return error;
+
+            error = ComputeAbsoluteLength(ex_size, "padding_right");
+            if (error != CssStatus.CSS_OK)
+                return error;
+
+            error = ComputeAbsoluteLength(ex_size, "padding_bottom");
+            if (error != CssStatus.CSS_OK)
+                return error;
+
+            error = ComputeAbsoluteLength(ex_size,  "padding_left");
             if (error != CssStatus.CSS_OK)
                 return error;
 
