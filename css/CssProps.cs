@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -4995,7 +4996,37 @@ namespace SkiaSharpOpenGLBenchmark.css
         #region text_decoration
         static CssStatus PropDispCascade_text_decoration(OpCode op, CssStyle style, ref int bi, ref int used, CssSelectState state)
         {
-            Log.Unimplemented();
+            bool inherit = op.IsInherit();
+            CssTextDecorationEnum value = CssTextDecorationEnum.CSS_TEXT_DECORATION_INHERIT;
+
+            if (inherit == false)
+            {
+                var opValue = (OpTextDecoration)op.GetValue();
+                if (opValue == OpTextDecoration.TEXT_DECORATION_NONE)
+                {
+                    value = CssTextDecorationEnum.CSS_TEXT_DECORATION_NONE;
+                }
+                else
+                {
+                    Debug.Assert((byte)value == 0);
+
+                    if ((opValue & OpTextDecoration.TEXT_DECORATION_UNDERLINE) != 0)
+                        value |= CssTextDecorationEnum.CSS_TEXT_DECORATION_UNDERLINE;
+                    if ((opValue & OpTextDecoration.TEXT_DECORATION_OVERLINE) != 0)
+                        value |= CssTextDecorationEnum.CSS_TEXT_DECORATION_OVERLINE;
+                    if ((opValue & OpTextDecoration.TEXT_DECORATION_LINE_THROUGH) != 0)
+                        value |= CssTextDecorationEnum.CSS_TEXT_DECORATION_LINE_THROUGH;
+                    if ((opValue & OpTextDecoration.TEXT_DECORATION_BLINK) != 0)
+                        value |= CssTextDecorationEnum.CSS_TEXT_DECORATION_BLINK;
+                }
+            }
+
+            if (state.OutranksExisting(op, op.IsImportant(), inherit))
+            {
+                state.Computed.SetTextDecoration(value);
+                return CssStatus.CSS_OK;
+            }
+
             return CssStatus.CSS_OK;
         }
 

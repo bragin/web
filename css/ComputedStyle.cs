@@ -4454,7 +4454,7 @@ namespace SkiaSharpOpenGLBenchmark
         public CssDisplay ComputedDisplay(bool root)
         {
             var position = ComputedPosition();
-            var display = (CssDisplay)GetDisplay();
+            var display = GetDisplay();
 
             // Return computed display as per $9.7
 

@@ -46,8 +46,19 @@
 		LINE_HEIGHT_NORMAL = 0x0000
 	}
 
-	// bytecode.h:21
-	public enum OpCodeFlag : byte
+    // opcodes.h:736
+    public enum OpTextDecoration : ushort
+    {
+        TEXT_DECORATION_NONE = 0x0000,
+
+        TEXT_DECORATION_BLINK = (1 << 3),
+        TEXT_DECORATION_LINE_THROUGH = (1 << 2),
+        TEXT_DECORATION_OVERLINE = (1 << 1),
+        TEXT_DECORATION_UNDERLINE = (1 << 0)
+    }
+
+    // bytecode.h:21
+    public enum OpCodeFlag : byte
     {
         FLAG_IMPORTANT = (1 << 0),
         FLAG_INHERIT = (1 << 1)

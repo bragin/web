@@ -194,12 +194,12 @@ namespace SkiaSharpOpenGLBenchmark
         // html.c:341 - html_finish_conversion(), kind of
         public void LoadDocument()
         {
-            // file://S:/SAFE/Projects/NB/web/test.html
+            // file://S:/SAFE/Projects/NB/web/test2.html
             var contents = File.ReadAllText("test.html");
             if (contents.Length == 0) return;
 
             var parser = new SimpleHtmlParser();
-            var doc = parser.ParseString("<p name=\"coolname\" class=\"mylink fancy\" id=\"idtest\">some text <a>and link</a></p><p>and another p</p>");
+            var doc = parser.ParseString("<p name=\"coolname\" class=\"mylink fancy\" id=\"idtest\">some text <a href=\"#\">and link</a></p><p>and another p</p>");
             //var doc = parser.ParseUrl("http://nginx.org/");
             //var doc = parser.ParseString(contents);
 
@@ -419,6 +419,8 @@ namespace SkiaSharpOpenGLBenchmark
 				double scale,
 				bool excluded)
 		{
+            bool highlighted = false;
+
             // FIXME: All other edge-cases unimplemented
             Plot.Text(fstyle, x, y + (int)(height * 0.75 * scale), utf8_text);
             return true;
@@ -572,7 +574,7 @@ namespace SkiaSharpOpenGLBenchmark
 
 			Log.Print(LogChannel.Layout, $"Redraw {box.GetHashCode()}, type {box.Type}, text: {(string.IsNullOrEmpty(box.Text) ? "" : box.Text)}");
 
-			//if (box.Type == BoxType.BOX_TEXT)
+			//if (box.Type == BoxType.BOX_TEXT && box.Text == "some text")
 				//Debug.Assert(false);
 
 			if (box.Style != null)
@@ -2894,9 +2896,10 @@ namespace SkiaSharpOpenGLBenchmark
         {
             Log.Print(LogChannel.Layout, $"Doing layout to {width}x{height} of {"url"}");
 
-            Layout.RootBox.LayoutMinmaxBlock(this);
-
             var doc = Layout.RootBox;
+
+            doc.LayoutMinmaxBlock(this);
+
 			LayoutBlockFindDimensions(UnitLenCtx, width, height, 0, 0, doc);
 			doc.X = doc.Margin[(int)BoxSide.LEFT] + doc.Border[(int)BoxSide.LEFT].Width;
 			doc.Y = doc.Margin[(int)BoxSide.TOP] + doc.Border[(int)BoxSide.TOP].Width;

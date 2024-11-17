@@ -199,7 +199,7 @@ namespace SkiaSharpOpenGLBenchmark
         int MinWidth;
 
         // Width that would be taken with no line breaks. Must be non-negative
-        int MaxWidth;
+        public int MaxWidth;
 
         // Text, or NULL if none. Unterminated.
         public string Text;
@@ -2879,7 +2879,7 @@ namespace SkiaSharpOpenGLBenchmark
 
         Dictionary<XmlNode, Box> NodeBoxLookup; // Used to find box for a given node
 
-        //Box Layout; // html->content->layout (root of the whatever), probably needs to be moved
+        //Box Layout; // html->content->layout (root of the whatever), shouldn't be used really
 
         HtmlContent Content; // FIXME: This is incorrect and needs to be removed
 
@@ -3178,7 +3178,7 @@ namespace SkiaSharpOpenGLBenchmark
             return value;
         }
 
-        // box_construct.c:468 - box_construct_element()
+        // box_construct.c:451 - box_construct_element()
         private bool BoxConstructElement(XmlNode node, ref bool convertChildren)
         {
             // Construct the box tree for an XML element
@@ -3298,7 +3298,6 @@ namespace SkiaSharpOpenGLBenchmark
                             dom_string_unref(s);
                         }
             */
-
             var cssDisplay = ns_computed_display_static(box.Style);
 
             // Set box type from computed display
@@ -3369,6 +3368,7 @@ namespace SkiaSharpOpenGLBenchmark
                     props.NodeIsRoot == false))
             {
                 Log.Unimplemented();
+                box = null;
                 /*
                 css_select_results_destroy(styles);
                 box->styles = NULL;
@@ -3571,18 +3571,12 @@ namespace SkiaSharpOpenGLBenchmark
                 if (props.InlineContainer == null)
                 {
                     // Create inline container if we don't have one
-                    /*
-                    props.inline_container = box_create(NULL, NULL, false,
-                            NULL, NULL, NULL, NULL, content->bctx);
-                    if (props.inline_container == NULL)
-                        return;
+                    props.InlineContainer = new Box(null, null, false,
+                            0, String.Empty, String.Empty, String.Empty);
 
-                    props.inline_container->type = BOX_INLINE_CONTAINER;
+                    props.InlineContainer.Type = BoxType.BOX_INLINE_CONTAINER;
 
-                    box_add_child(props.containing_block,
-                            props.inline_container);
-                    */
-                    Log.Unimplemented();
+                    props.ContainingBlock.AddChild(props.InlineContainer);
                 }
 
                 var inlineEnd = new Box(null, box.Style, false, /*box.Href*/0, box.Target, box.Title, box.Id);
@@ -3761,7 +3755,7 @@ namespace SkiaSharpOpenGLBenchmark
                     box.Type = BoxType.BOX_TEXT;
                     box.Text = text.Substring(current, len);
                     box.Length = box.Text.Length;
-                    props.ContainingBlock.AddChild(box);
+                    props.InlineContainer.AddChild(box);
 
                     //current[len] = old;
 
@@ -3966,9 +3960,12 @@ namespace SkiaSharpOpenGLBenchmark
                 {
                     // Conversion complete
                     Box root = new Box(null, null, false, 0, "", "", "");
+                    root.Width = 0;
+                    root.MaxWidth = 0;
                     root.Type = BoxType.BOX_BLOCK;
                     root.Children = RootBox;
                     root.Last = RootBox;
+                    root.Children.Parent = root;
 
                     using (MemoryStream stream = new MemoryStream())
                     {
@@ -3984,16 +3981,17 @@ namespace SkiaSharpOpenGLBenchmark
 			        if (box_normalise_block(&root, ctx->root_box,
 					        ctx->content) == false) {
 				        ctx->cb(ctx->content, false);
-                    } else {
-				        ctx->content->layout = root.children;
-				        ctx->content->layout->parent = NULL;
+                    } else {*/
+                    //Layout = root.Children;
+                    //Layout.Parent = null;
 
-				        ctx->cb(ctx->content, true);
-                    }
+                    //ctx->cb(ctx->content, true);
+                    /*}
 
                     assert(ctx->n == NULL);
                     free(ctx);*/
 
+                    RootBox.Parent = null;
 
                     return;
                 }
