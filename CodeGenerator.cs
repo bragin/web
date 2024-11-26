@@ -1,5 +1,4 @@
-﻿using HtmlParserSharp;
-using SkiaSharpOpenGLBenchmark.css;
+﻿using SkiaSharpOpenGLBenchmark.css;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;

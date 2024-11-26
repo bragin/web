@@ -56,6 +56,9 @@ namespace SkiaSharpOpenGLBenchmark.css
         // Charset
         string Encoding;
 
+        // Reference to the place in the stylesheet
+        public int Line, Col;
+
         public CssRule(CssRuleType type)
         {
             Index = 0;

@@ -718,7 +718,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         // libcss/src/parse/language.c:200
         public void EventHandler(CssParserEvent type, bool vector)
         {
-            Console.WriteLine($"Event handler type {type.ToString()}!");
+            //Console.WriteLine($"Event handler type {type.ToString()}!");
 
             switch (type)
             {
@@ -791,6 +791,13 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
 
             var rule = new CssRule(CssRuleType.CSS_RULE_SELECTOR);
+
+            // Save line/col
+            if (Parser.Tokens.Count > 0)
+            {
+                rule.Line = Parser.Tokens[0].Line;
+                rule.Col = Parser.Tokens[0].Col;
+            }
 
             if (vector)
             {

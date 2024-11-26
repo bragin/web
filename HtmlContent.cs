@@ -1,5 +1,4 @@
-﻿using HtmlParserSharp;
-using SkiaSharpOpenGLBenchmark;
+﻿using SkiaSharpOpenGLBenchmark;
 using SkiaSharpOpenGLBenchmark.css;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -103,6 +102,10 @@ namespace SkiaSharpOpenGLBenchmark
              * stylesheet 3 is the user stylesheet */
 
             LoadStylesheetFromFile("default.css");
+            LoadStylesheetFromFile("quirks.css");
+            LoadStylesheetFromFile("adblock.css");
+            LoadStylesheetFromFile("user.css");
+
             Plot = plot;
         }
 
@@ -116,7 +119,7 @@ namespace SkiaSharpOpenGLBenchmark
 
             //Stylesheets.AddLast(stylesheet);
 
-            var css = new CssStylesheet("", "default.css", "Default", false);
+            var css = new CssStylesheet("", file, file, false);
             css.AppendData(contents);
 
             var hs = new HtmlStylesheet();
@@ -216,6 +219,7 @@ namespace SkiaSharpOpenGLBenchmark
 
             // My CSS stuff
             var css = new CssStylesheet("", "http://nginx.org", "Useragent", false);
+            //              0        10        20        30        40        50        60        70        80        90       100       110       120       130
             css.AppendData("html { color: red; font-size: 16px; } .mylink { color: blue; } head { color: green; } #idtest { color: #112233; } a { color: #00ff55; }");
 
             var hsheet = new HtmlStylesheet();

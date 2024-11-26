@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -12,6 +11,8 @@ namespace SkiaSharpOpenGLBenchmark
     {
         private static readonly Dictionary<XmlNode, CssNodeData> _data = new Dictionary<XmlNode, CssNodeData>();
 
+        // select.c:1752
+        // get_libcss_node_data()
         public static CssNodeData GetNodeData(this XmlNode node)
         {
             if (_data.TryGetValue(node, out CssNodeData data))
@@ -22,6 +23,8 @@ namespace SkiaSharpOpenGLBenchmark
             return null;
         }
 
+        // select.c:1732
+        // set_libcss_node_data()
         public static void SetNodeData(this XmlNode node, CssNodeData data)
         {
             _data[node] = data;
@@ -77,6 +80,20 @@ namespace SkiaSharpOpenGLBenchmark
         }
         public static bool IsFocus(this XmlNode node)
         {
+            return false;
+        }
+
+        public static bool IsRoot(this XmlNode node)
+        {
+            if (node.ParentNode == null)
+                return true;
+            else
+                return false;
+        }
+
+        public static bool IsEmpty(this XmlNode node)
+        {
+            Log.Unimplemented();
             return false;
         }
 

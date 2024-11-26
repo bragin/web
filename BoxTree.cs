@@ -1,12 +1,10 @@
-﻿using HtmlParserSharp;
-using OpenTK;
+﻿//using HtmlParserSharp;
+//using OpenTK;
 using SkiaSharpOpenGLBenchmark.css;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace SkiaSharpOpenGLBenchmark
@@ -2905,6 +2903,28 @@ namespace SkiaSharpOpenGLBenchmark
         }
 
         // libcss/src/select/select.c:1189 - css_select_style()
+        /**
+         * Select a style for the given node
+         *
+         * \param ctx             Selection context to use
+         * \param node            Node to select style for
+         * \param unit_ctx        Context for length unit conversions.
+         * \param media           Currently active media specification
+         * \param inline_style    Corresponding inline style for node, or NULL
+         * \param handler         Dispatch table of handler functions
+         * \param pw              Client-specific private data for handler functions
+         * \param result          Pointer to location to receive result set
+         * \return CSS_OK on success, appropriate error otherwise.
+         *
+         * In computing the style, no reference is made to the parent node's
+         * style. Therefore, the resultant computed style is not ready for
+         * immediate use, as some properties may be marked as inherited.
+         * Use css_computed_style_compose() to obtain a fully computed style.
+         *
+         * This two-step approach to style computation is designed to allow
+         * the client to store the partially computed style and efficiently
+         * update the fully computed style for a node when layout changes.
+         */
         public CssSelectResults CssSelectStyle(XmlNode node, ref CssUnitCtx unitCtx,
                                                ref CssMedia media, CssStylesheet inlineStyle)
         {
@@ -2923,7 +2943,7 @@ namespace SkiaSharpOpenGLBenchmark
 
             // Check if we can share another node's style
 
-            //Console.WriteLine($"style:\t{state.Element.Name}\tSELECTED\n");
+            Log.Print(LogChannel.Css, $"style:\t{state.Element.Name}\tSELECTED\n");
 
             // Not sharing; need to select.
             // Base element style is guaranteed to exist
@@ -2974,6 +2994,29 @@ namespace SkiaSharpOpenGLBenchmark
             }
 
             // Pseudo elements, if any
+            for (int j = (int)CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE + 1;
+                j < (int)CssPseudoElement.CSS_PSEUDO_ELEMENT_COUNT;
+                j++)
+            {
+                state.CurrentPseudo = (CssPseudoElement)j;
+                state.Computed = state.Results.Styles[j];
+
+                // Skip non-existent pseudo elements
+                if (state.Computed == null)
+                    continue;
+
+                for (i = 0; i < (int)CssPropertiesEnum.CSS_N_PROPERTIES; i++)
+                {
+                    ref var prop = ref state.Props[i][j];
+
+                    /* If the property is still unset then set it
+                     * to its initial value. */
+                    if (!prop.Set)
+                    {
+                        CssProps.SetInitial(state, i, (CssPseudoElement)j, parent);
+                    }
+                }
+            }
 
             /* If this is the root element, then we must ensure that all
              * length values are absolute, display and float are correctly
@@ -2986,6 +3029,9 @@ namespace SkiaSharpOpenGLBenchmark
                 style.ComputeAbsoluteValues(null, unitCtx);
             }
 
+            state.SetNodeData(node);
+            //Log.Print(LogChannel.Html, $"Setting node data for node '{node.Name}'");
+            Log.Unimplemented("Stubplemented");
 
             // Steal the results from the selection state, so they don't get
             // freed when the selection state is finalised

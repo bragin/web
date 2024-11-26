@@ -42,7 +42,7 @@ namespace SkiaSharpOpenGLBenchmark.css
 
     public class CssNodeData
     {
-        CssSelectResults Partial;
+        public CssSelectResults Partial;
         public CssBloom Bloom;
         public CssNodeFlags Flags;
 
@@ -50,7 +50,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         {
             Flags = CssNodeFlags.CSS_NODE_FLAGS_NONE;
             Bloom = null;
-            Partial = null;
+            Partial = new CssSelectResults();
         }
     }
 
@@ -77,7 +77,7 @@ namespace SkiaSharpOpenGLBenchmark.css
     // libcss/src/select/select.h:64
     public class CssSelectState
     {
-        XmlNode Node;               // Node we're selecting for
+        public XmlNode Node;               // Node we're selecting for
         CssMedia Media;             // Currently active media spec
         CssUnitCtx UnitCtx;         // Unit conversion context
 
@@ -199,7 +199,7 @@ namespace SkiaSharpOpenGLBenchmark.css
                      * Build & set the parent node's bloom properly.
                      * This will speed up the case where DOM change
                      * has caused bloom to get deleted.  For now we
-                     * fall back to a fully satruated bloom filter,
+                     * fall back to a fully saturated bloom filter,
                      * which is slower but perfectly valid.
                      */
                     bloom = new CssBloom();
@@ -226,6 +226,39 @@ namespace SkiaSharpOpenGLBenchmark.css
             }
 
             return bloom;
+        }
+
+        // select.c:699
+        // css__set_node_data()
+        public void SetNodeData(XmlNode node)
+        {
+            // Set node bloom filter
+            var bloom = new CssBloom();
+            NodeData.Bloom = bloom;
+
+            // Set selection results
+            for (int i = 0; i < (int)CssPseudoElement.CSS_PSEUDO_ELEMENT_COUNT; i++)
+            {
+                NodeData.Partial.Styles[i] = Results.Styles[i]; // by reference
+            }
+
+            node.SetNodeData(NodeData);
+
+            NodeData = null;
+        }
+
+        // select.c:2420
+        // add_node_flags()
+        void AddNodeFlags(XmlNode node, CssNodeFlags flags)
+        {
+            /* If the node in question is the node we're selecting for then its
+	         * style has been tainted by particular rules that affect whether the
+	         * node's style can be shared.  We don't care whether the rule matched
+	         * or not, just that such a rule has been considered. */
+            if (node == Node)
+            {
+                NodeData.Flags |= flags;
+            }
         }
 
         // libcss/src/select/select.c:1835
@@ -510,6 +543,9 @@ namespace SkiaSharpOpenGLBenchmark.css
             if (match == false)
                 return;
 
+            var rule = selector.Rule;
+            Log.Print(LogChannel.Css, $"[{Node.Name}] matched CSS rule {selector.Data[0].Qname.Name} at {selector.Rule.Line} : {selector.Rule.Col}");
+
             // Iterate up the selector chain, matching combinators
             CssSelector s = selector;
             do
@@ -633,7 +669,7 @@ namespace SkiaSharpOpenGLBenchmark.css
         {
             pseudoElement = CssPseudoElement.CSS_PSEUDO_ELEMENT_NONE;
 
-            bool is_root = false;
+            bool isRoot = false;
             bool match = true;
             CssNodeFlags flags = CssNodeFlags.CSS_NODE_FLAGS_TAINT_PSEUDO_CLASS;
 
@@ -653,30 +689,28 @@ namespace SkiaSharpOpenGLBenchmark.css
                 case CssSelectorType.CSS_SELECTOR_CLASS:
                     match = node.HasClass(detail.Qname.Name);
                     //error = state->handler->node_has_class(state->pw, node,
-                    //      detail->qname.name, match);
+                    //      detail.Qname.Name, match);
                     break;
                 case CssSelectorType.CSS_SELECTOR_ID:
                     match = node.HasId(detail.Qname.Name);
                     //error = state->handler->node_has_id(state->pw, node,
-                    //detail->qname.name, match);
+                    //detail.Qname.Name, match);
                     break;
                 case CssSelectorType.CSS_SELECTOR_PSEUDO_CLASS:
-                    Log.Unimplemented();
+
+                    isRoot = node.IsRoot();
+
                     /*
-                    error = state->handler->node_is_root(state->pw, node, &is_root);
-                    if (error != CSS_OK)
-                        return error;
-
-                    if (is_root == false &&
-                            detail->qname.name == ctx->first_child) {
+                    if (isRoot == false &&
+                            detail.Qname.Name == CssStrings.first_child) {
                         int32_t num_before = 0;
 
                         error = state->handler->node_count_siblings(state->pw,
                                 node, false, false, &num_before);
                         if (error == CSS_OK)
                             *match = (num_before == 0);
-                    } else if (is_root == false &&
-                            detail->qname.name == ctx->nth_child) {
+                    } else if (isRoot == false &&
+                            detail.Qname.Name == CssStrings.nth_child) {
                         int32_t num_before = 0;
 
                         error = state->handler->node_count_siblings(state->pw,
@@ -687,8 +721,8 @@ namespace SkiaSharpOpenGLBenchmark.css
 
                             *match = match_nth(a, b, num_before + 1);
                         }
-                    } else if (is_root == false &&
-                            detail->qname.name == ctx->nth_last_child) {
+                    } else if (isRoot == false &&
+                            detail.Qname.Name == CssStrings.nth_last_child) {
                         int32_t num_after = 0;
 
                         error = state->handler->node_count_siblings(state->pw,
@@ -699,8 +733,8 @@ namespace SkiaSharpOpenGLBenchmark.css
 
                             *match = match_nth(a, b, num_after + 1);
                         }
-                    } else if (is_root == false &&
-                            detail->qname.name == ctx->nth_of_type) {
+                    } else if (isRoot == false &&
+                            detail.Qname.Name == CssStrings.nth_of_type) {
                         int32_t num_before = 0;
 
                         error = state->handler->node_count_siblings(state->pw,
@@ -711,8 +745,8 @@ namespace SkiaSharpOpenGLBenchmark.css
 
                             *match = match_nth(a, b, num_before + 1);
                         }
-                    } else if (is_root == false &&
-                            detail->qname.name == ctx->nth_last_of_type) {
+                    } else if (isRoot == false &&
+                            detail.Qname.Name == CssStrings.nth_last_of_type) {
                         int32_t num_after = 0;
 
                         error = state->handler->node_count_siblings(state->pw,
@@ -723,32 +757,32 @@ namespace SkiaSharpOpenGLBenchmark.css
 
                             *match = match_nth(a, b, num_after + 1);
                         }
-                    } else if (is_root == false &&
-                            detail->qname.name == ctx->last_child) {
+                    } else if (isRoot == false &&
+                            detail.Qname.Name == CssStrings.last_child) {
                         int32_t num_after = 0;
 
                         error = state->handler->node_count_siblings(state->pw,
                                 node, false, true, &num_after);
                         if (error == CSS_OK)
                             *match = (num_after == 0);
-                    } else if (is_root == false &&
-                            detail->qname.name == ctx->first_of_type) {
+                    } else if (isRoot == false &&
+                            detail.Qname.Name == CssStrings.first_of_type) {
                         int32_t num_before = 0;
 
                         error = state->handler->node_count_siblings(state->pw,
                                 node, true, false, &num_before);
                         if (error == CSS_OK)
                             *match = (num_before == 0);
-                    } else if (is_root == false &&
-                            detail->qname.name == ctx->last_of_type) {
+                    } else if (isRoot == false &&
+                            detail.Qname.Name == CssStrings.last_of_type) {
                         int32_t num_after = 0;
 
                         error = state->handler->node_count_siblings(state->pw,
                                 node, true, true, &num_after);
                         if (error == CSS_OK)
                             *match = (num_after == 0);
-                    } else if (is_root == false &&
-                            detail->qname.name == ctx->only_child) {
+                    } else if (isRoot == false &&
+                            detail.Qname.Name == CssStrings.only_child) {
                         int32_t num_before = 0, num_after = 0;
 
                         error = state->handler->node_count_siblings(state->pw,
@@ -761,8 +795,8 @@ namespace SkiaSharpOpenGLBenchmark.css
                                 *match = (num_before == 0) &&
                                         (num_after == 0);
                         }
-                    } else if (is_root == false &&
-                            detail->qname.name == ctx->only_of_type) {
+                    } else if (isRoot == false &&
+                            detail.Qname.Name == CssStrings.only_of_type) {
                         int32_t num_before = 0, num_after = 0;
 
                         error = state->handler->node_count_siblings(state->pw,
@@ -775,62 +809,58 @@ namespace SkiaSharpOpenGLBenchmark.css
                                 *match = (num_before == 0) &&
                                         (num_after == 0);
                         }
-                    } else if (detail->qname.name == ctx->root) {
-                        *match = is_root;
-                    } else if (detail->qname.name == ctx->empty) {
-                        error = state->handler->node_is_empty(state->pw,
-                                node, match);
-                    } else if (detail->qname.name == ctx->link) {
-                        error = state->handler->node_is_link(state->pw,
-                                node, match);
-                        flags = CSS_NODE_FLAGS_NONE;
-                    } else if (detail->qname.name == ctx->visited) {
-                        error = state->handler->node_is_visited(state->pw,
-                                node, match);
-                        flags = CSS_NODE_FLAGS_NONE;
-                    } else if (detail->qname.name == ctx->hover) {
-                        error = state->handler->node_is_hover(state->pw,
-                                node, match);
-                        flags = CSS_NODE_FLAGS_NONE;
-                    } else if (detail->qname.name == ctx->active) {
-                        error = state->handler->node_is_active(state->pw,
-                                node, match);
-                        flags = CSS_NODE_FLAGS_NONE;
-                    } else if (detail->qname.name == ctx->focus) {
-                        error = state->handler->node_is_focus(state->pw,
-                                node, match);
-                        flags = CSS_NODE_FLAGS_NONE;
-                    } else if (detail->qname.name == ctx->target) {
+                    } else*/ if (detail.Qname.Name == CssStrings.Root) {
+                        match = isRoot;
+                    } else if (detail.Qname.Name == CssStrings.Empty) {
+                        match = node.IsEmpty();
+                    } else if (detail.Qname.Name == CssStrings.Link) {
+                        match = node.IsLink();
+                        flags = CssNodeFlags.CSS_NODE_FLAGS_NONE;
+                    } else if (detail.Qname.Name == CssStrings.Visited) {
+                        match = node.IsVisited();
+                        flags = CssNodeFlags.CSS_NODE_FLAGS_NONE;
+                    } else if (detail.Qname.Name == CssStrings.Hover) {
+                        match = node.IsHover();
+                        flags = CssNodeFlags.CSS_NODE_FLAGS_NONE;
+                    } else if (detail.Qname.Name == CssStrings.Active) {
+                        match = node.IsActive();
+                        flags = CssNodeFlags.CSS_NODE_FLAGS_NONE;
+                    } else if (detail.Qname.Name == CssStrings.Focus) {
+                        match = node.IsFocus();
+                        flags = CssNodeFlags.CSS_NODE_FLAGS_NONE;
+                    } /*else if (detail.Qname.Name == CssStrings.target) {
                         error = state->handler->node_is_target(state->pw,
                                 node, match);
-                    } else if (detail->qname.name == ctx->lang) {
+                    } else if (detail.Qname.Name == CssStrings.lang) {
                         error = state->handler->node_is_lang(state->pw,
                                 node, detail->value.string, match);
-                    } else if (detail->qname.name == ctx->enabled) {
+                    } else if (detail.Qname.Name == CssStrings.enabled) {
                         error = state->handler->node_is_enabled(state->pw,
                                 node, match);
-                    } else if (detail->qname.name == ctx->disabled) {
+                    } else if (detail.Qname.Name == CssStrings.disabled) {
                         error = state->handler->node_is_disabled(state->pw,
                                 node, match);
-                    } else if (detail->qname.name == ctx->checked) {
+                    } else if (detail.Qname.Name == CssStrings.checked) {
                         error = state->handler->node_is_checked(state->pw,
                                 node, match);
-                    } else {
-                        *match = false;
+                    } */else {
+                        match = false;
+                        Log.Unimplemented();
                     }
-                    add_node_flags(node, state, flags);*/
+                    AddNodeFlags(node, flags);
+
                     break;
                 case CssSelectorType.CSS_SELECTOR_PSEUDO_ELEMENT:
                     match = true;
                     Log.Unimplemented();
                     /*
-                    if (detail->qname.name == ctx->first_line) {
+                    if (detail.Qname.Name == CssStrings.first_line) {
                         *pseudo_element = CSS_PSEUDO_ELEMENT_FIRST_LINE;
-                    } else if (detail->qname.name == ctx->first_letter) {
+                    } else if (detail.Qname.Name == CssStrings.first_letter) {
                         *pseudo_element = CSS_PSEUDO_ELEMENT_FIRST_LETTER;
-                    } else if (detail->qname.name == ctx->before) {
+                    } else if (detail.Qname.Name == CssStrings.before) {
                         *pseudo_element = CSS_PSEUDO_ELEMENT_BEFORE;
-                    } else if (detail->qname.name == ctx->after) {
+                    } else if (detail.Qname.Name == CssStrings.after) {
                         *pseudo_element = CSS_PSEUDO_ELEMENT_AFTER;
                     } else
                         *match = false;*/

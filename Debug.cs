@@ -7,7 +7,9 @@ namespace SkiaSharpOpenGLBenchmark
     public enum LogChannel
     {
         Events,
-        Layout
+        Layout,
+        Html,
+        Css
     }
 
     public static class Log {
