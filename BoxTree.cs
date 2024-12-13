@@ -266,6 +266,8 @@ namespace SkiaSharpOpenGLBenchmark
         // FIXME: Temporary and should be moved away
         int SCROLLBAR_WIDTH = 16;
 
+        public const int UnknownWidth = int.MaxValue;
+
         // box_manipulate.c:92 - box_create()
         public Box(CssSelectResults styles,
                     ComputedStyle style,
@@ -324,6 +326,57 @@ namespace SkiaSharpOpenGLBenchmark
 
             ScrollX = new Scrollbar();
             ScrollY = new Scrollbar();
+        }
+
+        // Clone constructor
+        public Box(Box oldBox)
+        {
+            Type = oldBox.Type;
+            Flags = oldBox.Flags;
+            Node = oldBox.Node;
+            Styles = oldBox.Styles;
+            Style = oldBox.Style;
+            Id = oldBox.Id;
+            Next = oldBox.Next;
+            Prev = oldBox.Prev;
+            Children = oldBox.Children;
+            Last = oldBox.Last;
+            Parent = oldBox.Parent;
+            InlineEnd = oldBox.InlineEnd;
+            float_children = oldBox.float_children;
+            next_float = oldBox.next_float;
+            float_container = oldBox.float_container;
+            clear_level = oldBox.clear_level;
+            cached_place_below_level = oldBox.cached_place_below_level;
+            X = oldBox.X;
+            Y = oldBox.Y;
+            Width = oldBox.Width;
+            Height = oldBox.Height;
+            DescendantX0 = oldBox.DescendantX0;
+            DescendantY0 = oldBox.DescendantY0;
+            DescendantX1 = oldBox.DescendantX1;
+            DescendantY1 = oldBox.DescendantY1;
+
+            for (int i = 0; i < 4; i++)
+            {
+                Margin[i] = oldBox.Margin[i];
+                Padding[i] = oldBox.Padding[i];
+                Border[i] = oldBox.Border[i];
+            }
+            ScrollX = oldBox.ScrollX;
+            ScrollY = oldBox.ScrollY;
+            MinWidth = oldBox.MinWidth;
+            MaxWidth = oldBox.MaxWidth;
+            Text = oldBox.Text;
+            Length = oldBox.Length;
+            Space = oldBox.Space;
+            Target = oldBox.Target;
+            Title = oldBox.Title;
+            columns = oldBox.columns;
+            rows = oldBox.rows;
+            start_column = oldBox.start_column;
+            list_value = oldBox.list_value;
+            Background = oldBox.Background;
         }
 
         /**
@@ -768,7 +821,7 @@ namespace SkiaSharpOpenGLBenchmark
 
 				        } else*/ {
                             //font_func->width(&fstyle, b.Text, b->length, &b->width);
-                            content.Plot.GetFontWidth(fstyle, b.Text, ref b.Width);
+                            content.Plot.GetFontWidth(fstyle, b.Text, b.Text.Length, ref b.Width);
 					        b.Flags |= BoxFlags.MEASURED;
 				        }
 			        }
@@ -778,7 +831,7 @@ namespace SkiaSharpOpenGLBenchmark
 				        if (b.Space == int.MaxValue)
                         {
                             //font_func->width(&fstyle, " ", 1, &b.Space);
-                            content.Plot.GetFontWidth(fstyle, " ", ref b.Space);
+                            content.Plot.GetFontWidth(fstyle, " ", 1, ref b.Space);
                         }
 				        max += b.Space;
 			        }
@@ -1654,6 +1707,65 @@ namespace SkiaSharpOpenGLBenchmark
             return updated;
         }
 
+        // layout.c:2793 layout_text_box_split()
+        bool LayoutTextBoxSplit(HtmlContent content,
+                                PlotFontStyle fstyle,
+                                int newLength,
+                                int newWidth)
+        {
+            int spaceWidth = Space;
+            bool space = (Text[newLength] == ' ');
+            int usedLength = newLength + (space ? 1 : 0);
+
+            if ((space && spaceWidth == 0) || spaceWidth == Box.UnknownWidth)
+            {
+                // Need to add a space, and we don't know how big it's to be, or we have a space of unknown width;
+                // Calculate space width
+                content.Plot.GetFontWidth(fstyle, " ", 1, ref spaceWidth);
+            }
+
+            if (Space == Box.UnknownWidth)
+                Space = spaceWidth;
+            if (!space)
+                spaceWidth = 0;
+
+            // Create clone of splitBox, c2
+            Box c2 = new Box(this);
+            if (c2 == null)
+                return false;
+
+            c2.Flags |= BoxFlags.CLONE;
+
+            // Set remaining text in c2
+            c2.Text = Text.Substring(usedLength);
+
+            // Adjust c2 according to the remaining text
+            c2.Width -= newWidth + spaceWidth;
+            c2.Flags &= ~BoxFlags.MEASURED; // width has been estimated
+            c2.Length = Length - usedLength;
+
+            // Update splitBox for its reduced text
+            Width = newWidth;
+            Flags |= BoxFlags.MEASURED;
+            Length = newLength;
+            Text = Text.Substring(0, newLength); // AB
+            Space = spaceWidth;
+
+            // Insert c2 into box list
+            c2.Next = Next;
+            Next = c2;
+            c2.Prev = this;
+            if (c2.Next != null)
+                c2.Next.Prev = c2;
+            else
+                c2.Parent.Last = c2;
+
+            Log.Print(LogChannel.Layout, $"split_box {this} len: {Length} \"{Text.Substring(0, Length)}\"");
+            Log.Print(LogChannel.Layout, $"new_box {c2} len: {c2.Length} \"{c2.Text}\"");
+
+            return true;
+        }
+
         // layout_line()
         // layout.c:3147
         /**
@@ -1701,7 +1813,7 @@ namespace SkiaSharpOpenGLBenchmark
             uint inline_count = 0;
             uint i;
             //const struct gui_layout_table *font_func = content->font_func;
-            PlotFontStyle fstyle;
+            PlotFontStyle fstyle = new PlotFontStyle();
 
             next_box = null; // To prevent uninitialized value return
 
@@ -1822,7 +1934,7 @@ namespace SkiaSharpOpenGLBenchmark
                     b.Width = 0;
                     if (b.Space == int.MaxValue)
                     {
-                        content.Plot.GetFontWidth(fstyle, " ", ref b.Space);
+                        content.Plot.GetFontWidth(fstyle, " ", 1, ref b.Space);
                         /** \todo handle errors */
                     }
                     space_after = b.Space;
@@ -1875,7 +1987,7 @@ namespace SkiaSharpOpenGLBenchmark
                                 b.Width += SCROLLBAR_WIDTH;
                         } else*/
                         {
-                            content.Plot.GetFontWidth(fstyle, b.Text, ref b.Width);
+                            content.Plot.GetFontWidth(fstyle, b.Text, b.Length, ref b.Width);
                             b.Flags |= BoxFlags.MEASURED;
                         }
                     }
@@ -1886,14 +1998,14 @@ namespace SkiaSharpOpenGLBenchmark
 					 * correctly. */
                     if (!string.IsNullOrEmpty(b.Text) && (x + b.Width < x1 - x0) && (b.Flags & BoxFlags.MEASURED) == 0 && b.Next != null)
                     {
-                        content.Plot.GetFontWidth(fstyle, b.Text, ref b.Width);
+                        content.Plot.GetFontWidth(fstyle, b.Text, b.Length, ref b.Width);
                         b.Flags |= BoxFlags.MEASURED;
                     }
 
                     x += b.Width;
                     if (b.Space == int.MaxValue)
                     {
-                        content.Plot.GetFontWidth(fstyle, " ", ref b.Space);
+                        content.Plot.GetFontWidth(fstyle, " ", 1, ref b.Space);
                         /** \todo handle errors */
                     }
                     space_after = b.Space;
@@ -2039,7 +2151,7 @@ namespace SkiaSharpOpenGLBenchmark
                         {
                             fstyle=b.Style.FontPlotStyle(content.UnitLenCtx);
                             /** \todo handle errors */
-                            content.Plot.GetFontWidth(fstyle, " ", ref b.Space);
+                            content.Plot.GetFontWidth(fstyle, " ", 1, ref b.Space);
                         }
                         space_after = b.Space;
                     }
@@ -2171,7 +2283,7 @@ namespace SkiaSharpOpenGLBenchmark
             if (x1 - x0 < x && split_box != null)
             {
                 /* the last box went over the end */
-                uint split = 0;
+                int split = 0;
                 int w=0;
                 bool no_wrap = split_box.Style.ComputedWhitespace() == CssWhiteSpaceEnum.CSS_WHITE_SPACE_NOWRAP ||
                         split_box.Style.ComputedWhitespace() == CssWhiteSpaceEnum.CSS_WHITE_SPACE_PRE;
@@ -2186,18 +2298,13 @@ namespace SkiaSharpOpenGLBenchmark
                     (split_box.Flags & BoxFlags.IFRAME) == 0 &&
                     /*!split_box->gadget &&*/ !string.IsNullOrEmpty(split_box.Text))
                 {
-                    Log.Unimplemented();
-                    /*
-                    font_plot_style_from_css(&content.UnitLenCtx,
-                            split_box.Style, &fstyle);
-                    // \todo handle errors
-                    font_func->split(&fstyle,
+                    fstyle = split_box.Style.FontPlotStyle(content.UnitLenCtx);
+
+                    content.Plot.SplitText(fstyle,
                              split_box.Text,
-                             split_box.Length,
                              x1 - x0 - x - space_before,
-                             &split,
-                             &w);
-                    */
+                             ref split,
+                             ref w);
                 }
 
                 /* split == 0 implies that text can't be split */
@@ -2207,9 +2314,8 @@ namespace SkiaSharpOpenGLBenchmark
 
 
                 Log.Print(LogChannel.Layout,
-                      $"splitting: split_box {split_box.GetHashCode()} \"{split_box.Text}\", spilt {split}, w {w}, left {left.GetHashCode()}, right {right.GetHashCode()}, inline_count {inline_count}");
-                Log.Unimplemented();
-                /*
+                      $"splitting: split_box {split_box.GetHashCode()} \"{split_box.Text}\", split {split}, w {w}, left {(left != null ? left.GetHashCode() : "null")}, right {(right != null ? right.GetHashCode() : "null")}, inline_count {inline_count}");
+
                 if ((split == 0 || x1 - x0 <= x + space_before + w) &&
                         left==null && right==null && inline_count == 1)
                 {
@@ -2223,10 +2329,12 @@ namespace SkiaSharpOpenGLBenchmark
                     }
                     else
                     {
+                        Log.Unimplemented();
+                        /*
                         // cut off first word for this line
                         if (!layout_text_box_split(content, &fstyle, split_box, split, w))
                             return false;
-                        b = split_box.Next;
+                        b = split_box.Next;*/
                     }
                     x += space_before + w;
 
@@ -2279,16 +2387,15 @@ namespace SkiaSharpOpenGLBenchmark
 
                     if (split != split_box.Length)
                     {
-                        if (!layout_text_box_split(content, &fstyle, split_box, split, w))
+                        if (!split_box.LayoutTextBoxSplit(content, fstyle, split, w))
                             return false;
                         b = split_box.Next;
                     }
                     x += space_before + w;
 
                     Log.Print(LogChannel.Layout, "fitting words");
-
                 }
-                move_y = true;*/
+                move_y = true;
             }
 
             /* set positions */

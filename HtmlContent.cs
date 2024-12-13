@@ -202,7 +202,12 @@ namespace SkiaSharpOpenGLBenchmark
             if (contents.Length == 0) return;
 
             var parser = new SimpleHtmlParser();
-            var doc = parser.ParseString("<p name=\"coolname\" class=\"mylink fancy\" id=\"idtest\">some text <a href=\"#\">and link</a></p><p>and another p</p>");
+
+
+            //var doc = parser.ParseString("<p name=\"coolname\" class=\"mylink fancy\" id=\"idtest\">some text <a href=\"#\">and link</a></p><p>and another p</p>");
+            var doc = parser.ParseString("<p>Pong is a table tennis–themed twitch arcade sports video game, featuring simple two-dimensional graphics, manufactured by Atari and originally released on 29 November 1972. It is one of the earliest arcade video games; it was created by Allan Alcorn as a training exercise assigned to him by Atari co-founder Nolan Bushnell, but Bushnell and Atari co-founder Ted Dabney were surprised by the quality of Alcorn's work and decided to manufacture the game. Bushnell based the game's concept on an electronic ping-pong game included in the Magnavox Odyssey, the first home video game console. In response, Magnavox later sued Atari for patent infringement. Pong was the first commercially successful video game,[3] and it helped to establish the video game industry along with the Magnavox Odyssey. Soon after its release, several companies began producing games that closely mimicked its gameplay. Eventually, Atari's competitors released new types of video games that deviated from Pong's original format to varying degrees, and this, in turn, led Atari to encourage its staff to move beyond Pong and produce more innovative games themselves.</p>");
+            
+            
             //var doc = parser.ParseUrl("http://nginx.org/");
             //var doc = parser.ParseString(contents);
 
@@ -220,7 +225,7 @@ namespace SkiaSharpOpenGLBenchmark
             // My CSS stuff
             var css = new CssStylesheet("", "http://nginx.org", "Useragent", false);
             //              0        10        20        30        40        50        60        70        80        90       100       110       120       130
-            css.AppendData("html { color: red; font-size: 16px; } .mylink { color: blue; } head { color: green; } #idtest { color: #112233; } a { color: #00ff55; }");
+            css.AppendData("html { color: black; font-size: 16px; } .mylink { color: blue; } head { color: green; } #idtest { color: #112233; } a { color: #00ff55; font-size: 14px; }");
 
             var hsheet = new HtmlStylesheet();
             hsheet.Sheet = css;
