@@ -10,6 +10,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
+using HtmlParserSharp.Common;
+using HtmlParserSharp.Core;
+using System.Reflection;
+using System.Drawing.Drawing2D;
+using System;
+using System.Xml.Linq;
+using web;
 
 namespace SkiaSharpOpenGLBenchmark
 {
@@ -19,23 +27,77 @@ namespace SkiaSharpOpenGLBenchmark
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool AllocConsole();
 
-
         HtmlContent content;
         Plotter Plot;
 
+        private FormElements floatingWindow;
+
         public Form1()
         {
+            // Disable DPI scaling
+            AutoScaleMode = AutoScaleMode.None;
+
             InitializeComponent();
 
             //CodeGenerator.GeneratePropertyParsers();
             //CodeGenerator.GenerateCodeStubs2();
+
+            // Manually add another SkiaSharp control
+            skglControl2 = new SkiaSharp.Views.Desktop.SKGLControl();
+
+            skglControl2.AutoScaleMode = AutoScaleMode.None;
+
+            skglControl2.BackColor = System.Drawing.Color.Gray;
+            skglControl2.Location = new Point(10, 10);
+            skglControl2.Margin = new Padding(10, 10, 10, 10);
+            skglControl2.Name = "skglControl2";
+            skglControl2.Size = new Size(100, 100);
+            skglControl2.TabIndex = 4;
+            skglControl2.VSync = false;
+            skglControl2.PaintSurface += skglControl2_PaintSurface;
+
+            //skglControl2.Height = 100;
+            //skglControl2.Scale(new SizeF(0.666f, 0.666f));
+            //Controls.Add(skglControl2);
+
+
+            //Scale(0.666f);
+            //skglControl1.Scale(new SizeF(0.666f, 0.666f));
+
+            // Create a floating window for the TreeView
+            floatingWindow = new FormElements();
+            floatingWindow.Show();
+
+            // Load and parse HTML into the TreeView
+            floatingWindow.LoadHtmlToTreeView("<html><body><p>Hello, World!</p></body></html>"); // Replace with your HTML source
+        }
+
+        private void skglControl2_PaintSurface(object sender, SkiaSharp.Views.Desktop.SKPaintGLSurfaceEventArgs e)
+        {
         }
 
         Random rand = new Random(0);
         private void skglControl1_PaintSurface(object sender, SkiaSharp.Views.Desktop.SKPaintGLSurfaceEventArgs e)
         {
+            var csize = skglControl1.CanvasSize;
             var surface = e.Surface;
+
+            //surface.Canvas.Scale(0.666f);
+
+
             Plot.Surface.Draw(surface.Canvas, 0, 0, null);
+
+
+            var paint = new SKPaint
+            {
+                Style = SKPaintStyle.Stroke,
+                Color = new SKColor(0xffdddddd)
+            };
+
+            var rect = new SKRect(100, 100, 110, 110);
+
+            surface.Canvas.DrawRect(rect, paint);
+
             /*
             surface.Canvas.Clear(SKColor.Parse("#003366"));
             for (int i = 0; i < lineCount; i++)

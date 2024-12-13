@@ -48,10 +48,21 @@ namespace SkiaSharpOpenGLBenchmark
         [STAThread]
         static void Main()
         {
+            // Set the DPI Awareness to Per-Monitor
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+            }
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
         }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool SetProcessDpiAwarenessContext(int value);
+
+        private const int DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = -4;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static string GetCurrentMethod()
